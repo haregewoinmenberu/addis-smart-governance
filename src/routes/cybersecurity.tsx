@@ -24,10 +24,10 @@ const incidents = [
 ];
 
 const vulns = [
-  { c: "Critical", v: 4, color: "destructive" },
-  { c: "High", v: 11, color: "warning" },
-  { c: "Medium", v: 38, color: "info" },
-  { c: "Low", v: 92, color: "success" },
+  { c: "Critical", v: 4, bar: "bg-destructive" },
+  { c: "High", v: 11, bar: "bg-warning" },
+  { c: "Medium", v: 38, bar: "bg-info" },
+  { c: "Low", v: 92, bar: "bg-success" },
 ];
 
 const sev = (s: string) =>
@@ -76,7 +76,7 @@ function Page() {
             {vulns.map((v) => (
               <div key={v.c}>
                 <div className="flex justify-between text-xs mb-1.5"><span className="text-muted-foreground">{v.c}</span><span className="font-semibold">{v.v}</span></div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden"><div className={`h-full bg-${v.color}`} style={{ width: `${Math.min(100, v.v)}%` }} /></div>
+                <div className="h-2 w-full rounded-full bg-muted overflow-hidden"><div className={`h-full ${v.bar}`} style={{ width: `${Math.min(100, v.v)}%` }} /></div>
               </div>
             ))}
           </div>

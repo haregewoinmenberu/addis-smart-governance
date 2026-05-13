@@ -63,13 +63,13 @@ function Page() {
         <Card className="p-5 rounded-2xl border-border/60">
           <h3 className="font-semibold tracking-tight mb-4">Sentiment breakdown</h3>
           {[
-            { l: "Positive", v: 71, i: Smile, c: "success" },
-            { l: "Neutral", v: 20, i: Meh, c: "info" },
-            { l: "Negative", v: 9, i: Frown, c: "destructive" },
+            { l: "Positive", v: 71, i: Smile, c: "text-success" },
+            { l: "Neutral", v: 20, i: Meh, c: "text-info" },
+            { l: "Negative", v: 9, i: Frown, c: "text-destructive" },
           ].map((s) => (
             <div key={s.l} className="mb-4 last:mb-0">
               <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="flex items-center gap-1.5"><s.i className={`h-3.5 w-3.5 text-${s.c}`} />{s.l}</span>
+                <span className="flex items-center gap-1.5"><s.i className={`h-3.5 w-3.5 ${s.c}`} />{s.l}</span>
                 <span className="font-semibold">{s.v}%</span>
               </div>
               <Progress value={s.v} className="h-1.5" />

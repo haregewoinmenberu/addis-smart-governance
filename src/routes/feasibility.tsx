@@ -20,10 +20,10 @@ const radar = [
 ];
 
 const swot = [
-  { t: "Strengths", c: "success", items: ["Strong vendor reputation", "Open APIs available", "ETB 4M cost saving vs alt."] },
-  { t: "Weaknesses", c: "warning", items: ["Limited internal Kubernetes skills", "Moderate vendor lock-in"] },
-  { t: "Opportunities", c: "info", items: ["Reuse for 4 sub-cities", "Foundation for citizen ID linkage"] },
-  { t: "Threats", c: "destructive", items: ["FX volatility on licensing", "Regional cybersecurity escalation"] },
+  { t: "Strengths", cls: "border-success/20 bg-success/5 text-success", items: ["Strong vendor reputation", "Open APIs available", "ETB 4M cost saving vs alt."] },
+  { t: "Weaknesses", cls: "border-warning/30 bg-warning/10 text-warning-foreground", items: ["Limited internal Kubernetes skills", "Moderate vendor lock-in"] },
+  { t: "Opportunities", cls: "border-info/20 bg-info/5 text-info", items: ["Reuse for 4 sub-cities", "Foundation for citizen ID linkage"] },
+  { t: "Threats", cls: "border-destructive/20 bg-destructive/5 text-destructive", items: ["FX volatility on licensing", "Regional cybersecurity escalation"] },
 ];
 
 const studies = [
@@ -68,8 +68,8 @@ function Page() {
           <h3 className="font-semibold tracking-tight mb-4">SWOT analysis · Smart Lighting</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {swot.map((s) => (
-              <div key={s.t} className={`rounded-xl border border-${s.c}/20 bg-${s.c}/5 p-4`}>
-                <p className={`text-xs uppercase tracking-wide font-semibold text-${s.c} mb-2`}>{s.t}</p>
+              <div key={s.t} className={`rounded-xl border p-4 ${s.cls}`}>
+                <p className="text-xs uppercase tracking-wide font-semibold mb-2">{s.t}</p>
                 <ul className="space-y-1.5">
                   {s.items.map((i) => <li key={i} className="text-sm leading-snug">• {i}</li>)}
                 </ul>
