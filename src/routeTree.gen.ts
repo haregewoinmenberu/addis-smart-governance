@@ -9,8 +9,98 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkflowsRouteImport } from './routes/workflows'
+import { Route as VendorsRouteImport } from './routes/vendors'
+import { Route as UsersRouteImport } from './routes/users'
+import { Route as SurveysRouteImport } from './routes/surveys'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RequestsRouteImport } from './routes/requests'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as RegistryRouteImport } from './routes/registry'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as FeasibilityRouteImport } from './routes/feasibility'
+import { Route as DuplicationRouteImport } from './routes/duplication'
+import { Route as CybersecurityRouteImport } from './routes/cybersecurity'
+import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WorkflowsRoute = WorkflowsRouteImport.update({
+  id: '/workflows',
+  path: '/workflows',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VendorsRoute = VendorsRouteImport.update({
+  id: '/vendors',
+  path: '/vendors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SurveysRoute = SurveysRouteImport.update({
+  id: '/surveys',
+  path: '/surveys',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestsRoute = RequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegistryRoute = RegistryRouteImport.update({
+  id: '/registry',
+  path: '/registry',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeasibilityRoute = FeasibilityRouteImport.update({
+  id: '/feasibility',
+  path: '/feasibility',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DuplicationRoute = DuplicationRouteImport.update({
+  id: '/duplication',
+  path: '/duplication',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CybersecurityRoute = CybersecurityRouteImport.update({
+  id: '/cybersecurity',
+  path: '/cybersecurity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditRoute = AuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +109,242 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/audit': typeof AuditRoute
+  '/cybersecurity': typeof CybersecurityRoute
+  '/duplication': typeof DuplicationRoute
+  '/feasibility': typeof FeasibilityRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/registry': typeof RegistryRoute
+  '/reports': typeof ReportsRoute
+  '/requests': typeof RequestsRoute
+  '/settings': typeof SettingsRoute
+  '/surveys': typeof SurveysRoute
+  '/users': typeof UsersRoute
+  '/vendors': typeof VendorsRoute
+  '/workflows': typeof WorkflowsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/audit': typeof AuditRoute
+  '/cybersecurity': typeof CybersecurityRoute
+  '/duplication': typeof DuplicationRoute
+  '/feasibility': typeof FeasibilityRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/registry': typeof RegistryRoute
+  '/reports': typeof ReportsRoute
+  '/requests': typeof RequestsRoute
+  '/settings': typeof SettingsRoute
+  '/surveys': typeof SurveysRoute
+  '/users': typeof UsersRoute
+  '/vendors': typeof VendorsRoute
+  '/workflows': typeof WorkflowsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/audit': typeof AuditRoute
+  '/cybersecurity': typeof CybersecurityRoute
+  '/duplication': typeof DuplicationRoute
+  '/feasibility': typeof FeasibilityRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/registry': typeof RegistryRoute
+  '/reports': typeof ReportsRoute
+  '/requests': typeof RequestsRoute
+  '/settings': typeof SettingsRoute
+  '/surveys': typeof SurveysRoute
+  '/users': typeof UsersRoute
+  '/vendors': typeof VendorsRoute
+  '/workflows': typeof WorkflowsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/audit'
+    | '/cybersecurity'
+    | '/duplication'
+    | '/feasibility'
+    | '/forgot-password'
+    | '/login'
+    | '/notifications'
+    | '/registry'
+    | '/reports'
+    | '/requests'
+    | '/settings'
+    | '/surveys'
+    | '/users'
+    | '/vendors'
+    | '/workflows'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/audit'
+    | '/cybersecurity'
+    | '/duplication'
+    | '/feasibility'
+    | '/forgot-password'
+    | '/login'
+    | '/notifications'
+    | '/registry'
+    | '/reports'
+    | '/requests'
+    | '/settings'
+    | '/surveys'
+    | '/users'
+    | '/vendors'
+    | '/workflows'
+  id:
+    | '__root__'
+    | '/'
+    | '/audit'
+    | '/cybersecurity'
+    | '/duplication'
+    | '/feasibility'
+    | '/forgot-password'
+    | '/login'
+    | '/notifications'
+    | '/registry'
+    | '/reports'
+    | '/requests'
+    | '/settings'
+    | '/surveys'
+    | '/users'
+    | '/vendors'
+    | '/workflows'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuditRoute: typeof AuditRoute
+  CybersecurityRoute: typeof CybersecurityRoute
+  DuplicationRoute: typeof DuplicationRoute
+  FeasibilityRoute: typeof FeasibilityRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  NotificationsRoute: typeof NotificationsRoute
+  RegistryRoute: typeof RegistryRoute
+  ReportsRoute: typeof ReportsRoute
+  RequestsRoute: typeof RequestsRoute
+  SettingsRoute: typeof SettingsRoute
+  SurveysRoute: typeof SurveysRoute
+  UsersRoute: typeof UsersRoute
+  VendorsRoute: typeof VendorsRoute
+  WorkflowsRoute: typeof WorkflowsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workflows': {
+      id: '/workflows'
+      path: '/workflows'
+      fullPath: '/workflows'
+      preLoaderRoute: typeof WorkflowsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vendors': {
+      id: '/vendors'
+      path: '/vendors'
+      fullPath: '/vendors'
+      preLoaderRoute: typeof VendorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/surveys': {
+      id: '/surveys'
+      path: '/surveys'
+      fullPath: '/surveys'
+      preLoaderRoute: typeof SurveysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/requests': {
+      id: '/requests'
+      path: '/requests'
+      fullPath: '/requests'
+      preLoaderRoute: typeof RequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/registry': {
+      id: '/registry'
+      path: '/registry'
+      fullPath: '/registry'
+      preLoaderRoute: typeof RegistryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feasibility': {
+      id: '/feasibility'
+      path: '/feasibility'
+      fullPath: '/feasibility'
+      preLoaderRoute: typeof FeasibilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/duplication': {
+      id: '/duplication'
+      path: '/duplication'
+      fullPath: '/duplication'
+      preLoaderRoute: typeof DuplicationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cybersecurity': {
+      id: '/cybersecurity'
+      path: '/cybersecurity'
+      fullPath: '/cybersecurity'
+      preLoaderRoute: typeof CybersecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/audit': {
+      id: '/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +357,21 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuditRoute: AuditRoute,
+  CybersecurityRoute: CybersecurityRoute,
+  DuplicationRoute: DuplicationRoute,
+  FeasibilityRoute: FeasibilityRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  NotificationsRoute: NotificationsRoute,
+  RegistryRoute: RegistryRoute,
+  ReportsRoute: ReportsRoute,
+  RequestsRoute: RequestsRoute,
+  SettingsRoute: SettingsRoute,
+  SurveysRoute: SurveysRoute,
+  UsersRoute: UsersRoute,
+  VendorsRoute: VendorsRoute,
+  WorkflowsRoute: WorkflowsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
