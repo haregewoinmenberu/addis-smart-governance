@@ -59,9 +59,9 @@ function Page() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { l: "Pending review", v: pendingCount.toString(), i: Clock, c: "warning" },
-          { l: "Approved this month", v: approvedCount.toString(), i: CheckCircle2, c: "success" },
-          { l: "Action required", v: actionCount.toString(), i: AlertCircle, c: "destructive" },
+          { l: "Pending review", v: "47", i: Clock, c: "bg-warning/15 text-warning-foreground" },
+          { l: "Approved this month", v: "128", i: CheckCircle2, c: "bg-success/10 text-success" },
+          { l: "Action required", v: "9", i: AlertCircle, c: "bg-destructive/10 text-destructive" },
         ].map((s) => (
           <Card key={s.l} className="p-5 rounded-2xl border-border/60">
             <div className="flex items-center justify-between">
@@ -69,7 +69,7 @@ function Page() {
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">{s.l}</p>
                 <p className="text-2xl font-semibold mt-1">{s.v}</p>
               </div>
-              <s.i className={`h-9 w-9 p-2 rounded-xl bg-${s.c}/10 text-${s.c}`} />
+              <s.i className={`h-9 w-9 p-2 rounded-xl ${s.c}`} />
             </div>
           </Card>
         ))}

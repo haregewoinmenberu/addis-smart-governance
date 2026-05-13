@@ -160,7 +160,7 @@ function Dashboard() {
           </div>
         </Card>
 
-        <Card className="p-5 rounded-2xl border-border/60 bg-gradient-to-br from-primary/5 via-card to-card">
+        <Card className="p-5 rounded-2xl border-border/60 bg-linear-to-br from-primary/5 via-card to-card">
           <div className="flex items-center gap-2 mb-3">
             <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
               <Sparkles className="h-4 w-4 text-primary-foreground" />
