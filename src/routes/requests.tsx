@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { getList } from "@/lib/api";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { Plus, Filter, Search, FileStack, ArrowRight, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/requests")({
@@ -12,13 +15,17 @@ export const Route = createFileRoute("/requests")({
   component: Page,
 });
 
-const requests = [
-  { id: "TR-2025-0142", title: "Smart Traffic Management v2", office: "Bole Sub-City", status: "In review", step: 3, total: 5, budget: "ETB 12.4M", date: "Sep 12, 2025" },
-  { id: "TR-2025-0141", title: "Citizen Feedback Mobile App", office: "ITDB Central", status: "Approved", step: 5, total: 5, budget: "ETB 4.8M", date: "Sep 10, 2025" },
-  { id: "TR-2025-0140", title: "Municipal Asset Tracker", office: "Kirkos Sub-City", status: "Rejected", step: 4, total: 5, budget: "ETB 9.1M", date: "Sep 09, 2025" },
-  { id: "TR-2025-0139", title: "Waste Routing AI Platform", office: "Yeka Sub-City", status: "Pending", step: 1, total: 5, budget: "ETB 18.7M", date: "Sep 08, 2025" },
-  { id: "TR-2025-0138", title: "e-Permit Issuance Portal", office: "Arada Sub-City", status: "In review", step: 2, total: 5, budget: "ETB 7.6M", date: "Sep 06, 2025" },
-];
+type RequestItem = {
+  id: number;
+  code: string;
+  title: string;
+  office: string;
+  status: string;
+  step: number;
+  total_steps: number;
+  budget: number | null;
+  submitted_at: string;
+};
 
 const statusStyle = (s: string) => {
   if (s === "Approved") return "bg-success/10 text-success border-success/20";
@@ -28,6 +35,16 @@ const statusStyle = (s: string) => {
 };
 
 function Page() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["requests"],
+    queryFn: async () => (await getList<RequestItem>("/requests")).data,
+  });
+
+  const requests = data ?? [];
+  const pendingCount = requests.filter((r) => r.status === "Pending").length;
+  const approvedCount = requests.filter((r) => r.status === "Approved").length;
+  const actionCount = requests.filter((r) => r.status === "In review").length;
+
   return (
     <AppShell>
       <PageHeader
@@ -42,9 +59,9 @@ function Page() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { l: "Pending review", v: "47", i: Clock, c: "warning" },
-          { l: "Approved this month", v: "128", i: CheckCircle2, c: "success" },
-          { l: "Action required", v: "9", i: AlertCircle, c: "destructive" },
+          { l: "Pending review", v: pendingCount.toString(), i: Clock, c: "warning" },
+          { l: "Approved this month", v: approvedCount.toString(), i: CheckCircle2, c: "success" },
+          { l: "Action required", v: actionCount.toString(), i: AlertCircle, c: "destructive" },
         ].map((s) => (
           <Card key={s.l} className="p-5 rounded-2xl border-border/60">
             <div className="flex items-center justify-between">
@@ -93,7 +110,7 @@ function Page() {
                       </div>
                       <div>
                         <p className="font-medium">{r.title}</p>
-                        <p className="text-xs text-muted-foreground">{r.id}</p>
+                        <p className="text-xs text-muted-foreground">{r.code}</p>
                       </div>
                     </div>
                   </td>
@@ -102,18 +119,21 @@ function Page() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="h-1.5 w-24 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full bg-gradient-primary" style={{ width: `${(r.step / r.total) * 100}%` }} />
+                        <div className="h-full bg-gradient-primary" style={{ width: `${(r.step / r.total_steps) * 100}%` }} />
                       </div>
-                      <span className="text-xs text-muted-foreground">{r.step}/{r.total}</span>
+                      <span className="text-xs text-muted-foreground">{r.step}/{r.total_steps}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-medium">{r.budget}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{r.date}</td>
+                  <td className="px-4 py-3 font-medium">{formatCurrency(r.budget ?? 0)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{formatDate(r.submitted_at)}</td>
                   <td className="px-4 py-3 text-right"><Button variant="ghost" size="icon" className="h-8 w-8"><ArrowRight className="h-4 w-4" /></Button></td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {!requests.length && !isLoading && (
+            <div className="p-6 text-center text-sm text-muted-foreground">No requests yet.</div>
+          )}
         </div>
       </Card>
     </AppShell>

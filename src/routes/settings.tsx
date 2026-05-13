@@ -1,13 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ModuleStub } from "@/components/layout/ModuleStub";
+import { ModuleDataPage } from "@/components/layout/ModuleDataPage";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — STRP" }, { name: "description", content: "Configure system policies, branding, integrations and notification preferences." }] }),
   component: () => (
-    <ModuleStub
+    <ModuleDataPage
+      moduleKey="settings"
       title="Settings"
       subtitle="Configure system policies, branding, integrations and notification preferences."
-      points={["System configurations","Workflow settings","Notification preferences","Branding settings","Security policies","API integrations"]}
+      endpoint="/settings"
+      columns={[
+        { key: "category", label: "Category" },
+        { key: "name", label: "Setting" },
+        { key: "status", label: "Status" },
+      ]}
     />
   ),
 });

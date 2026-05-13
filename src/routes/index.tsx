@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -6,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { getDashboard } from "@/lib/api";
 import {
   Database, Activity, Clock, Copy, ShieldAlert, CheckCircle2,
   Building2, Sparkles, Wallet, TrendingUp, Download, Plus, ArrowUpRight,
@@ -25,24 +27,35 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-const investment = [
-  { m: "Jan", v: 2.4, c: 1.8 }, { m: "Feb", v: 3.1, c: 2.2 }, { m: "Mar", v: 2.8, c: 2.5 },
-  { m: "Apr", v: 3.6, c: 2.9 }, { m: "May", v: 4.2, c: 3.1 }, { m: "Jun", v: 4.8, c: 3.6 },
-  { m: "Jul", v: 5.4, c: 4.0 }, { m: "Aug", v: 5.1, c: 4.4 }, { m: "Sep", v: 6.2, c: 4.9 },
-];
-
-const subcity = [
-  { name: "Bole", v: 142 }, { name: "Yeka", v: 118 }, { name: "Kirkos", v: 96 },
-  { name: "Arada", v: 84 }, { name: "Gulele", v: 71 }, { name: "Lideta", v: 63 }, { name: "Akaki", v: 52 },
-];
-
-const compliance = [
-  { name: "Compliant", v: 68, c: "var(--color-success)" },
-  { name: "Pending", v: 22, c: "var(--color-warning)" },
-  { name: "At risk", v: 10, c: "var(--color-destructive)" },
+const statIcons = [
+  Database,
+  Activity,
+  Clock,
+  Copy,
+  ShieldAlert,
+  CheckCircle2,
+  Building2,
+  Sparkles,
 ];
 
 function Dashboard() {
+  const { data } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: getDashboard,
+  });
+
+  const stats = (data?.stats ?? []).map((item, index) => ({
+    ...item,
+    icon: statIcons[index] ?? Database,
+  }));
+
+  const investment = data?.investment ?? [];
+  const subcity = data?.subcity ?? [];
+  const compliance = data?.compliance ?? [];
+  const insights = data?.insights ?? [];
+  const approvals = data?.approvals ?? [];
+  const readiness = data?.readiness ?? [];
+
   return (
     <AppShell>
       <PageHeader
@@ -59,14 +72,17 @@ function Dashboard() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Registered Technologies" value="1,284" delta="+8.2%" icon={Database} accent="primary" />
-        <StatCard label="Active Projects" value="312" delta="+4.1%" icon={Activity} accent="info" />
-        <StatCard label="Pending Requests" value="47" delta="-12%" trend="down" icon={Clock} accent="warning" />
-        <StatCard label="Duplicate Systems" value="19" delta="-3" trend="down" icon={Copy} accent="destructive" />
-        <StatCard label="Cybersecurity Risk" value="Low · 24" delta="-6 pts" trend="down" icon={ShieldAlert} accent="success" />
-        <StatCard label="Compliance Rate" value="92%" delta="+2.4%" icon={CheckCircle2} accent="success" />
-        <StatCard label="Vendor Performance" value="87 / 100" delta="+1.8" icon={Building2} accent="primary" />
-        <StatCard label="Smart City Index" value="74.6" delta="+3.1" icon={Sparkles} accent="info" />
+        {stats.map((stat, index) => (
+          <StatCard
+            key={`${stat.label}-${index}`}
+            label={stat.label as string}
+            value={String(stat.value)}
+            delta={stat.delta as string}
+            trend={(stat.trend as "up" | "down" | undefined) ?? "up"}
+            icon={stat.icon}
+            accent={stat.accent as "primary" | "info" | "warning" | "destructive" | "success"}
+          />
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -155,11 +171,7 @@ function Dashboard() {
             </div>
           </div>
           <div className="space-y-3">
-            {[
-              { t: "3 sub-cities show overlapping ERP procurement", b: "Consolidation could save ~ETB 14M annually." },
-              { t: "Cybersecurity posture improving", b: "Threat exposure dropped 18% across critical assets." },
-              { t: "Vendor 'Sheba Tech' breached SLA twice", b: "Recommend escalation to procurement review." },
-            ].map((i, k) => (
+            {insights.map((i: { t: string; b: string }, k: number) => (
               <div key={k} className="rounded-xl border border-border/60 bg-card/60 p-3 hover:border-primary/30 transition-colors">
                 <p className="text-sm font-medium leading-snug">{i.t}</p>
                 <p className="text-xs text-muted-foreground mt-1">{i.b}</p>
@@ -176,13 +188,7 @@ function Dashboard() {
             <Button variant="ghost" size="sm" className="gap-1 text-xs">View all <ArrowUpRight className="h-3 w-3" /></Button>
           </div>
           <div className="space-y-1">
-            {[
-              { t: "Smart Traffic Management v2", o: "Bole Sub-City", s: "Approved", v: "success" },
-              { t: "e-Permit Issuance Platform", o: "Arada Sub-City", s: "In review", v: "warning" },
-              { t: "Citizen Feedback Portal", o: "ITDB Central", s: "Approved", v: "success" },
-              { t: "Municipal Asset Tracker", o: "Kirkos Sub-City", s: "Rejected", v: "destructive" },
-              { t: "Waste Routing AI", o: "Yeka Sub-City", s: "Pending", v: "warning" },
-            ].map((r, i) => (
+            {approvals.map((r: { t: string; o: string; s: string; v: string }, i: number) => (
               <div key={i} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
                 <div>
                   <p className="text-sm font-medium">{r.t}</p>
@@ -204,13 +210,7 @@ function Dashboard() {
         <Card className="p-5 rounded-2xl border-border/60">
           <h3 className="font-semibold tracking-tight mb-4">Smart City Readiness</h3>
           <div className="space-y-4">
-            {[
-              { l: "Digital infrastructure", v: 82 },
-              { l: "Cybersecurity maturity", v: 71 },
-              { l: "Data interoperability", v: 64 },
-              { l: "Citizen services digitization", v: 78 },
-              { l: "Governance & compliance", v: 89 },
-            ].map((p, i) => (
+            {readiness.map((p: { l: string; v: number }, i: number) => (
               <div key={i}>
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-muted-foreground">{p.l}</span>

@@ -1,13 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ModuleStub } from "@/components/layout/ModuleStub";
+import { ModuleDataPage } from "@/components/layout/ModuleDataPage";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/reports")({
   head: () => ({ meta: [{ title: "Reports & Analytics — STRP" }, { name: "description", content: "Executive insights powered by AI across procurement, infrastructure and maturity." }] }),
   component: () => (
-    <ModuleStub
+    <ModuleDataPage
+      moduleKey="reports"
       title="Reports & Analytics"
       subtitle="Executive insights powered by AI across procurement, infrastructure and maturity."
-      points={["Executive reports","AI-powered insights","Procurement analytics","Infrastructure investment analytics","Technology maturity analytics","Export to PDF / Excel"]}
+      endpoint="/reports"
+      columns={[
+        { key: "title", label: "Report" },
+        { key: "type", label: "Type" },
+        { key: "period", label: "Period" },
+        { key: "status", label: "Status" },
+        { key: "generated_at", label: "Generated", render: (row) => formatDate(row.generated_at as string) },
+      ]}
     />
   ),
 });

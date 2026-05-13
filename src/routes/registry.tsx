@@ -1,13 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ModuleStub } from "@/components/layout/ModuleStub";
+import { ModuleDataPage } from "@/components/layout/ModuleDataPage";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/registry")({
   head: () => ({ meta: [{ title: "Technology Registry — STRP" }, { name: "description", content: "Centralized inventory of every technology asset deployed across Addis Ababa." }] }),
   component: () => (
-    <ModuleStub
+    <ModuleDataPage
+      moduleKey="registry"
       title="Technology Registry"
       subtitle="Centralized inventory of every technology asset deployed across Addis Ababa."
-      points={["Centralized technology database","Advanced filtering & search","Map-based deployment visualization","Hosting environment management","License & contract tracking","Security classification labels"]}
+      endpoint="/technologies"
+      columns={[
+        { key: "name", label: "Technology" },
+        { key: "category", label: "Category" },
+        { key: "owner_office", label: "Office" },
+        { key: "status", label: "Status" },
+        { key: "deployed_at", label: "Deployed", render: (row) => formatDate(row.deployed_at as string) },
+      ]}
     />
   ),
 });

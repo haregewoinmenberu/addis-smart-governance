@@ -1,10 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { login } from "@/lib/api";
 import { Sparkles, Lock, Mail, ShieldCheck } from "lucide-react";
+import { useState } from "react";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — STRP Portal" }] }),
@@ -12,6 +15,15 @@ export const Route = createFileRoute("/login")({
 });
 
 function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const mutation = useMutation({
+    mutationFn: async () => login(email, password),
+    onSuccess: () => navigate({ to: "/" }),
+  });
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
       <div className="hidden lg:flex relative overflow-hidden bg-gradient-primary text-primary-foreground p-12 flex-col justify-between">
@@ -57,12 +69,25 @@ function Login() {
           <h2 className="text-2xl font-semibold tracking-tight">Welcome back</h2>
           <p className="text-sm text-muted-foreground mt-1">Sign in with your government credentials.</p>
 
-          <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form
+            className="mt-6 space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              mutation.mutate();
+            }}
+          >
             <div className="space-y-1.5">
               <Label htmlFor="email">Official email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="name@addisababa.gov.et" className="pl-9 h-11" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@addisababa.gov.et"
+                  className="pl-9 h-11"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
               </div>
             </div>
             <div className="space-y-1.5">
@@ -72,7 +97,14 @@ function Login() {
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="password" type="password" placeholder="••••••••" className="pl-9 h-11" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  className="pl-9 h-11"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
               </div>
             </div>
 
@@ -83,9 +115,19 @@ function Login() {
               <span className="flex items-center gap-1 text-xs text-success"><ShieldCheck className="h-3.5 w-3.5" />Secure</span>
             </div>
 
-            <Button asChild className="w-full h-11 bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-95">
-              <Link to="/">Sign in</Link>
+            <Button
+              type="submit"
+              className="w-full h-11 bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-95"
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? "Signing in..." : "Sign in"}
             </Button>
+
+            {mutation.isError && (
+              <p className="text-xs text-destructive text-center">
+                {mutation.error instanceof Error ? mutation.error.message : "Login failed"}
+              </p>
+            )}
 
             <p className="text-center text-xs text-muted-foreground">
               Protected by multi-factor authentication and role-based access control.

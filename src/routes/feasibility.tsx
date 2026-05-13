@@ -1,13 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ModuleStub } from "@/components/layout/ModuleStub";
+import { ModuleDataPage } from "@/components/layout/ModuleDataPage";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/feasibility")({
   head: () => ({ meta: [{ title: "Feasibility Studies — STRP" }, { name: "description", content: "Evaluate technical, financial, security and operational feasibility of every initiative." }] }),
   component: () => (
-    <ModuleStub
+    <ModuleDataPage
+      moduleKey="feasibility"
       title="Feasibility Studies"
       subtitle="Evaluate technical, financial, security and operational feasibility of every initiative."
-      points={["Technical feasibility evaluation","Financial analysis & ROI","Security assessment","Operational readiness","Vendor evaluation","Risk analysis with SWOT visualization"]}
+      endpoint="/feasibility-studies"
+      columns={[
+        { key: "title", label: "Study" },
+        { key: "office", label: "Office" },
+        { key: "status", label: "Status" },
+        { key: "score", label: "Score", render: (row) => (row.score ? `${row.score}%` : "-") },
+        { key: "reviewed_at", label: "Reviewed", render: (row) => formatDate(row.reviewed_at as string) },
+      ]}
     />
   ),
 });
