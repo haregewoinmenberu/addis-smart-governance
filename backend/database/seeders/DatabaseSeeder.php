@@ -25,12 +25,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'STRP Admin',
-            'email' => 'admin@addis.gov.et',
-            'password' => Hash::make('Password123!'),
+        // Seed roles and permissions first
+        $this->call([
+            RolesAndPermissionsSeeder::class,
+            DefaultUsersSeeder::class,
+            WorkflowDefinitionsSeeder::class,
         ]);
 
+        // Seed sample data
         Technology::insert([
             ['name' => 'Smart Traffic Management v2', 'category' => 'Transport', 'owner_office' => 'Bole Sub-City', 'status' => 'Active', 'classification' => 'Tier-1', 'location' => 'Bole', 'deployed_at' => '2025-02-10', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Citizen Feedback Portal', 'category' => 'Citizen Services', 'owner_office' => 'ITDB Central', 'status' => 'Active', 'classification' => 'Tier-2', 'location' => 'ITDB', 'deployed_at' => '2024-11-20', 'created_at' => now(), 'updated_at' => now()],

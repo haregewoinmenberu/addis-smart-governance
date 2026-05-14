@@ -3,76 +3,343 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Workflow;
+use App\Models\WorkflowDefinition;
+use App\Models\WorkflowInstance;
+use App\Models\WorkflowApproval;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
 class WorkflowController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of workflow definitions.
      */
     public function index()
     {
+        $workflows = WorkflowDefinition::with('creator')
+            ->orderByDesc('updated_at')
+            ->get();
+
         return response()->json([
-            'data' => Workflow::orderByDesc('updated_at')->get(),
+            'data' => $workflows->map(fn($workflow) => [
+                'id' => $workflow->id,
+                'name' => $workflow->name,
+                'code' => $workflow->code,
+                'description' => $workflow->description,
+                'entity_type' => $workflow->entity_type,
+                'stages_count' => count($workflow->stages),
+                'is_active' => $workflow->is_active,
+                'instances_count' => $workflow->instances()->count(),
+                'created_by' => $workflow->creator?->name,
+                'created_at' => $workflow->created_at,
+            ]),
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created workflow definition.
      */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required', 'string'],
-            'stages' => ['required', 'integer', 'min:1'],
-            'active' => ['nullable', 'boolean'],
-            'owner_office' => ['required', 'string'],
-            'last_run_at' => ['nullable', 'date'],
+            'name' => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'unique:workflow_definitions,code'],
+            'description' => ['nullable', 'string'],
+            'entity_type' => ['required', 'string'],
+            'stages' => ['required', 'array', 'min:1'],
+            'stages.*.name' => ['required', 'string'],
+            'stages.*.display_name' => ['required', 'string'],
+            'stages.*.description' => ['nullable', 'string'],
+            'stages.*.order' => ['required', 'integer', 'min:1'],
+            'stages.*.required_role' => ['nullable', 'string'],
+            'stages.*.actions' => ['required', 'array'],
+            'stages.*.auto_advance' => ['boolean'],
+            'is_active' => ['boolean'],
         ]);
 
-        $workflow = Workflow::create($data);
+        $data['created_by'] = auth()->id();
 
-        return response()->json(['data' => $workflow], 201);
+        $workflow = WorkflowDefinition::create($data);
+
+        ActivityLog::log('create', 'workflows', $workflow);
+
+        return response()->json([
+            'message' => 'Workflow created successfully',
+            'data' => $workflow,
+        ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified workflow definition.
      */
     public function show(string $id)
     {
+        $workflow = WorkflowDefinition::with('creator', 'instances')->findOrFail($id);
+
         return response()->json([
-            'data' => Workflow::findOrFail($id),
+            'data' => [
+                'id' => $workflow->id,
+                'name' => $workflow->name,
+                'code' => $workflow->code,
+                'description' => $workflow->description,
+                'entity_type' => $workflow->entity_type,
+                'stages' => $workflow->stages,
+                'is_active' => $workflow->is_active,
+                'created_by' => $workflow->creator,
+                'instances' => $workflow->instances()->latest()->limit(10)->get(),
+                'created_at' => $workflow->created_at,
+            ],
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified workflow definition.
      */
     public function update(Request $request, string $id)
     {
-        $workflow = Workflow::findOrFail($id);
+        $workflow = WorkflowDefinition::findOrFail($id);
+        
         $data = $request->validate([
-            'name' => ['sometimes', 'string'],
-            'stages' => ['sometimes', 'integer', 'min:1'],
-            'active' => ['nullable', 'boolean'],
-            'owner_office' => ['sometimes', 'string'],
-            'last_run_at' => ['nullable', 'date'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'stages' => ['sometimes', 'array', 'min:1'],
+            'is_active' => ['boolean'],
         ]);
 
+        $oldValues = $workflow->toArray();
         $workflow->update($data);
 
-        return response()->json(['data' => $workflow]);
+        ActivityLog::log('update', 'workflows', $workflow, $oldValues, $workflow->toArray());
+
+        return response()->json([
+            'message' => 'Workflow updated successfully',
+            'data' => $workflow,
+        ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified workflow definition.
      */
     public function destroy(string $id)
     {
-        $workflow = Workflow::findOrFail($id);
+        $workflow = WorkflowDefinition::findOrFail($id);
+
+        // Check if workflow has active instances
+        if ($workflow->instances()->where('status', 'in_progress')->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete workflow with active instances',
+            ], 422);
+        }
+
+        ActivityLog::log('delete', 'workflows', $workflow, $workflow->toArray(), null);
+
         $workflow->delete();
 
-        return response()->json(['message' => 'Deleted']);
+        return response()->json(['message' => 'Workflow deleted successfully']);
+    }
+
+    /**
+     * Get workflow instances.
+     */
+    public function instances(Request $request)
+    {
+        $query = WorkflowInstance::with('definition', 'workflowable', 'approvals.approver');
+
+        // Filter by status
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by workflow definition
+        if ($request->has('workflow_id')) {
+            $query->where('workflow_definition_id', $request->workflow_id);
+        }
+
+        // Filter by user's pending approvals
+        if ($request->boolean('my_approvals')) {
+            $user = auth()->user();
+            $query->whereHas('approvals', function ($q) use ($user) {
+                $q->where('action', 'pending')
+                  ->whereHas('workflowInstance.definition', function ($wq) use ($user) {
+                      // Check if current stage requires user's role
+                      $roles = $user->roles->pluck('name')->toArray();
+                      $wq->whereJsonContains('stages', function ($stage) use ($roles) {
+                          return in_array($stage['required_role'] ?? null, $roles);
+                      });
+                  });
+            });
+        }
+
+        $instances = $query->orderByDesc('created_at')->paginate(20);
+
+        return response()->json($instances);
+    }
+
+    /**
+     * Get specific workflow instance.
+     */
+    public function showInstance(string $id)
+    {
+        $instance = WorkflowInstance::with([
+            'definition',
+            'workflowable',
+            'approvals.approver',
+        ])->findOrFail($id);
+
+        return response()->json(['data' => $instance]);
+    }
+
+    /**
+     * Approve workflow stage.
+     */
+    public function approve(Request $request, string $instanceId)
+    {
+        $instance = WorkflowInstance::findOrFail($instanceId);
+        
+        $data = $request->validate([
+            'comments' => ['nullable', 'string'],
+            'metadata' => ['nullable', 'array'],
+        ]);
+
+        // Check if user has permission to approve this stage
+        $currentStage = $instance->definition->getStage($instance->current_stage);
+        $requiredRole = $currentStage['required_role'] ?? null;
+
+        if ($requiredRole && !auth()->user()->hasRole($requiredRole)) {
+            return response()->json([
+                'message' => 'You do not have permission to approve this stage',
+                'required_role' => $requiredRole,
+            ], 403);
+        }
+
+        // Update current approval
+        $approval = $instance->currentApproval();
+        if ($approval) {
+            $approval->update([
+                'approver_id' => auth()->id(),
+                'action' => 'approved',
+                'comments' => $data['comments'] ?? null,
+                'metadata' => $data['metadata'] ?? null,
+                'actioned_at' => now(),
+            ]);
+        }
+
+        // Advance to next stage or complete
+        if ($currentStage['auto_advance'] ?? false) {
+            $instance->advanceToNextStage();
+        }
+
+        ActivityLog::log('approve', 'workflows', $instance);
+
+        return response()->json([
+            'message' => 'Workflow stage approved successfully',
+            'data' => $instance->fresh(['definition', 'approvals']),
+        ]);
+    }
+
+    /**
+     * Reject workflow.
+     */
+    public function reject(Request $request, string $instanceId)
+    {
+        $instance = WorkflowInstance::findOrFail($instanceId);
+        
+        $data = $request->validate([
+            'comments' => ['required', 'string'],
+            'metadata' => ['nullable', 'array'],
+        ]);
+
+        // Check permission
+        $currentStage = $instance->definition->getStage($instance->current_stage);
+        $requiredRole = $currentStage['required_role'] ?? null;
+
+        if ($requiredRole && !auth()->user()->hasRole($requiredRole)) {
+            return response()->json([
+                'message' => 'You do not have permission to reject this stage',
+            ], 403);
+        }
+
+        // Update approval
+        $approval = $instance->currentApproval();
+        if ($approval) {
+            $approval->update([
+                'approver_id' => auth()->id(),
+                'action' => 'rejected',
+                'comments' => $data['comments'],
+                'metadata' => $data['metadata'] ?? null,
+                'actioned_at' => now(),
+            ]);
+        }
+
+        $instance->reject();
+
+        ActivityLog::log('reject', 'workflows', $instance);
+
+        return response()->json([
+            'message' => 'Workflow rejected',
+            'data' => $instance->fresh(['definition', 'approvals']),
+        ]);
+    }
+
+    /**
+     * Request revision.
+     */
+    public function requestRevision(Request $request, string $instanceId)
+    {
+        $instance = WorkflowInstance::findOrFail($instanceId);
+        
+        $data = $request->validate([
+            'comments' => ['required', 'string'],
+            'metadata' => ['nullable', 'array'],
+        ]);
+
+        // Update approval
+        $approval = $instance->currentApproval();
+        if ($approval) {
+            $approval->update([
+                'approver_id' => auth()->id(),
+                'action' => 'revision_requested',
+                'comments' => $data['comments'],
+                'metadata' => $data['metadata'] ?? null,
+                'actioned_at' => now(),
+            ]);
+        }
+
+        $instance->requestRevision();
+
+        ActivityLog::log('request_revision', 'workflows', $instance);
+
+        return response()->json([
+            'message' => 'Revision requested',
+            'data' => $instance->fresh(['definition', 'approvals']),
+        ]);
+    }
+
+    /**
+     * Get workflow analytics.
+     */
+    public function analytics()
+    {
+        $totalInstances = WorkflowInstance::count();
+        $pendingInstances = WorkflowInstance::where('status', 'in_progress')->count();
+        $approvedInstances = WorkflowInstance::where('status', 'approved')->count();
+        $rejectedInstances = WorkflowInstance::where('status', 'rejected')->count();
+
+        $avgCompletionTime = WorkflowInstance::whereNotNull('completed_at')
+            ->selectRaw('AVG(TIMESTAMPDIFF(HOUR, started_at, completed_at)) as avg_hours')
+            ->value('avg_hours');
+
+        return response()->json([
+            'data' => [
+                'total_instances' => $totalInstances,
+                'pending' => $pendingInstances,
+                'approved' => $approvedInstances,
+                'rejected' => $rejectedInstances,
+                'avg_completion_hours' => round($avgCompletionTime ?? 0, 2),
+                'approval_rate' => $totalInstances > 0 
+                    ? round(($approvedInstances / $totalInstances) * 100, 2) 
+                    : 0,
+            ],
+        ]);
     }
 }

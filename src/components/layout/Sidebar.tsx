@@ -2,10 +2,11 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileStack, ClipboardCheck, Database, ShieldCheck,
   Lock, Building2, GitBranch, BarChart3, MessageSquare, Bell,
-  Users, Settings, ChevronLeft, Sparkles, Layers,
+  Users, Settings, ChevronLeft, Sparkles, Layers, Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -20,6 +21,7 @@ const nav = [
   { to: "/reports", label: "Reports & Analytics", icon: BarChart3 },
   { to: "/surveys", label: "Surveys & Feedback", icon: MessageSquare },
   { to: "/notifications", label: "Notifications", icon: Bell },
+  { to: "/sub-cities", label: "Sub-Cities", icon: Building, adminOnly: true },
   { to: "/users", label: "User Management", icon: Users },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
@@ -27,6 +29,12 @@ const nav = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { user } = useAuth();
+
+  // Check if user is ITDB admin
+  const isITDBAdmin = user?.roles?.some(
+    (role) => role.name === 'itdb_administrator' || role.name === 'super_admin'
+  );
 
   return (
     <aside
@@ -49,6 +57,11 @@ export function Sidebar() {
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {nav.map((item) => {
+          // Skip admin-only items if user is not an admin
+          if (item.adminOnly && !isITDBAdmin) {
+            return null;
+          }
+
           const active = item.to === "/" ? path === "/" : path.startsWith(item.to);
           const Icon = item.icon;
           return (

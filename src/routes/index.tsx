@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { getDashboard } from "@/lib/api";
+import { getDashboard, getAuthToken } from "@/lib/api";
 import {
   Database, Activity, Clock, Copy, ShieldAlert, CheckCircle2,
   Building2, Sparkles, Wallet, TrendingUp, Download, Plus, ArrowUpRight,
@@ -18,6 +18,17 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    const token = getAuthToken();
+    if (!token) {
+      throw redirect({
+        to: "/login",
+        search: {
+          redirect: "/",
+        },
+      });
+    }
+  },
   head: () => ({
     meta: [
       { title: "Executive Dashboard — STRP Portal" },
