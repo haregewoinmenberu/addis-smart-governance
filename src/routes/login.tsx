@@ -100,12 +100,7 @@ function Login() {
           </h1>
           <p className="text-base opacity-85 leading-relaxed">
             Centralized governance for Addis Ababa's digital transformation — registries, audits, cybersecurity, and citizen-facing innovation in one secure command center.
-          </p>
-          <div className="flex flex-wrap gap-3 text-xs">
-            {["JWT secured", "WCAG 2.1 AA", "ISO 27001 aligned"].map((t) => (
-              <span key={t} className="px-3 py-1.5 rounded-full bg-white/15 backdrop-blur border border-white/20">{t}</span>
-            ))}
-          </div>
+          </p> 
         </div>
 
         <div className="relative text-xs opacity-70">
