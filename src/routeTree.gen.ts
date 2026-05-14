@@ -26,12 +26,10 @@ import { Route as DuplicationRouteImport } from './routes/duplication'
 import { Route as CybersecurityRouteImport } from './routes/cybersecurity'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RequestsIndexRouteImport } from './routes/requests/index'
-import { Route as RegistryIndexRouteImport } from './routes/registry/index'
-import { Route as RequestsCreateRouteImport } from './routes/requests/create'
-import { Route as RequestsIdRouteImport } from './routes/requests/$id'
-import { Route as RegistryCreateRouteImport } from './routes/registry/create'
-import { Route as RequestsIdEditRouteImport } from './routes/requests/$id/edit'
+import { Route as RequestsCreateRouteImport } from './routes/requests.create'
+import { Route as RegistryCreateRouteImport } from './routes/registry.create'
+import { Route as RequestsIdEditRouteImport } from './routes/requests.$id.edit'
+import { Route as RegistryIdEditRouteImport } from './routes/registry.$id.edit'
 
 const WorkflowsRoute = WorkflowsRouteImport.update({
   id: '/workflows',
@@ -118,24 +116,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RequestsIndexRoute = RequestsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => RequestsRoute,
-} as any)
-const RegistryIndexRoute = RegistryIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => RegistryRoute,
-} as any)
 const RequestsCreateRoute = RequestsCreateRouteImport.update({
   id: '/create',
   path: '/create',
-  getParentRoute: () => RequestsRoute,
-} as any)
-const RequestsIdRoute = RequestsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
   getParentRoute: () => RequestsRoute,
 } as any)
 const RegistryCreateRoute = RegistryCreateRouteImport.update({
@@ -144,9 +127,14 @@ const RegistryCreateRoute = RegistryCreateRouteImport.update({
   getParentRoute: () => RegistryRoute,
 } as any)
 const RequestsIdEditRoute = RequestsIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => RequestsIdRoute,
+  id: '/$id/edit',
+  path: '/$id/edit',
+  getParentRoute: () => RequestsRoute,
+} as any)
+const RegistryIdEditRoute = RegistryIdEditRouteImport.update({
+  id: '/$id/edit',
+  path: '/$id/edit',
+  getParentRoute: () => RegistryRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -168,10 +156,8 @@ export interface FileRoutesByFullPath {
   '/vendors': typeof VendorsRoute
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
-  '/requests/$id': typeof RequestsIdRouteWithChildren
   '/requests/create': typeof RequestsCreateRoute
-  '/registry/': typeof RegistryIndexRoute
-  '/requests/': typeof RequestsIndexRoute
+  '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -183,7 +169,9 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
+  '/registry': typeof RegistryRouteWithChildren
   '/reports': typeof ReportsRoute
+  '/requests': typeof RequestsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/sub-cities': typeof SubCitiesRoute
   '/surveys': typeof SurveysRoute
@@ -191,10 +179,8 @@ export interface FileRoutesByTo {
   '/vendors': typeof VendorsRoute
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
-  '/requests/$id': typeof RequestsIdRouteWithChildren
   '/requests/create': typeof RequestsCreateRoute
-  '/registry': typeof RegistryIndexRoute
-  '/requests': typeof RequestsIndexRoute
+  '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
 }
 export interface FileRoutesById {
@@ -217,10 +203,8 @@ export interface FileRoutesById {
   '/vendors': typeof VendorsRoute
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
-  '/requests/$id': typeof RequestsIdRouteWithChildren
   '/requests/create': typeof RequestsCreateRoute
-  '/registry/': typeof RegistryIndexRoute
-  '/requests/': typeof RequestsIndexRoute
+  '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
 }
 export interface FileRouteTypes {
@@ -244,10 +228,8 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/workflows'
     | '/registry/create'
-    | '/requests/$id'
     | '/requests/create'
-    | '/registry/'
-    | '/requests/'
+    | '/registry/$id/edit'
     | '/requests/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -259,7 +241,9 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/notifications'
+    | '/registry'
     | '/reports'
+    | '/requests'
     | '/settings'
     | '/sub-cities'
     | '/surveys'
@@ -267,10 +251,8 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/workflows'
     | '/registry/create'
-    | '/requests/$id'
     | '/requests/create'
-    | '/registry'
-    | '/requests'
+    | '/registry/$id/edit'
     | '/requests/$id/edit'
   id:
     | '__root__'
@@ -292,10 +274,8 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/workflows'
     | '/registry/create'
-    | '/requests/$id'
     | '/requests/create'
-    | '/registry/'
-    | '/requests/'
+    | '/registry/$id/edit'
     | '/requests/$id/edit'
   fileRoutesById: FileRoutesById
 }
@@ -440,32 +420,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/requests/': {
-      id: '/requests/'
-      path: '/'
-      fullPath: '/requests/'
-      preLoaderRoute: typeof RequestsIndexRouteImport
-      parentRoute: typeof RequestsRoute
-    }
-    '/registry/': {
-      id: '/registry/'
-      path: '/'
-      fullPath: '/registry/'
-      preLoaderRoute: typeof RegistryIndexRouteImport
-      parentRoute: typeof RegistryRoute
-    }
     '/requests/create': {
       id: '/requests/create'
       path: '/create'
       fullPath: '/requests/create'
       preLoaderRoute: typeof RequestsCreateRouteImport
-      parentRoute: typeof RequestsRoute
-    }
-    '/requests/$id': {
-      id: '/requests/$id'
-      path: '/$id'
-      fullPath: '/requests/$id'
-      preLoaderRoute: typeof RequestsIdRouteImport
       parentRoute: typeof RequestsRoute
     }
     '/registry/create': {
@@ -477,50 +436,43 @@ declare module '@tanstack/react-router' {
     }
     '/requests/$id/edit': {
       id: '/requests/$id/edit'
-      path: '/edit'
+      path: '/$id/edit'
       fullPath: '/requests/$id/edit'
       preLoaderRoute: typeof RequestsIdEditRouteImport
-      parentRoute: typeof RequestsIdRoute
+      parentRoute: typeof RequestsRoute
+    }
+    '/registry/$id/edit': {
+      id: '/registry/$id/edit'
+      path: '/$id/edit'
+      fullPath: '/registry/$id/edit'
+      preLoaderRoute: typeof RegistryIdEditRouteImport
+      parentRoute: typeof RegistryRoute
     }
   }
 }
 
 interface RegistryRouteChildren {
   RegistryCreateRoute: typeof RegistryCreateRoute
-  RegistryIndexRoute: typeof RegistryIndexRoute
+  RegistryIdEditRoute: typeof RegistryIdEditRoute
 }
 
 const RegistryRouteChildren: RegistryRouteChildren = {
   RegistryCreateRoute: RegistryCreateRoute,
-  RegistryIndexRoute: RegistryIndexRoute,
+  RegistryIdEditRoute: RegistryIdEditRoute,
 }
 
 const RegistryRouteWithChildren = RegistryRoute._addFileChildren(
   RegistryRouteChildren,
 )
 
-interface RequestsIdRouteChildren {
+interface RequestsRouteChildren {
+  RequestsCreateRoute: typeof RequestsCreateRoute
   RequestsIdEditRoute: typeof RequestsIdEditRoute
 }
 
-const RequestsIdRouteChildren: RequestsIdRouteChildren = {
-  RequestsIdEditRoute: RequestsIdEditRoute,
-}
-
-const RequestsIdRouteWithChildren = RequestsIdRoute._addFileChildren(
-  RequestsIdRouteChildren,
-)
-
-interface RequestsRouteChildren {
-  RequestsIdRoute: typeof RequestsIdRouteWithChildren
-  RequestsCreateRoute: typeof RequestsCreateRoute
-  RequestsIndexRoute: typeof RequestsIndexRoute
-}
-
 const RequestsRouteChildren: RequestsRouteChildren = {
-  RequestsIdRoute: RequestsIdRouteWithChildren,
   RequestsCreateRoute: RequestsCreateRoute,
-  RequestsIndexRoute: RequestsIndexRoute,
+  RequestsIdEditRoute: RequestsIdEditRoute,
 }
 
 const RequestsRouteWithChildren = RequestsRoute._addFileChildren(

@@ -5,24 +5,80 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/useAuth";
 import { login } from "@/lib/api";
 import { Sparkles, Lock, Mail, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — STRP Portal" }] }),
   component: Login,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      redirect: (search.redirect as string) || '/',
+    };
+  },
 });
 
 function Login() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const { isAuthenticated, isLoading, refetchUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      console.log("Already authenticated, redirecting from login page");
+      const redirectPath = search.redirect && search.redirect !== '/login' ? search.redirect : '/';
+      navigate({ to: redirectPath as any, replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate, search.redirect]);
+
   const mutation = useMutation({
-    mutationFn: async () => login(email, password),
-    onSuccess: () => navigate({ to: "/" }),
+    mutationFn: async () => {
+      const result = await login(email, password);
+      return result;
+    },
+    onSuccess: async () => {
+      console.log("Login successful, refetching user data");
+      
+      // Refetch user data to update authentication state
+      await refetchUser();
+      
+      // Get the redirect path, but make sure it's not /login
+      const redirectPath = search.redirect && search.redirect !== '/login' ? search.redirect : '/';
+      console.log("Redirecting to:", redirectPath);
+      
+      // Navigate to the redirect path or home
+      navigate({ to: redirectPath as any, replace: true });
+    },
   });
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render login form if already authenticated
+  if (isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-4 text-sm text-muted-foreground">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">

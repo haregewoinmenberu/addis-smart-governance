@@ -38,13 +38,6 @@ async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  console.log('API Request:', {
-    url: `${API_BASE_URL}${path}`,
-    method: options.method ?? "GET",
-    headers,
-    body: options.body,
-  });
-
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: options.method ?? "GET",
     headers,
@@ -52,25 +45,22 @@ async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
     credentials: 'omit', // Don't send cookies to prevent session-based redirects
   });
 
-  console.log('API Response:', {
-    status: response.status,
-    statusText: response.statusText,
-    headers: Object.fromEntries(response.headers.entries()),
-  });
-
   let payload: (T & { message?: string }) | undefined;
   try {
     payload = (await response.json()) as T & { message?: string };
-    console.log('API Response Body:', payload);
   } catch {
     payload = undefined;
   }
 
   if (!response.ok) {
     if (response.status === 401) {
-      clearAuthToken();
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
+      // Only clear token and redirect if this is NOT the /auth/me endpoint
+      // The AuthContext will handle /auth/me failures
+      if (!path.includes('/auth/me')) {
+        clearAuthToken();
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
       }
     }
     const message = payload?.message ?? "Request failed";
@@ -386,6 +376,47 @@ export async function markNotificationAsRead(id: string | number) {
 
 export async function markAllNotificationsAsRead() {
   return apiPost<{ message: string }>("/notifications/read-all", {});
+}
+
+// Sub-Cities Management
+export async function getSubCities(params?: Record<string, string>) {
+  return getPaginatedList("/sub-cities", params);
+}
+
+export async function getSubCity(id: string | number) {
+  return getItem("/sub-cities", id);
+}
+
+export async function createSubCity(data: unknown) {
+  return createItem("/sub-cities", data);
+}
+
+export async function updateSubCity(id: string | number, data: unknown) {
+  return updateItem("/sub-cities", id, data);
+}
+
+export async function deleteSubCity(id: string | number) {
+  return deleteItem("/sub-cities", id);
+}
+
+export async function activateSubCity(id: string | number) {
+  return apiPost<{ data: unknown; message: string }>(`/sub-cities/${id}/activate`, {});
+}
+
+export async function deactivateSubCity(id: string | number) {
+  return apiPost<{ data: unknown; message: string }>(`/sub-cities/${id}/deactivate`, {});
+}
+
+export async function getSubCityStatistics(id: string | number) {
+  return apiGet<{ data: unknown }>(`/sub-cities/${id}/statistics`);
+}
+
+export async function getSubCityUsers(id: string | number) {
+  return apiGet<{ data: unknown[] }>(`/sub-cities/${id}/users`);
+}
+
+export async function updateSubCityAdministrator(id: string | number, data: { user_id: number }) {
+  return apiPut<{ data: unknown; message: string }>(`/sub-cities/${id}/administrator`, data);
 }
 
 // Export axios-like api object for compatibility

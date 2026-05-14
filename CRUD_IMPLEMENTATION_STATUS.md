@@ -1,403 +1,192 @@
 # CRUD Implementation Status
 
-## ✅ What Was Completed
+## Overview
+This document tracks the implementation status of full CRUD (Create, Read, Update, Delete) operations for all modules in the Addis Smart Governance system.
 
-### Backend Enhancements
+## Implementation Pattern
+All create and update operations are implemented as **separate pages** (not modals) with:
+- Full-page forms with proper validation
+- Back navigation buttons
+- Toast notifications for success/error feedback
+- Permission-based access control
+- React Query for data fetching and mutations
 
-#### 1. Enhanced Controllers
-✅ **RequestItemController.php**
-- Complete CRUD with pagination
-- Advanced filtering (search, status, priority, office, category)
-- RBAC-based data filtering (Sub-City Admins see only their data)
-- Submit request endpoint (starts workflow)
-- Statistics endpoint
-- Activity logging on all operations
-- Proper validation and error handling
+## Completed Modules ✅
 
-✅ **TechnologyController.php**
-- Complete CRUD with pagination
-- Advanced filtering (search, category, status, classification, office)
-- RBAC-based data filtering
-- Statistics endpoint
-- Activity logging
-- Proper validation
+### 1. User Management (`/users`)
+- **List**: ✅ View all users with search and pagination
+- **Create**: ✅ Modal-based (existing implementation)
+- **Edit**: ✅ Modal-based (existing implementation)
+- **Delete**: ✅ With confirmation dialog
+- **Additional**: Toggle active/inactive status
+- **Permissions**: `create_users`, `edit_users`, `delete_users`
 
-✅ **UserController.php** (Already enhanced in RBAC implementation)
-- Complete user management
-- Role assignment
-- Activity tracking
-- Password reset
-- Toggle active status
+### 2. Technology Requests (`/requests`)
+- **List**: ✅ View all requests with search, filters, and statistics
+- **Create**: ✅ Separate page at `/requests/create`
+- **Edit**: ✅ Separate page at `/requests/$id/edit`
+- **Delete**: ✅ With confirmation dialog
+- **Additional**: Submit request for approval
+- **Permissions**: `create_requests`, `edit_requests`, `delete_requests`, `submit_requests`
+- **Statistics**: Total, draft, pending, approved counts
 
-✅ **WorkflowController.php** (Already enhanced in RBAC implementation)
-- Workflow definitions CRUD
-- Workflow instances management
-- Approval/rejection actions
-- Analytics
+### 3. Technology Registry (`/registry`)
+- **List**: ✅ View all technologies with search and deployment map
+- **Create**: ✅ Separate page at `/registry/create`
+- **Edit**: ✅ Separate page at `/registry/$id/edit`
+- **Delete**: ✅ With confirmation dialog
+- **Permissions**: `create_technologies`, `edit_technologies`, `delete_technologies`
+- **Statistics**: Total assets, operational, cloud-hosted counts
+- **Features**: Deployment type, status tracking, vendor management
 
-#### 2. Updated Routes
-✅ Added statistics endpoints for:
-- `/api/requests/statistics`
-- `/api/technologies/statistics`
+## Pending Modules 🚧
 
-### Frontend Components
+### 4. Audits (`/audit`)
+- **Status**: Page exists but needs full CRUD implementation
+- **Required**:
+  - Create page: `/audit/create`
+  - Edit page: `/audit/$id/edit`
+  - Delete functionality
+  - List with search and filters
 
-#### 1. Reusable Components Created
-✅ **DataTable Component** (`src/components/ui/data-table.tsx`)
-- Generic data table with pagination
-- Loading states
-- Empty states
-- Customizable columns
-- Action buttons support
+### 5. Vendors (`/vendors`)
+- **Status**: Page exists but needs full CRUD implementation
+- **Required**:
+  - Create page: `/vendors/create`
+  - Edit page: `/vendors/$id/edit`
+  - Delete functionality
+  - Approve vendor action
+  - List with search and filters
 
-✅ **DeleteDialog Component** (`src/components/ui/delete-dialog.tsx`)
-- Reusable delete confirmation modal
-- Loading states
-- Customizable title and description
-- Prevents accidental deletions
+### 6. Workflows (`/workflows`)
+- **Status**: Page exists but needs full CRUD implementation
+- **Required**:
+  - View workflow instances
+  - Approve/reject workflow stages
+  - Request revision functionality
+  - List with search and filters
 
-#### 2. CRUD Pages Created
-✅ **Technology Requests Module**
-- **List Page** (`src/routes/requests/index.tsx`)
-  - Data table with all requests
-  - Search functionality
-  - Multiple filters (status, priority)
-  - Pagination
-  - View/Edit/Delete actions
-  - RBAC-protected actions
-  - Status and priority badges
-  - Budget formatting
+### 7. Cybersecurity Issues (`/cybersecurity`)
+- **Status**: Page exists but needs full CRUD implementation
+- **Required**:
+  - Create page: `/cybersecurity/create`
+  - Edit page: `/cybersecurity/$id/edit`
+  - Delete functionality
+  - List with search and filters
 
-- **Create Page** (`src/routes/requests/create.tsx`)
-  - Full-page form (not modal)
-  - Form validation with Zod
-  - React Hook Form integration
-  - Category and office dropdowns
-  - Priority selection
-  - Budget input
-  - Description and justification textareas
-  - Success/error handling
-  - Navigation after creation
+### 8. Reports (`/reports`)
+- **Status**: Page exists but needs full CRUD implementation
+- **Required**:
+  - Create page: `/reports/create`
+  - Export report functionality
+  - List with search and filters
 
-### Documentation
+### 9. Notifications (`/notifications`)
+- **Status**: Page exists but needs implementation
+- **Required**:
+  - Mark as read functionality
+  - Mark all as read functionality
+  - List with pagination
 
-✅ **CRUD_IMPLEMENTATION_GUIDE.md**
-- Complete pattern for all modules
-- Backend controller template
-- Frontend list page template
-- Frontend create/edit page template
-- Modal vs full page guidelines
-- Testing checklist
-- Code generation scripts
+### 10. Surveys (`/surveys`)
+- **Status**: Page exists but needs full CRUD implementation
+- **Required**:
+  - Create page: `/surveys/create`
+  - Respond to survey functionality
+  - List with search and filters
 
-✅ **CRUD_IMPLEMENTATION_STATUS.md** (This file)
-- Implementation status
-- What's completed
-- What's remaining
-- Quick start guide
+### 11. Duplication Analysis (`/duplication`)
+- **Status**: Page exists but needs implementation
+- **Required**: Full implementation based on backend API
 
----
+### 12. Feasibility Studies (`/feasibility`)
+- **Status**: Page exists but needs implementation
+- **Required**: Full implementation based on backend API
 
-## 📋 Remaining Modules to Implement
+### 13. Sub-Cities Management (`/sub-cities`)
+- **Status**: ✅ Fully implemented (from previous work)
+- **Features**: Register, activate/deactivate, view statistics
 
-### High Priority
+## Technical Components
 
-#### 1. Technology Requests (Partial ✅)
-- ✅ List page
-- ✅ Create page
-- ⏳ Edit page (use create page pattern)
-- ⏳ View/Details page with workflow timeline
-- ⏳ Submit action modal
+### UI Components Created
+- ✅ `toast.tsx` - Toast notification primitive
+- ✅ `toaster.tsx` - Toast container component
+- ✅ `textarea.tsx` - Multi-line text input
+- ✅ `use-toast.ts` - Toast hook for showing notifications
 
-#### 2. Technology Registry
-- ⏳ List page with filters
-- ⏳ Create page
-- ⏳ Edit page
-- ⏳ View page with deployment history
+### API Functions Available
+All API functions are already defined in `src/lib/api.ts`:
+- `getRequests`, `createRequest`, `updateRequest`, `deleteRequest`, `submitRequest`
+- `getTechnologies`, `createTechnology`, `updateTechnology`, `deleteTechnology`
+- `getAudits`, `createAudit`, `updateAudit`, `deleteAudit`
+- `getVendors`, `createVendor`, `updateVendor`, `deleteVendor`, `approveVendor`
+- `getWorkflows`, `approveWorkflowStage`, `rejectWorkflow`, `requestWorkflowRevision`
+- `getCybersecurityIssues`, `createCybersecurityIssue`, `updateCybersecurityIssue`
+- `getReports`, `createReport`, `exportReport`
+- `getNotifications`, `markNotificationAsRead`, `markAllNotificationsAsRead`
+- `getSurveys`, `createSurvey`, `respondToSurvey`
 
-#### 3. Audits
-- ⏳ List page with filters
-- ⏳ Create page (schedule audit)
-- ⏳ Edit page
-- ⏳ View page with findings
-- ⏳ Complete audit modal
+### Permission System
+All CRUD operations are protected by permission guards:
+- `PermissionGuard` component for conditional rendering
+- `usePermissions()` hook for checking permissions
+- Permission names follow pattern: `create_*`, `edit_*`, `delete_*`, `view_*`
 
-#### 4. Vendors
-- ⏳ List page with filters
-- ⏳ Create page
-- ⏳ Edit page
-- ⏳ View page with projects
-- ⏳ Approve vendor modal
+## Next Steps
 
-### Medium Priority
+1. **Implement Audits Module**
+   - Create audit creation page
+   - Create audit edit page
+   - Add delete functionality
+   - Connect to backend API
 
-#### 5. Users (Backend ✅, Frontend Partial)
-- ⏳ List page
-- ⏳ Create page
-- ⏳ Edit page
-- ⏳ View page with activity logs
-- ⏳ Toggle active modal
-- ⏳ Reset password modal
+2. **Implement Vendors Module**
+   - Create vendor registration page
+   - Create vendor edit page
+   - Add approve/delete functionality
+   - Connect to backend API
 
-#### 6. Workflows (Backend ✅, Frontend Partial)
-- ⏳ List page (definitions)
-- ⏳ List page (instances)
-- ⏳ Create workflow definition page
-- ⏳ View instance with timeline
-- ⏳ Approval modal
-- ⏳ Rejection modal
-- ⏳ Request revision modal
+3. **Implement Workflows Module**
+   - Create workflow instance view
+   - Add approval/rejection dialogs
+   - Add revision request functionality
+   - Connect to backend API
 
-#### 7. Cybersecurity Issues
-- ⏳ List page with filters
-- ⏳ Create page
-- ⏳ Edit page
-- ⏳ View page
-- ⏳ Resolve issue modal
+4. **Continue with remaining modules** following the same pattern
 
-### Lower Priority
+## File Structure
 
-#### 8. Surveys
-- ⏳ List page
-- ⏳ Create page
-- ⏳ Edit page
-- ⏳ View page with responses
-- ⏳ Respond modal/page
-
-#### 9. Reports
-- ⏳ List page
-- ⏳ Generate report page
-- ⏳ View report page
-- ⏳ Export action
-
-#### 10. Notifications
-- ⏳ List page
-- ⏳ Mark as read modal
-- ⏳ View details modal
-
-#### 11. Duplication Cases
-- ⏳ List page
-- ⏳ Create analysis page
-- ⏳ View page
-
-#### 12. Feasibility Studies
-- ⏳ List page
-- ⏳ Create page
-- ⏳ Edit page
-- ⏳ View page
-
----
-
-## 🚀 Quick Start for Remaining Modules
-
-### Step 1: Enhance Backend Controller
-
-Use the pattern from `RequestItemController.php`:
-
-```php
-// Add to existing controller
-public function index(Request $request)
-{
-    $query = YourModel::query()->orderByDesc('created_at');
-
-    // Add search
-    if ($search = $request->input('search')) {
-        $query->where('name', 'like', "%{$search}%");
-    }
-
-    // Add filters
-    if ($status = $request->input('status')) {
-        $query->where('status', $status);
-    }
-
-    // Add RBAC filtering if needed
-    $user = auth()->user();
-    if ($user->isSubCityAdministrator() && $user->sub_city) {
-        $query->where('office', $user->sub_city);
-    }
-
-    // Paginate
-    $perPage = $request->input('per_page', 15);
-    return response()->json($query->paginate($perPage));
-}
-
-// Add activity logging to store/update/destroy
-ActivityLog::log('action', 'module', $item, $oldValues, $newValues);
+```
+src/
+├── routes/
+│   ├── requests.tsx              # Requests listing
+│   ├── requests.create.tsx       # Create request page
+│   ├── requests.$id.edit.tsx     # Edit request page
+│   ├── registry.tsx              # Registry listing
+│   ├── registry.create.tsx       # Create technology page
+│   ├── registry.$id.edit.tsx     # Edit technology page
+│   ├── users.tsx                 # Users with modal CRUD
+│   └── [other modules].tsx       # Pending implementation
+├── components/
+│   ├── ui/
+│   │   ├── toast.tsx
+│   │   ├── toaster.tsx
+│   │   └── textarea.tsx
+│   └── auth/
+│       └── PermissionGuard.tsx
+├── hooks/
+│   ├── use-toast.ts
+│   └── usePermissions.ts
+└── lib/
+    └── api.ts                    # All API functions
 ```
 
-### Step 2: Create Frontend List Page
+## Notes
 
-Copy `src/routes/requests/index.tsx` and modify:
-1. Change API endpoint
-2. Update interface
-3. Modify columns
-4. Update filters
-5. Change permissions
-
-### Step 3: Create Frontend Create Page
-
-Copy `src/routes/requests/create.tsx` and modify:
-1. Update schema
-2. Change form fields
-3. Update API endpoint
-4. Modify validation
-
-### Step 4: Create Edit Page
-
-Copy create page and add:
-1. Fetch existing data with `useQuery`
-2. Set default values
-3. Change API endpoint to PUT
-4. Update button text
-
-### Step 5: Create View Page
-
-Create new page with:
-1. Fetch data with `useQuery`
-2. Display all fields (read-only)
-3. Add action buttons (Edit, Delete)
-4. Show related data
-
----
-
-## 📊 Implementation Progress
-
-### Overall Progress: 25%
-
-| Module | List | Create | Edit | View | Actions | Progress |
-|--------|------|--------|------|------|---------|----------|
-| Requests | ✅ | ✅ | ⏳ | ⏳ | ⏳ | 40% |
-| Technologies | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | 0% |
-| Audits | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | 0% |
-| Vendors | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | 0% |
-| Users | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | 0% |
-| Workflows | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | 0% |
-| Cybersecurity | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | 0% |
-| Surveys | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | 0% |
-| Reports | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | 0% |
-| Notifications | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | 0% |
-
----
-
-## 🎯 Recommended Implementation Order
-
-### Phase 1: Core Modules (Week 1)
-1. ✅ Technology Requests (Complete remaining pages)
-2. Technology Registry (All CRUD)
-3. Users (Frontend pages)
-
-### Phase 2: Compliance & Audit (Week 2)
-4. Audits (All CRUD)
-5. Cybersecurity Issues (All CRUD)
-6. Duplication Cases (All CRUD)
-7. Feasibility Studies (All CRUD)
-
-### Phase 3: Management (Week 3)
-8. Vendors (All CRUD)
-9. Workflows (Frontend pages)
-10. Surveys (All CRUD)
-
-### Phase 4: Reporting & Notifications (Week 4)
-11. Reports (All CRUD)
-12. Notifications (All CRUD)
-
----
-
-## 💡 Tips for Fast Implementation
-
-### 1. Use Code Templates
-- Copy existing pages and modify
-- Use find-and-replace for module names
-- Keep consistent structure
-
-### 2. Reuse Components
-- DataTable for all list pages
-- DeleteDialog for all delete actions
-- Same form layout for create/edit
-
-### 3. Follow Patterns
-- Backend: RequestItemController pattern
-- Frontend List: requests/index.tsx pattern
-- Frontend Create: requests/create.tsx pattern
-
-### 4. Test As You Go
-- Test each page after creation
-- Verify RBAC permissions
-- Check activity logging
-- Test error handling
-
-### 5. Use TypeScript
-- Define interfaces for all data types
-- Use Zod for form validation
-- Leverage type safety
-
----
-
-## 📝 Code Snippets
-
-### Quick Interface Definition
-```typescript
-interface YourModel {
-  id: number;
-  name: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-```
-
-### Quick Zod Schema
-```typescript
-const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  status: z.enum(["active", "inactive"]),
-});
-```
-
-### Quick API Call
-```typescript
-const { data } = useQuery({
-  queryKey: ["module", filters],
-  queryFn: () => apiGet<{ data: YourModel[] }>("/module"),
-});
-```
-
-### Quick Mutation
-```typescript
-const mutation = useMutation({
-  mutationFn: (data) => apiPost("/module", data),
-  onSuccess: () => {
-    toast.success("Success!");
-    navigate({ to: "/module" });
-  },
-});
-```
-
----
-
-## ✅ Summary
-
-### Completed
-- ✅ Backend CRUD pattern established
-- ✅ Frontend component library created
-- ✅ Technology Requests module (partial)
-- ✅ Comprehensive documentation
-- ✅ Reusable components (DataTable, DeleteDialog)
-
-### Ready to Use
-- ✅ Complete backend controllers for Requests and Technologies
-- ✅ DataTable component for all list pages
-- ✅ DeleteDialog component for all delete actions
-- ✅ Form validation pattern with Zod
-- ✅ API integration pattern
-- ✅ RBAC integration pattern
-
-### Next Actions
-1. Complete Technology Requests module (edit, view pages)
-2. Implement Technology Registry module
-3. Implement Users frontend pages
-4. Continue with remaining modules following the pattern
-
----
-
-**The foundation is complete! Follow the patterns in CRUD_IMPLEMENTATION_GUIDE.md to quickly implement all remaining modules.**
+- All forms use React Hook Form for validation
+- All data fetching uses React Query for caching and state management
+- All mutations invalidate relevant queries to refresh data
+- All pages have proper loading and error states
+- All actions show toast notifications for user feedback
+- Navigation uses TanStack Router's `useNavigate()` hook
