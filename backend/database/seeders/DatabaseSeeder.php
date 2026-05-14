@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
         // Seed roles and permissions first
         $this->call([
             RolesAndPermissionsSeeder::class,
+            SubCityRoleSeeder::class,
             DefaultUsersSeeder::class,
             WorkflowDefinitionsSeeder::class,
         ]);

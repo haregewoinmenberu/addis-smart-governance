@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +18,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with('roles');
+        $query = User::with(['roles', 'subCity']);
 
         // Filter by role
         if ($request->has('role')) {
@@ -27,8 +28,12 @@ class UserController extends Controller
         }
 
         // Filter by sub-city (for ITDB Admin viewing sub-city admins)
-        if ($request->has('sub_city')) {
-            $query->where('sub_city', $request->sub_city);
+        if ($request->has('sub_city_id')) {
+            $query->where('sub_city_id', $request->sub_city_id);
+        } elseif ($request->has('sub_city')) {
+            $query->whereHas('subCity', function ($q) use ($request) {
+                $q->where('name', $request->sub_city);
+            });
         }
 
         // Filter by active status
@@ -53,7 +58,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'sub_city' => $user->sub_city,
+                'sub_city' => $user->subCity ? $user->subCity->name : null,
                 'department' => $user->department,
                 'is_active' => $user->is_active,
                 'mfa_enabled' => $user->mfa_enabled,
@@ -77,7 +82,7 @@ class UserController extends Controller
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'sub_city' => ['nullable', 'string', 'max:255'],
+            'sub_city_id' => ['nullable', 'exists:sub_cities,id'],
             'department' => ['nullable', 'string', 'max:255'],
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['exists:roles,name'],
@@ -95,7 +100,7 @@ class UserController extends Controller
 
         ActivityLog::log('create', 'users', $user, null, $data);
 
-        $user->load('roles');
+        $user->load('roles', 'subCity');
 
         return response()->json([
             'message' => 'User created successfully',
@@ -108,7 +113,7 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::with('roles.permissions', 'activityLogs')->findOrFail($id);
+        $user = User::with('roles.permissions', 'activityLogs', 'subCity')->findOrFail($id);
 
         return response()->json([
             'data' => [
@@ -116,7 +121,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'sub_city' => $user->sub_city,
+                'sub_city' => $user->subCity ? $user->subCity->name : null,
                 'department' => $user->department,
                 'is_active' => $user->is_active,
                 'mfa_enabled' => $user->mfa_enabled,
@@ -144,7 +149,7 @@ class UserController extends Controller
             'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'sub_city' => ['nullable', 'string', 'max:255'],
+            'sub_city_id' => ['nullable', 'exists:sub_cities,id'],
             'department' => ['nullable', 'string', 'max:255'],
             'roles' => ['sometimes', 'array', 'min:1'],
             'roles.*' => ['exists:roles,name'],
@@ -185,7 +190,7 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         // Prevent deleting yourself
-        if ($user->id === auth()->id()) {
+        if ($user->id === Auth::id()) {
             return response()->json([
                 'message' => 'You cannot delete your own account',
             ], 422);
@@ -206,7 +211,7 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         // Prevent deactivating yourself
-        if ($user->id === auth()->id()) {
+        if ($user->id === Auth::id()) {
             return response()->json([
                 'message' => 'You cannot deactivate your own account',
             ], 422);

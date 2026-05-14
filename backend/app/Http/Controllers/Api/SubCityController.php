@@ -116,7 +116,6 @@ class SubCityController extends Controller
                 'email' => $validated['admin_email'],
                 'password' => Hash::make($validated['admin_password']),
                 'phone' => $validated['admin_phone'] ?? null,
-                'sub_city' => $validated['name'],
                 'sub_city_id' => $subCity->id,
                 'department' => 'Administration',
                 'is_active' => true,
@@ -135,7 +134,7 @@ class SubCityController extends Controller
             $adminUser->roles()->attach($adminRole->id);
 
             // Log activity
-            ActivityLog::log('create', 'sub_city', $request->user(), $subCity->id, [
+            ActivityLog::log('create', 'sub_city', $subCity, null, [
                 'sub_city_name' => $subCity->name,
                 'admin_email' => $adminUser->email,
             ]);
@@ -196,6 +195,8 @@ class SubCityController extends Controller
             'subscription_tier' => 'nullable|string|in:basic,standard,premium',
         ]);
 
+        $oldValues = $subCity->toArray();
+
         // Handle logo upload
         if ($request->hasFile('logo')) {
             // Delete old logo
@@ -208,9 +209,7 @@ class SubCityController extends Controller
         $subCity->update($validated);
 
         // Log activity
-        ActivityLog::log('update', 'sub_city', $request->user(), $subCity->id, [
-            'sub_city_name' => $subCity->name,
-        ]);
+        ActivityLog::log('update', 'sub_city', $subCity, $oldValues, $subCity->toArray());
 
         return response()->json([
             'message' => 'Sub-city updated successfully',
@@ -224,12 +223,11 @@ class SubCityController extends Controller
     public function activate(Request $request, $id)
     {
         $subCity = SubCity::findOrFail($id);
+        $oldValues = $subCity->toArray();
         $subCity->activate();
 
         // Log activity
-        ActivityLog::log('activate', 'sub_city', $request->user(), $subCity->id, [
-            'sub_city_name' => $subCity->name,
-        ]);
+        ActivityLog::log('activate', 'sub_city', $subCity, $oldValues, $subCity->toArray());
 
         return response()->json([
             'message' => 'Sub-city activated successfully',
@@ -243,12 +241,11 @@ class SubCityController extends Controller
     public function deactivate(Request $request, $id)
     {
         $subCity = SubCity::findOrFail($id);
+        $oldValues = $subCity->toArray();
         $subCity->deactivate();
 
         // Log activity
-        ActivityLog::log('deactivate', 'sub_city', $request->user(), $subCity->id, [
-            'sub_city_name' => $subCity->name,
-        ]);
+        ActivityLog::log('deactivate', 'sub_city', $subCity, $oldValues, $subCity->toArray());
 
         return response()->json([
             'message' => 'Sub-city deactivated successfully',
@@ -268,13 +265,11 @@ class SubCityController extends Controller
             Storage::disk('public')->delete($subCity->logo);
         }
 
-        $subCityName = $subCity->name;
+        $oldValues = $subCity->toArray();
         $subCity->delete();
 
         // Log activity
-        ActivityLog::log('delete', 'sub_city', $request->user(), $id, [
-            'sub_city_name' => $subCityName,
-        ]);
+        ActivityLog::log('delete', 'sub_city', $subCity, $oldValues, null);
 
         return response()->json(['message' => 'Sub-city deleted successfully']);
     }

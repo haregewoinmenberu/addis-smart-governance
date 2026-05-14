@@ -24,6 +24,10 @@ class AuthController extends Controller
             ]);
         }
 
+        /**
+         * @var \App\Models\User $user
+         */
+
         $user = Auth::user();
 
         // Check if user is active
@@ -65,7 +69,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'sub_city' => $user->sub_city,
+                'sub_city' => $user->subCity ? $user->subCity->name : null,
                 'sub_city_id' => $user->sub_city_id,
                 'sub_city_details' => $user->subCity ? [
                     'id' => $user->subCity->id,
@@ -97,7 +101,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'sub_city' => $user->sub_city,
+                'sub_city' => $user->subCity ? $user->subCity->name : null,
                 'sub_city_id' => $user->sub_city_id,
                 'sub_city_details' => $user->subCity ? [
                     'id' => $user->subCity->id,

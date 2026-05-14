@@ -419,6 +419,36 @@ export async function updateSubCityAdministrator(id: string | number, data: { us
   return apiPut<{ data: unknown; message: string }>(`/sub-cities/${id}/administrator`, data);
 }
 
+// Duplication Cases
+export async function getDuplicationCases(params?: Record<string, string>) {
+  return getPaginatedList("/duplications", params);
+}
+
+export async function getDuplicationCase(id: string | number) {
+  return getItem("/duplications", id);
+}
+
+export async function createDuplicationCase(data: unknown) {
+  return createItem("/duplications", data);
+}
+
+// Feasibility Studies
+export async function getFeasibilityStudies(params?: Record<string, string>) {
+  return getPaginatedList("/feasibility-studies", params);
+}
+
+export async function getFeasibilityStudy(id: string | number) {
+  return getItem("/feasibility-studies", id);
+}
+
+export async function createFeasibilityStudy(data: unknown) {
+  return createItem("/feasibility-studies", data);
+}
+
+export async function updateFeasibilityStudy(id: string | number, data: unknown) {
+  return updateItem("/feasibility-studies", id, data);
+}
+
 // Export axios-like api object for compatibility
 export const api = {
   get: apiGet,

@@ -26,8 +26,19 @@ import { Route as DuplicationRouteImport } from './routes/duplication'
 import { Route as CybersecurityRouteImport } from './routes/cybersecurity'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VendorsIndexRouteImport } from './routes/vendors.index'
+import { Route as UsersIndexRouteImport } from './routes/users.index'
+import { Route as SubCitiesIndexRouteImport } from './routes/sub-cities.index'
+import { Route as RequestsIndexRouteImport } from './routes/requests.index'
+import { Route as RegistryIndexRouteImport } from './routes/registry.index'
+import { Route as VendorsCreateRouteImport } from './routes/vendors.create'
+import { Route as UsersCreateRouteImport } from './routes/users.create'
+import { Route as SubCitiesCreateRouteImport } from './routes/sub-cities.create'
+import { Route as SubCitiesIdRouteImport } from './routes/sub-cities.$id'
 import { Route as RequestsCreateRouteImport } from './routes/requests.create'
 import { Route as RegistryCreateRouteImport } from './routes/registry.create'
+import { Route as UsersIdEditRouteImport } from './routes/users.$id.edit'
+import { Route as SubCitiesIdEditRouteImport } from './routes/sub-cities.$id.edit'
 import { Route as RequestsIdEditRouteImport } from './routes/requests.$id.edit'
 import { Route as RegistryIdEditRouteImport } from './routes/registry.$id.edit'
 
@@ -116,6 +127,51 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VendorsIndexRoute = VendorsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => VendorsRoute,
+} as any)
+const UsersIndexRoute = UsersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => UsersRoute,
+} as any)
+const SubCitiesIndexRoute = SubCitiesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SubCitiesRoute,
+} as any)
+const RequestsIndexRoute = RequestsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RequestsRoute,
+} as any)
+const RegistryIndexRoute = RegistryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RegistryRoute,
+} as any)
+const VendorsCreateRoute = VendorsCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => VendorsRoute,
+} as any)
+const UsersCreateRoute = UsersCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => UsersRoute,
+} as any)
+const SubCitiesCreateRoute = SubCitiesCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => SubCitiesRoute,
+} as any)
+const SubCitiesIdRoute = SubCitiesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => SubCitiesRoute,
+} as any)
 const RequestsCreateRoute = RequestsCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -125,6 +181,16 @@ const RegistryCreateRoute = RegistryCreateRouteImport.update({
   id: '/create',
   path: '/create',
   getParentRoute: () => RegistryRoute,
+} as any)
+const UsersIdEditRoute = UsersIdEditRouteImport.update({
+  id: '/$id/edit',
+  path: '/$id/edit',
+  getParentRoute: () => UsersRoute,
+} as any)
+const SubCitiesIdEditRoute = SubCitiesIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => SubCitiesIdRoute,
 } as any)
 const RequestsIdEditRoute = RequestsIdEditRouteImport.update({
   id: '/$id/edit',
@@ -150,15 +216,26 @@ export interface FileRoutesByFullPath {
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
   '/settings': typeof SettingsRoute
-  '/sub-cities': typeof SubCitiesRoute
+  '/sub-cities': typeof SubCitiesRouteWithChildren
   '/surveys': typeof SurveysRoute
-  '/users': typeof UsersRoute
-  '/vendors': typeof VendorsRoute
+  '/users': typeof UsersRouteWithChildren
+  '/vendors': typeof VendorsRouteWithChildren
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
+  '/sub-cities/create': typeof SubCitiesCreateRoute
+  '/users/create': typeof UsersCreateRoute
+  '/vendors/create': typeof VendorsCreateRoute
+  '/registry/': typeof RegistryIndexRoute
+  '/requests/': typeof RequestsIndexRoute
+  '/sub-cities/': typeof SubCitiesIndexRoute
+  '/users/': typeof UsersIndexRoute
+  '/vendors/': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
+  '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
+  '/users/$id/edit': typeof UsersIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -169,19 +246,25 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
-  '/registry': typeof RegistryRouteWithChildren
   '/reports': typeof ReportsRoute
-  '/requests': typeof RequestsRouteWithChildren
   '/settings': typeof SettingsRoute
-  '/sub-cities': typeof SubCitiesRoute
   '/surveys': typeof SurveysRoute
-  '/users': typeof UsersRoute
-  '/vendors': typeof VendorsRoute
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
+  '/sub-cities/create': typeof SubCitiesCreateRoute
+  '/users/create': typeof UsersCreateRoute
+  '/vendors/create': typeof VendorsCreateRoute
+  '/registry': typeof RegistryIndexRoute
+  '/requests': typeof RequestsIndexRoute
+  '/sub-cities': typeof SubCitiesIndexRoute
+  '/users': typeof UsersIndexRoute
+  '/vendors': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
+  '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
+  '/users/$id/edit': typeof UsersIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -197,15 +280,26 @@ export interface FileRoutesById {
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
   '/settings': typeof SettingsRoute
-  '/sub-cities': typeof SubCitiesRoute
+  '/sub-cities': typeof SubCitiesRouteWithChildren
   '/surveys': typeof SurveysRoute
-  '/users': typeof UsersRoute
-  '/vendors': typeof VendorsRoute
+  '/users': typeof UsersRouteWithChildren
+  '/vendors': typeof VendorsRouteWithChildren
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
+  '/sub-cities/create': typeof SubCitiesCreateRoute
+  '/users/create': typeof UsersCreateRoute
+  '/vendors/create': typeof VendorsCreateRoute
+  '/registry/': typeof RegistryIndexRoute
+  '/requests/': typeof RequestsIndexRoute
+  '/sub-cities/': typeof SubCitiesIndexRoute
+  '/users/': typeof UsersIndexRoute
+  '/vendors/': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
+  '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
+  '/users/$id/edit': typeof UsersIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -229,8 +323,19 @@ export interface FileRouteTypes {
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
+    | '/sub-cities/$id'
+    | '/sub-cities/create'
+    | '/users/create'
+    | '/vendors/create'
+    | '/registry/'
+    | '/requests/'
+    | '/sub-cities/'
+    | '/users/'
+    | '/vendors/'
     | '/registry/$id/edit'
     | '/requests/$id/edit'
+    | '/sub-cities/$id/edit'
+    | '/users/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -241,19 +346,25 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/notifications'
-    | '/registry'
     | '/reports'
-    | '/requests'
     | '/settings'
-    | '/sub-cities'
     | '/surveys'
-    | '/users'
-    | '/vendors'
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
+    | '/sub-cities/$id'
+    | '/sub-cities/create'
+    | '/users/create'
+    | '/vendors/create'
+    | '/registry'
+    | '/requests'
+    | '/sub-cities'
+    | '/users'
+    | '/vendors'
     | '/registry/$id/edit'
     | '/requests/$id/edit'
+    | '/sub-cities/$id/edit'
+    | '/users/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -275,8 +386,19 @@ export interface FileRouteTypes {
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
+    | '/sub-cities/$id'
+    | '/sub-cities/create'
+    | '/users/create'
+    | '/vendors/create'
+    | '/registry/'
+    | '/requests/'
+    | '/sub-cities/'
+    | '/users/'
+    | '/vendors/'
     | '/registry/$id/edit'
     | '/requests/$id/edit'
+    | '/sub-cities/$id/edit'
+    | '/users/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -292,10 +414,10 @@ export interface RootRouteChildren {
   ReportsRoute: typeof ReportsRoute
   RequestsRoute: typeof RequestsRouteWithChildren
   SettingsRoute: typeof SettingsRoute
-  SubCitiesRoute: typeof SubCitiesRoute
+  SubCitiesRoute: typeof SubCitiesRouteWithChildren
   SurveysRoute: typeof SurveysRoute
-  UsersRoute: typeof UsersRoute
-  VendorsRoute: typeof VendorsRoute
+  UsersRoute: typeof UsersRouteWithChildren
+  VendorsRoute: typeof VendorsRouteWithChildren
   WorkflowsRoute: typeof WorkflowsRoute
 }
 
@@ -420,6 +542,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vendors/': {
+      id: '/vendors/'
+      path: '/'
+      fullPath: '/vendors/'
+      preLoaderRoute: typeof VendorsIndexRouteImport
+      parentRoute: typeof VendorsRoute
+    }
+    '/users/': {
+      id: '/users/'
+      path: '/'
+      fullPath: '/users/'
+      preLoaderRoute: typeof UsersIndexRouteImport
+      parentRoute: typeof UsersRoute
+    }
+    '/sub-cities/': {
+      id: '/sub-cities/'
+      path: '/'
+      fullPath: '/sub-cities/'
+      preLoaderRoute: typeof SubCitiesIndexRouteImport
+      parentRoute: typeof SubCitiesRoute
+    }
+    '/requests/': {
+      id: '/requests/'
+      path: '/'
+      fullPath: '/requests/'
+      preLoaderRoute: typeof RequestsIndexRouteImport
+      parentRoute: typeof RequestsRoute
+    }
+    '/registry/': {
+      id: '/registry/'
+      path: '/'
+      fullPath: '/registry/'
+      preLoaderRoute: typeof RegistryIndexRouteImport
+      parentRoute: typeof RegistryRoute
+    }
+    '/vendors/create': {
+      id: '/vendors/create'
+      path: '/create'
+      fullPath: '/vendors/create'
+      preLoaderRoute: typeof VendorsCreateRouteImport
+      parentRoute: typeof VendorsRoute
+    }
+    '/users/create': {
+      id: '/users/create'
+      path: '/create'
+      fullPath: '/users/create'
+      preLoaderRoute: typeof UsersCreateRouteImport
+      parentRoute: typeof UsersRoute
+    }
+    '/sub-cities/create': {
+      id: '/sub-cities/create'
+      path: '/create'
+      fullPath: '/sub-cities/create'
+      preLoaderRoute: typeof SubCitiesCreateRouteImport
+      parentRoute: typeof SubCitiesRoute
+    }
+    '/sub-cities/$id': {
+      id: '/sub-cities/$id'
+      path: '/$id'
+      fullPath: '/sub-cities/$id'
+      preLoaderRoute: typeof SubCitiesIdRouteImport
+      parentRoute: typeof SubCitiesRoute
+    }
     '/requests/create': {
       id: '/requests/create'
       path: '/create'
@@ -433,6 +618,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/registry/create'
       preLoaderRoute: typeof RegistryCreateRouteImport
       parentRoute: typeof RegistryRoute
+    }
+    '/users/$id/edit': {
+      id: '/users/$id/edit'
+      path: '/$id/edit'
+      fullPath: '/users/$id/edit'
+      preLoaderRoute: typeof UsersIdEditRouteImport
+      parentRoute: typeof UsersRoute
+    }
+    '/sub-cities/$id/edit': {
+      id: '/sub-cities/$id/edit'
+      path: '/edit'
+      fullPath: '/sub-cities/$id/edit'
+      preLoaderRoute: typeof SubCitiesIdEditRouteImport
+      parentRoute: typeof SubCitiesIdRoute
     }
     '/requests/$id/edit': {
       id: '/requests/$id/edit'
@@ -453,11 +652,13 @@ declare module '@tanstack/react-router' {
 
 interface RegistryRouteChildren {
   RegistryCreateRoute: typeof RegistryCreateRoute
+  RegistryIndexRoute: typeof RegistryIndexRoute
   RegistryIdEditRoute: typeof RegistryIdEditRoute
 }
 
 const RegistryRouteChildren: RegistryRouteChildren = {
   RegistryCreateRoute: RegistryCreateRoute,
+  RegistryIndexRoute: RegistryIndexRoute,
   RegistryIdEditRoute: RegistryIdEditRoute,
 }
 
@@ -467,17 +668,74 @@ const RegistryRouteWithChildren = RegistryRoute._addFileChildren(
 
 interface RequestsRouteChildren {
   RequestsCreateRoute: typeof RequestsCreateRoute
+  RequestsIndexRoute: typeof RequestsIndexRoute
   RequestsIdEditRoute: typeof RequestsIdEditRoute
 }
 
 const RequestsRouteChildren: RequestsRouteChildren = {
   RequestsCreateRoute: RequestsCreateRoute,
+  RequestsIndexRoute: RequestsIndexRoute,
   RequestsIdEditRoute: RequestsIdEditRoute,
 }
 
 const RequestsRouteWithChildren = RequestsRoute._addFileChildren(
   RequestsRouteChildren,
 )
+
+interface SubCitiesIdRouteChildren {
+  SubCitiesIdEditRoute: typeof SubCitiesIdEditRoute
+}
+
+const SubCitiesIdRouteChildren: SubCitiesIdRouteChildren = {
+  SubCitiesIdEditRoute: SubCitiesIdEditRoute,
+}
+
+const SubCitiesIdRouteWithChildren = SubCitiesIdRoute._addFileChildren(
+  SubCitiesIdRouteChildren,
+)
+
+interface SubCitiesRouteChildren {
+  SubCitiesIdRoute: typeof SubCitiesIdRouteWithChildren
+  SubCitiesCreateRoute: typeof SubCitiesCreateRoute
+  SubCitiesIndexRoute: typeof SubCitiesIndexRoute
+}
+
+const SubCitiesRouteChildren: SubCitiesRouteChildren = {
+  SubCitiesIdRoute: SubCitiesIdRouteWithChildren,
+  SubCitiesCreateRoute: SubCitiesCreateRoute,
+  SubCitiesIndexRoute: SubCitiesIndexRoute,
+}
+
+const SubCitiesRouteWithChildren = SubCitiesRoute._addFileChildren(
+  SubCitiesRouteChildren,
+)
+
+interface UsersRouteChildren {
+  UsersCreateRoute: typeof UsersCreateRoute
+  UsersIndexRoute: typeof UsersIndexRoute
+  UsersIdEditRoute: typeof UsersIdEditRoute
+}
+
+const UsersRouteChildren: UsersRouteChildren = {
+  UsersCreateRoute: UsersCreateRoute,
+  UsersIndexRoute: UsersIndexRoute,
+  UsersIdEditRoute: UsersIdEditRoute,
+}
+
+const UsersRouteWithChildren = UsersRoute._addFileChildren(UsersRouteChildren)
+
+interface VendorsRouteChildren {
+  VendorsCreateRoute: typeof VendorsCreateRoute
+  VendorsIndexRoute: typeof VendorsIndexRoute
+}
+
+const VendorsRouteChildren: VendorsRouteChildren = {
+  VendorsCreateRoute: VendorsCreateRoute,
+  VendorsIndexRoute: VendorsIndexRoute,
+}
+
+const VendorsRouteWithChildren =
+  VendorsRoute._addFileChildren(VendorsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -492,10 +750,10 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsRoute: ReportsRoute,
   RequestsRoute: RequestsRouteWithChildren,
   SettingsRoute: SettingsRoute,
-  SubCitiesRoute: SubCitiesRoute,
+  SubCitiesRoute: SubCitiesRouteWithChildren,
   SurveysRoute: SurveysRoute,
-  UsersRoute: UsersRoute,
-  VendorsRoute: VendorsRoute,
+  UsersRoute: UsersRouteWithChildren,
+  VendorsRoute: VendorsRouteWithChildren,
   WorkflowsRoute: WorkflowsRoute,
 }
 export const routeTree = rootRouteImport

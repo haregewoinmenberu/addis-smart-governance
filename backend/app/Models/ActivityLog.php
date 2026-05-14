@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Facades\Auth;
 
 class ActivityLog extends Model
 {
@@ -50,13 +51,16 @@ class ActivityLog extends Model
         $subject = null,
         ?array $oldValues = null,
         ?array $newValues = null
-    ): self {
+    ):  self {
+        $subjectType = $subject ? get_class($subject) : $module;
+        $subjectId = $subject?->id ?? 0;
+
         return self::create([
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'action' => $action,
             'module' => $module,
-            'subject_type' => $subject ? get_class($subject) : null,
-            'subject_id' => $subject?->id,
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
             'old_values' => $oldValues,
             'new_values' => $newValues,
             'ip_address' => request()->ip(),
