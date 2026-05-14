@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSubCities, activateSubCity, deactivateSubCity, deleteSubCity } from '@/lib/api';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"; 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,7 +31,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
-import { Plus, Search, Building2, Users, CheckCircle, XCircle, Edit, Eye, Trash2 } from 'lucide-react';
+import { Plus, Search, Building2, Users, CheckCircle, XCircle, Edit, Eye, Trash2, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppShell } from '@/components/layout/AppShell';
 
@@ -63,6 +64,7 @@ interface SubCity {
   };
   created_at: string;
 }
+
 
 function SubCitiesPage() {
   const [search, setSearch] = useState('');
@@ -274,42 +276,61 @@ function SubCitiesPage() {
                         {subCity.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Link to={`/sub-cities/${subCity.id}`}>
+
+                    <TableCell> 
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
-                        </Link>
-                        <Link to={`/sub-cities/${subCity.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <PermissionGuard permission="edit_sub_cities">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openConfirm('toggle', subCity)}
-                          >
-                            {subCity.is_active ? (
-                              <XCircle className="h-4 w-4 text-red-600" />
-                            ) : (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                            )}
-                          </Button>
-                        </PermissionGuard>
-                        <PermissionGuard permission="delete_sub_cities">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openConfirm('delete', subCity)}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </PermissionGuard>
-                      </div>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to={`/sub-cities/${subCity.id}`}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View
+                            </Link>
+                          </DropdownMenuItem>
+
+                          <PermissionGuard permission="edit_sub_cities">
+                            <DropdownMenuItem asChild>
+                              <Link to={`/sub-cities/${subCity.id}/edit`}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </Link>
+                            </DropdownMenuItem>
+                          </PermissionGuard>
+
+                          <PermissionGuard permission="edit_sub_cities">
+                            <DropdownMenuItem onClick={() => openConfirm('toggle', subCity)}>
+                              {subCity.is_active ? (
+                                <>
+                                  <XCircle className="h-4 w-4 mr-2 text-red-600" />
+                                  Deactivate
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                                  Activate
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                          </PermissionGuard>
+
+                          <PermissionGuard permission="delete_sub_cities">
+                            <DropdownMenuItem
+                              onClick={() => openConfirm('delete', subCity)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </PermissionGuard>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
+
                   </TableRow>
                 ))
               )}

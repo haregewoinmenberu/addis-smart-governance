@@ -195,6 +195,7 @@ class WorkflowController extends Controller
     public function approve(Request $request, string $instanceId)
     {
         $instance = WorkflowInstance::findOrFail($instanceId);
+        $user = auth()->user();
         
         $data = $request->validate([
             'comments' => ['nullable', 'string'],
@@ -205,36 +206,35 @@ class WorkflowController extends Controller
         $currentStage = $instance->definition->getStage($instance->current_stage);
         $requiredRole = $currentStage['required_role'] ?? null;
 
-        if ($requiredRole && !auth()->user()->hasRole($requiredRole)) {
+        if ($requiredRole && !$user->hasRole($requiredRole)) {
             return response()->json([
                 'message' => 'You do not have permission to approve this stage',
                 'required_role' => $requiredRole,
+                'your_roles' => $user->roles->pluck('name'),
+                'current_stage' => $currentStage['display_name'] ?? $instance->current_stage,
             ], 403);
         }
 
-        // Update current approval
-        $approval = $instance->currentApproval();
-        if ($approval) {
-            $approval->update([
-                'approver_id' => auth()->id(),
-                'action' => 'approved',
-                'comments' => $data['comments'] ?? null,
-                'metadata' => $data['metadata'] ?? null,
-                'actioned_at' => now(),
+        // Use WorkflowService
+        $workflowService = app(\App\Services\WorkflowService::class);
+        
+        try {
+            $updatedInstance = $workflowService->approveStage(
+                $instance,
+                $user->id,
+                $data['comments'] ?? null,
+                $data['metadata'] ?? null
+            );
+
+            return response()->json([
+                'message' => 'Workflow stage approved successfully',
+                'data' => $updatedInstance,
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to approve stage: ' . $e->getMessage(),
+            ], 500);
         }
-
-        // Advance to next stage or complete
-        if ($currentStage['auto_advance'] ?? false) {
-            $instance->advanceToNextStage();
-        }
-
-        ActivityLog::log('approve', 'workflows', $instance);
-
-        return response()->json([
-            'message' => 'Workflow stage approved successfully',
-            'data' => $instance->fresh(['definition', 'approvals']),
-        ]);
     }
 
     /**
@@ -243,6 +243,7 @@ class WorkflowController extends Controller
     public function reject(Request $request, string $instanceId)
     {
         $instance = WorkflowInstance::findOrFail($instanceId);
+        $user = auth()->user();
         
         $data = $request->validate([
             'comments' => ['required', 'string'],
@@ -253,32 +254,33 @@ class WorkflowController extends Controller
         $currentStage = $instance->definition->getStage($instance->current_stage);
         $requiredRole = $currentStage['required_role'] ?? null;
 
-        if ($requiredRole && !auth()->user()->hasRole($requiredRole)) {
+        if ($requiredRole && !$user->hasRole($requiredRole)) {
             return response()->json([
                 'message' => 'You do not have permission to reject this stage',
+                'required_role' => $requiredRole,
             ], 403);
         }
 
-        // Update approval
-        $approval = $instance->currentApproval();
-        if ($approval) {
-            $approval->update([
-                'approver_id' => auth()->id(),
-                'action' => 'rejected',
-                'comments' => $data['comments'],
-                'metadata' => $data['metadata'] ?? null,
-                'actioned_at' => now(),
+        // Use WorkflowService
+        $workflowService = app(\App\Services\WorkflowService::class);
+        
+        try {
+            $updatedInstance = $workflowService->rejectWorkflow(
+                $instance,
+                $user->id,
+                $data['comments'],
+                $data['metadata'] ?? null
+            );
+
+            return response()->json([
+                'message' => 'Workflow rejected',
+                'data' => $updatedInstance,
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to reject workflow: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $instance->reject();
-
-        ActivityLog::log('reject', 'workflows', $instance);
-
-        return response()->json([
-            'message' => 'Workflow rejected',
-            'data' => $instance->fresh(['definition', 'approvals']),
-        ]);
     }
 
     /**
@@ -287,32 +289,108 @@ class WorkflowController extends Controller
     public function requestRevision(Request $request, string $instanceId)
     {
         $instance = WorkflowInstance::findOrFail($instanceId);
+        $user = auth()->user();
         
         $data = $request->validate([
             'comments' => ['required', 'string'],
             'metadata' => ['nullable', 'array'],
         ]);
 
-        // Update approval
-        $approval = $instance->currentApproval();
-        if ($approval) {
-            $approval->update([
-                'approver_id' => auth()->id(),
-                'action' => 'revision_requested',
-                'comments' => $data['comments'],
-                'metadata' => $data['metadata'] ?? null,
-                'actioned_at' => now(),
-            ]);
+        // Check permission
+        $currentStage = $instance->definition->getStage($instance->current_stage);
+        $requiredRole = $currentStage['required_role'] ?? null;
+
+        if ($requiredRole && !$user->hasRole($requiredRole)) {
+            return response()->json([
+                'message' => 'You do not have permission to request revision',
+                'required_role' => $requiredRole,
+            ], 403);
         }
 
-        $instance->requestRevision();
+        // Use WorkflowService
+        $workflowService = app(\App\Services\WorkflowService::class);
+        
+        try {
+            $updatedInstance = $workflowService->requestRevision(
+                $instance,
+                $user->id,
+                $data['comments'],
+                $data['metadata'] ?? null
+            );
 
-        ActivityLog::log('request_revision', 'workflows', $instance);
+            return response()->json([
+                'message' => 'Revision requested',
+                'data' => $updatedInstance,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to request revision: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
-        return response()->json([
-            'message' => 'Revision requested',
-            'data' => $instance->fresh(['definition', 'approvals']),
+    /**
+     * Cancel workflow (ITDB Administrator only).
+     */
+    public function cancel(Request $request, string $instanceId)
+    {
+        $instance = WorkflowInstance::findOrFail($instanceId);
+        $user = auth()->user();
+        
+        // Only ITDB Administrator can cancel workflows
+        if (!$user->isITDBAdministrator()) {
+            return response()->json([
+                'message' => 'Only ITDB Administrator can cancel workflows',
+            ], 403);
+        }
+
+        $data = $request->validate([
+            'reason' => ['required', 'string'],
         ]);
+
+        // Use WorkflowService
+        $workflowService = app(\App\Services\WorkflowService::class);
+        
+        try {
+            $updatedInstance = $workflowService->cancelWorkflow(
+                $instance,
+                $user->id,
+                $data['reason']
+            );
+
+            return response()->json([
+                'message' => 'Workflow cancelled',
+                'data' => $updatedInstance,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to cancel workflow: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get pending approvals for current user.
+     */
+    public function myApprovals(Request $request)
+    {
+        $user = auth()->user();
+        
+        // Use WorkflowService
+        $workflowService = app(\App\Services\WorkflowService::class);
+        
+        try {
+            $pendingApprovals = $workflowService->getPendingApprovalsForUser($user->id);
+
+            return response()->json([
+                'data' => $pendingApprovals,
+                'count' => $pendingApprovals->count(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch pending approvals: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Traits\HasRolesAndPermissions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -72,6 +71,22 @@ class User extends Authenticatable
     public function sessions()
     {
         return $this->hasMany(UserSession::class);
+    }
+
+    /**
+     * Get notifications for this user.
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'user_id');
+    }
+
+    /**
+     * Get notifications created by this user.
+     */
+    public function createdNotifications()
+    {
+        return $this->hasMany(Notification::class, 'created_by_id');
     }
 
     /**

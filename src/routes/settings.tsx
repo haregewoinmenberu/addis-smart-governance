@@ -8,35 +8,140 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Save, Globe, Bell, Lock, Plug, Palette, Workflow } from "lucide-react";
+import { SettingRow } from "@/components/settings/SettingRow";
+import { Sparkles, Save, Globe, Bell, Lock, Plug, Palette, Workflow, RefreshCw, CheckCircle2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getSettings, updateSettings } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — STRP" }] }),
   component: Page,
 });
 
-function Row({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-4 border-b border-border/60 last:border-0">
-      <div>
-        <p className="text-sm font-medium">{title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
-      </div>
-      <div className="shrink-0">{children}</div>
-    </div>
-  );
-}
-
 function Page() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("general");
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // Fetch settings
+  const { data: settingsData, isLoading } = useQuery({
+    queryKey: ["settings"],
+    queryFn: getSettings,
+  });
+
+  // Local state for form
+  const [formData, setFormData] = useState<any>({
+    general: {},
+    branding: {},
+    security: {},
+    notifications: {},
+    workflow: {},
+  });
+
+  // Update form data when settings are loaded
+  useEffect(() => {
+    if (settingsData) {
+      setFormData(settingsData);
+    }
+  }, [settingsData]);
+
+  // Update settings mutation
+  const updateMutation = useMutation({
+    mutationFn: updateSettings,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      setLastSaved(new Date());
+      toast({
+        title: "Success",
+        description: "Settings updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSave = () => {
+    updateMutation.mutate(formData);
+  };
+
+  const updateField = (section: string, field: string, value: any) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+  };
+
+  const hasChanges = () => {
+    return JSON.stringify(formData) !== JSON.stringify(settingsData);
+  };
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["settings"] });
+    toast({
+      title: "Refreshed",
+      description: "Settings reloaded from server",
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <AppShell>
+        <PageHeader title="Settings" subtitle="Loading settings..." />
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <PageHeader
         title="Settings"
         subtitle="Configure system policies, branding, integrations and notification preferences."
-        actions={<Button size="sm" className="gap-1.5 bg-gradient-primary text-primary-foreground shadow-glow"><Save className="h-4 w-4" />Save changes</Button>}
+        actions={
+          <div className="flex items-center gap-2">
+            {lastSaved && (
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CheckCircle2 className="h-3 w-3 text-success" />
+                Saved {lastSaved.toLocaleTimeString()}
+              </div>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="gap-1.5"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <PermissionGuard permission="manage_settings">
+              <Button
+                size="sm"
+                className="gap-1.5 bg-gradient-primary text-primary-foreground shadow-glow"
+                onClick={handleSave}
+                disabled={updateMutation.isPending || !hasChanges()}
+              >
+                <Save className="h-4 w-4" />
+                {updateMutation.isPending ? "Saving..." : "Save changes"}
+              </Button>
+            </PermissionGuard>
+          </div>
+        }
       />
 
-      <Tabs defaultValue="general">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-muted/40 p-1 rounded-xl mb-6 flex flex-wrap h-auto">
           <TabsTrigger value="general" className="gap-1.5"><Globe className="h-4 w-4" />General</TabsTrigger>
           <TabsTrigger value="branding" className="gap-1.5"><Palette className="h-4 w-4" />Branding</TabsTrigger>
@@ -50,13 +155,61 @@ function Page() {
           <Card className="p-6 rounded-2xl border-border/60">
             <h3 className="font-semibold tracking-tight mb-4">Organization</h3>
             <div className="grid sm:grid-cols-2 gap-4 mb-6">
-              <div><Label>Authority name</Label><Input className="mt-1.5" defaultValue="Addis Ababa City ITDB" /></div>
-              <div><Label>Default language</Label><Input className="mt-1.5" defaultValue="English (Amharic available)" /></div>
-              <div><Label>Time zone</Label><Input className="mt-1.5" defaultValue="Africa/Addis_Ababa (UTC+3)" /></div>
-              <div><Label>Fiscal year</Label><Input className="mt-1.5" defaultValue="Jul–Jun" /></div>
+              <div>
+                <Label>Authority name</Label>
+                <Input
+                  className="mt-1.5"
+                  value={formData.general?.authority_name || ""}
+                  onChange={(e) => updateField("general", "authority_name", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Default language</Label>
+                <Input
+                  className="mt-1.5"
+                  value={formData.general?.default_language || ""}
+                  onChange={(e) => updateField("general", "default_language", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Time zone</Label>
+                <Input
+                  className="mt-1.5"
+                  value={formData.general?.timezone || ""}
+                  onChange={(e) => updateField("general", "timezone", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Fiscal year</Label>
+                <Input
+                  className="mt-1.5"
+                  value={formData.general?.fiscal_year || ""}
+                  onChange={(e) => updateField("general", "fiscal_year", e.target.value)}
+                />
+              </div>
             </div>
-            <Row title="Smart City Index AI module" desc="Continuously compute readiness across infrastructure & services."><Switch defaultChecked /></Row>
-            <Row title="Public transparency portal" desc="Expose anonymized governance metrics to citizens."><Switch /></Row>
+            <SettingRow
+              title="Smart City Index AI module"
+              description="Continuously compute readiness across infrastructure & services."
+              value={formData.general?.smart_city_module}
+              showStatus
+            >
+              <Switch
+                checked={formData.general?.smart_city_module || false}
+                onCheckedChange={(checked) => updateField("general", "smart_city_module", checked)}
+              />
+            </SettingRow>
+            <SettingRow
+              title="Public transparency portal"
+              description="Expose anonymized governance metrics to citizens."
+              value={formData.general?.public_portal}
+              showStatus
+            >
+              <Switch
+                checked={formData.general?.public_portal || false}
+                onCheckedChange={(checked) => updateField("general", "public_portal", checked)}
+              />
+            </SettingRow>
           </Card>
         </TabsContent>
 
@@ -67,42 +220,191 @@ function Page() {
               <div className="h-16 w-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow"><Sparkles className="h-7 w-7 text-primary-foreground" /></div>
               <div>
                 <p className="font-medium">STRP Portal</p>
-                <p className="text-xs text-muted-foreground">Primary color #147361 · Government green</p>
+                <p className="text-xs text-muted-foreground">Primary color {formData.branding?.primary_color || "#147361"} · Government green</p>
               </div>
               <Button variant="outline" size="sm" className="ml-auto">Upload logo</Button>
             </div>
-            <Row title="Dark mode default" desc="Apply dark theme to all new accounts."><Switch /></Row>
-            <Row title="High contrast mode" desc="Improve accessibility for citizen-facing surfaces."><Switch /></Row>
+            <SettingRow
+              title="Dark mode default"
+              description="Apply dark theme to all new accounts."
+              value={formData.branding?.dark_mode_default}
+              showStatus
+            >
+              <Switch
+                checked={formData.branding?.dark_mode_default || false}
+                onCheckedChange={(checked) => updateField("branding", "dark_mode_default", checked)}
+              />
+            </SettingRow>
+            <SettingRow
+              title="High contrast mode"
+              description="Improve accessibility for citizen-facing surfaces."
+              value={formData.branding?.high_contrast}
+              showStatus
+            >
+              <Switch
+                checked={formData.branding?.high_contrast || false}
+                onCheckedChange={(checked) => updateField("branding", "high_contrast", checked)}
+              />
+            </SettingRow>
           </Card>
         </TabsContent>
 
         <TabsContent value="security">
           <Card className="p-6 rounded-2xl border-border/60">
             <h3 className="font-semibold tracking-tight mb-4">Security policies</h3>
-            <Row title="Enforce SSO (OIDC)" desc="Require federated login for all government users."><Switch defaultChecked /></Row>
-            <Row title="Multi-factor authentication" desc="Require MFA for Admins, Auditors and Approvers."><Switch defaultChecked /></Row>
-            <Row title="Password rotation" desc="Force password change every 90 days."><Switch defaultChecked /></Row>
-            <Row title="Session timeout" desc="Auto sign-out after 30 minutes of inactivity."><Badge variant="secondary">30 min</Badge></Row>
-            <Row title="IP allowlist" desc="Restrict access to government network ranges."><Switch /></Row>
+            <SettingRow
+              title="Enforce SSO (OIDC)"
+              description="Require federated login for all government users."
+              value={formData.security?.enforce_sso}
+              showStatus
+            >
+              <Switch
+                checked={formData.security?.enforce_sso || false}
+                onCheckedChange={(checked) => updateField("security", "enforce_sso", checked)}
+              />
+            </SettingRow>
+            <SettingRow
+              title="Multi-factor authentication"
+              description="Require MFA for Admins, Auditors and Approvers."
+              value={formData.security?.require_mfa}
+              showStatus
+            >
+              <Switch
+                checked={formData.security?.require_mfa || false}
+                onCheckedChange={(checked) => updateField("security", "require_mfa", checked)}
+              />
+            </SettingRow>
+            <SettingRow
+              title="Password rotation"
+              description="Force password change periodically."
+            >
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  className="w-20"
+                  value={formData.security?.password_rotation_days || 90}
+                  onChange={(e) => updateField("security", "password_rotation_days", parseInt(e.target.value))}
+                />
+                <span className="text-sm text-muted-foreground">days</span>
+              </div>
+            </SettingRow>
+            <SettingRow
+              title="Session timeout"
+              description="Auto sign-out after inactivity."
+            >
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  className="w-20"
+                  value={formData.security?.session_timeout_minutes || 30}
+                  onChange={(e) => updateField("security", "session_timeout_minutes", parseInt(e.target.value))}
+                />
+                <span className="text-sm text-muted-foreground">min</span>
+              </div>
+            </SettingRow>
+            <SettingRow
+              title="IP allowlist"
+              description="Restrict access to government network ranges."
+              value={formData.security?.ip_allowlist_enabled}
+              showStatus
+            >
+              <Switch
+                checked={formData.security?.ip_allowlist_enabled || false}
+                onCheckedChange={(checked) => updateField("security", "ip_allowlist_enabled", checked)}
+              />
+            </SettingRow>
           </Card>
         </TabsContent>
 
         <TabsContent value="notifications">
           <Card className="p-6 rounded-2xl border-border/60">
             <h3 className="font-semibold tracking-tight mb-4">Channel preferences</h3>
-            <Row title="Email" desc="System updates and weekly briefings."><Switch defaultChecked /></Row>
-            <Row title="SMS" desc="Critical alerts and approval requests."><Switch defaultChecked /></Row>
-            <Row title="In-app" desc="Real-time toast and feed notifications."><Switch defaultChecked /></Row>
-            <Row title="Webhook" desc="Forward events to integrated systems."><Switch /></Row>
+            <SettingRow
+              title="Email"
+              description="System updates and weekly briefings."
+              value={formData.notifications?.email_enabled}
+              showStatus
+            >
+              <Switch
+                checked={formData.notifications?.email_enabled || false}
+                onCheckedChange={(checked) => updateField("notifications", "email_enabled", checked)}
+              />
+            </SettingRow>
+            <SettingRow
+              title="SMS"
+              description="Critical alerts and approval requests."
+              value={formData.notifications?.sms_enabled}
+              showStatus
+            >
+              <Switch
+                checked={formData.notifications?.sms_enabled || false}
+                onCheckedChange={(checked) => updateField("notifications", "sms_enabled", checked)}
+              />
+            </SettingRow>
+            <SettingRow
+              title="In-app"
+              description="Real-time toast and feed notifications."
+              value={formData.notifications?.in_app_enabled}
+              showStatus
+            >
+              <Switch
+                checked={formData.notifications?.in_app_enabled || false}
+                onCheckedChange={(checked) => updateField("notifications", "in_app_enabled", checked)}
+              />
+            </SettingRow>
+            <SettingRow
+              title="Webhook"
+              description="Forward events to integrated systems."
+              value={formData.notifications?.webhook_enabled}
+              showStatus
+            >
+              <Switch
+                checked={formData.notifications?.webhook_enabled || false}
+                onCheckedChange={(checked) => updateField("notifications", "webhook_enabled", checked)}
+              />
+            </SettingRow>
           </Card>
         </TabsContent>
 
         <TabsContent value="workflow">
           <Card className="p-6 rounded-2xl border-border/60">
             <h3 className="font-semibold tracking-tight mb-4">Workflow defaults</h3>
-            <Row title="Auto-escalate after 48h" desc="Re-route stalled approvals to next authority."><Switch defaultChecked /></Row>
-            <Row title="Parallel approvals" desc="Allow concurrent reviewers on the same step."><Switch /></Row>
-            <Row title="Require digital signature" desc="Mandate e-signature on final approval."><Switch defaultChecked /></Row>
+            <SettingRow
+              title="Auto-escalate after"
+              description="Re-route stalled approvals to next authority."
+            >
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  className="w-20"
+                  value={formData.workflow?.auto_escalate_hours || 48}
+                  onChange={(e) => updateField("workflow", "auto_escalate_hours", parseInt(e.target.value))}
+                />
+                <span className="text-sm text-muted-foreground">hours</span>
+              </div>
+            </SettingRow>
+            <SettingRow
+              title="Parallel approvals"
+              description="Allow concurrent reviewers on the same step."
+              value={formData.workflow?.parallel_approvals}
+              showStatus
+            >
+              <Switch
+                checked={formData.workflow?.parallel_approvals || false}
+                onCheckedChange={(checked) => updateField("workflow", "parallel_approvals", checked)}
+              />
+            </SettingRow>
+            <SettingRow
+              title="Require digital signature"
+              description="Mandate e-signature on final approval."
+              value={formData.workflow?.require_signature}
+              showStatus
+            >
+              <Switch
+                checked={formData.workflow?.require_signature || false}
+                onCheckedChange={(checked) => updateField("workflow", "require_signature", checked)}
+              />
+            </SettingRow>
           </Card>
         </TabsContent>
 

@@ -1,5 +1,8 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "addis-smart-governance",
+  "version": "1.0.0",
+  "description": "Smart Technology Request Portal for Addis Ababa City Administration ITDB",
+  "author": "Addis Ababa City Administration ITDB",
   "private": true,
   "sideEffects": false,
   "type": "module",

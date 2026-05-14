@@ -14,16 +14,6 @@ import { getUsers, deleteUser, toggleUserActive } from "@/lib/api";
 import { useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "User Management & RBAC — STRP" }] }),
@@ -35,19 +25,12 @@ function Page() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
-  const [confirmState, setConfirmState] = useState<{
-    isOpen: boolean;
-    action: "toggle" | "delete" | null;
-    target: any | null;
-  }>({ isOpen: false, action: null, target: null });
 
-  // Fetch users
   const { data: usersData, isLoading } = useQuery({
     queryKey: ["users", searchQuery],
     queryFn: () => getUsers({ search: searchQuery }),
   });
 
-  // Delete user mutation
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
@@ -66,7 +49,6 @@ function Page() {
     },
   });
 
-  // Toggle active mutation
   const toggleActiveMutation = useMutation({
     mutationFn: toggleUserActive,
     onSuccess: () => {
@@ -85,36 +67,15 @@ function Page() {
     },
   });
 
-  const openConfirm = (action: "toggle" | "delete", target: any) => {
-    setConfirmState({ isOpen: true, action, target });
-  };
-
-  const closeConfirm = () => {
-    setConfirmState({ isOpen: false, action: null, target: null });
-  };
-
-  const handleConfirm = () => {
-    if (!confirmState.target || !confirmState.action) return;
-    if (confirmState.action === "toggle") {
-      toggleActiveMutation.mutate(confirmState.target.id);
+  const handleDelete = (id: number) => {
+    if (confirm("Are you sure you want to delete this user?")) {
+      deleteMutation.mutate(id);
     }
-    if (confirmState.action === "delete") {
-      deleteMutation.mutate(confirmState.target.id);
-    }
-    closeConfirm();
   };
 
-  const confirmTitle =
-    confirmState.action === "delete"
-      ? "Delete user?"
-      : confirmState.target?.is_active
-        ? "Deactivate user?"
-        : "Activate user?";
-
-  const confirmMessage =
-    confirmState.action === "delete"
-      ? "This action cannot be undone."
-      : "This will update the user status immediately.";
+  const handleToggleActive = (id: number) => {
+    toggleActiveMutation.mutate(id);
+  };
 
   const users = usersData?.data || [];
   const totalUsers = usersData?.total || 0;
@@ -234,7 +195,7 @@ function Page() {
                             </Link>
                           </PermissionGuard>
                           <PermissionGuard permission="edit_users">
-                            <DropdownMenuItem onClick={() => openConfirm("toggle", user)}>
+                            <DropdownMenuItem onClick={() => handleToggleActive(user.id)}>
                               {user.is_active ? (
                                 <>
                                   <UserX className="h-4 w-4 mr-2" />
@@ -250,7 +211,7 @@ function Page() {
                           </PermissionGuard>
                           <PermissionGuard permission="delete_users">
                             <DropdownMenuItem
-                              onClick={() => openConfirm("delete", user)}
+                              onClick={() => handleDelete(user.id)}
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
@@ -267,26 +228,6 @@ function Page() {
           </table>
         </div>
       </Card>
-      <AlertDialog open={confirmState.isOpen} onOpenChange={(open) => { if (!open) closeConfirm(); }}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{confirmTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{confirmMessage}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={closeConfirm}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleConfirm();
-              }}
-              className={confirmState.action === "delete" ? "bg-red-600 hover:bg-red-700" : ""}
-            >
-              Confirm
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AppShell>
   );
 }

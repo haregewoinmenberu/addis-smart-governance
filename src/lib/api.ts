@@ -78,10 +78,18 @@ export async function apiPost<T>(path: string, body: unknown) {
   return apiFetch<T>(path, { method: "POST", body });
 }
 
+/**
+ * @deprecated Use apiPost with /update endpoint instead
+ * Example: apiPost(`/users/${id}/update`, data)
+ */
 export async function apiPut<T>(path: string, body: unknown) {
   return apiFetch<T>(path, { method: "PUT", body });
 }
 
+/**
+ * @deprecated Use apiPost with /delete endpoint instead
+ * Example: apiPost(`/users/${id}/delete`, {})
+ */
 export async function apiDelete<T>(path: string) {
   return apiFetch<T>(path, { method: "DELETE" });
 }
@@ -144,12 +152,12 @@ export async function createItem<T>(endpoint: string, data: unknown) {
 
 // Generic update
 export async function updateItem<T>(endpoint: string, id: string | number, data: unknown) {
-  return apiPut<{ data: T; message: string }>(`${endpoint}/${id}`, data);
+  return apiPost<{ data: T; message: string }>(`${endpoint}/${id}/update`, data);
 }
 
 // Generic delete
 export async function deleteItem(endpoint: string, id: string | number) {
-  return apiDelete<{ message: string }>(`${endpoint}/${id}`);
+  return apiPost<{ message: string }>(`${endpoint}/${id}/delete`, {});
 }
 
 // Requests
@@ -370,12 +378,49 @@ export async function getNotification(id: string | number) {
   return getItem("/notifications", id);
 }
 
+export async function getUnreadNotificationCount() {
+  return apiGet<{ count: number }>("/notifications/unread-count");
+}
+
+export async function getRecentNotifications(limit?: number) {
+  const params = limit ? `?limit=${limit}` : "";
+  return apiGet<{ notifications: unknown[]; unread_count: number }>(`/notifications/recent${params}`);
+}
+
+export async function getNotificationStatistics() {
+  return apiGet<{
+    total: number;
+    unread: number;
+    read: number;
+    today: number;
+    this_week: number;
+    by_type: Record<string, number>;
+    by_priority: Record<string, number>;
+  }>("/notifications/statistics");
+}
+
 export async function markNotificationAsRead(id: string | number) {
-  return apiPost<{ message: string }>(`/notifications/${id}/read`, {});
+  return apiPost<{ message: string; data: unknown }>(`/notifications/${id}/read`, {});
+}
+
+export async function markNotificationAsUnread(id: string | number) {
+  return apiPost<{ message: string; data: unknown }>(`/notifications/${id}/unread`, {});
 }
 
 export async function markAllNotificationsAsRead() {
-  return apiPost<{ message: string }>("/notifications/read-all", {});
+  return apiPost<{ message: string; count: number }>("/notifications/read-all", {});
+}
+
+export async function deleteNotification(id: string | number) {
+  return apiPost<{ message: string }>(`/notifications/${id}/delete`, {});
+}
+
+export async function deleteAllReadNotifications() {
+  return apiPost<{ message: string; count: number }>("/notifications/read/delete-all", {});
+}
+
+export async function deleteAllNotifications() {
+  return apiPost<{ message: string; count: number }>("/notifications/all/clear", {});
 }
 
 // Sub-Cities Management
@@ -399,6 +444,46 @@ export async function deleteSubCity(id: string | number) {
   return deleteItem("/sub-cities", id);
 }
 
+// Profile & Account Management
+export async function updateProfile(data: { name?: string; email?: string; phone?: string; department?: string }) {
+  return apiPost<{ user: unknown; message: string }>("/auth/profile/update", data);
+}
+
+export async function changePassword(data: { current_password: string; password: string; password_confirmation: string }) {
+  return apiPost<{ message: string }>("/auth/change-password", data);
+}
+
+export async function getActivityLogs(params?: Record<string, string>) {
+  return getPaginatedList("/auth/activity-logs", params);
+}
+
+export async function getSessions() {
+  return apiGet<{ sessions: unknown[] }>("/auth/sessions");
+}
+
+export async function revokeSession(id: string | number) {
+  return apiPost<{ message: string }>(`/auth/sessions/${id}/revoke`, {});
+}
+
+export async function revokeAllOtherSessions() {
+  return apiPost<{ message: string; revoked_count: number }>("/auth/sessions/revoke-all", {});
+}
+
+// Settings
+export async function getSettings() {
+  return apiGet<{
+    general: Record<string, unknown>;
+    branding: Record<string, unknown>;
+    security: Record<string, unknown>;
+    notifications: Record<string, unknown>;
+    workflow: Record<string, unknown>;
+  }>("/settings");
+}
+
+export async function updateSettings(data: Record<string, unknown>) {
+  return apiPost<{ message: string; data: Record<string, unknown> }>("/settings/update", data);
+}
+
 export async function activateSubCity(id: string | number) {
   return apiPost<{ data: unknown; message: string }>(`/sub-cities/${id}/activate`, {});
 }
@@ -416,7 +501,7 @@ export async function getSubCityUsers(id: string | number) {
 }
 
 export async function updateSubCityAdministrator(id: string | number, data: { user_id: number }) {
-  return apiPut<{ data: unknown; message: string }>(`/sub-cities/${id}/administrator`, data);
+  return apiPost<{ data: unknown; message: string }>(`/sub-cities/${id}/administrator/update`, data);
 }
 
 // Duplication Cases

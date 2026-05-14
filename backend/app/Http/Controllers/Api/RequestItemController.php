@@ -17,8 +17,29 @@ class RequestItemController extends Controller
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
+        
         $query = RequestItem::with(['submittedBy', 'workflowInstance.definition'])
             ->orderByDesc('submitted_at');
+
+        // Apply hierarchy-based filtering
+        if ($user->isITDBUser()) {
+            // ITDB Administrator and ITDB Auditor: View all requests (system-wide)
+            // No filtering needed
+        } elseif ($user->isSubCityUser()) {
+            // Sub-City Administrator and Sub-City Auditor: View only their sub-city
+            if ($user->sub_city_id) {
+                $query->whereHas('submittedBy', function ($q) use ($user) {
+                    $q->where('sub_city_id', $user->sub_city_id);
+                });
+            } else {
+                // No sub-city assigned, return empty
+                $query->whereRaw('1 = 0');
+            }
+        } else {
+            // No valid role, deny access
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
         // Search
         if ($search = $request->input('search')) {
@@ -52,12 +73,6 @@ class RequestItemController extends Controller
         // Filter by category
         if ($category = $request->input('category')) {
             $query->where('category', $category);
-        }
-
-        // Filter by user's sub-city (for Sub-City Admins)
-        $user = auth()->user();
-        if ($user && $user->isSubCityAdministrator() && $user->sub_city) {
-            $query->where('office', $user->sub_city);
         }
 
         // Pagination
@@ -191,6 +206,14 @@ class RequestItemController extends Controller
     public function submit(string $id)
     {
         $item = RequestItem::findOrFail($id);
+        $user = auth()->user();
+
+        // Check ownership - only submitter can submit
+        if ($item->submitted_by !== $user->id) {
+            return response()->json([
+                'message' => 'You can only submit your own requests',
+            ], 403);
+        }
 
         // Check if already submitted
         if ($item->approval_status !== 'draft') {
@@ -199,49 +222,77 @@ class RequestItemController extends Controller
             ], 422);
         }
 
-        // Get workflow definition
-        $workflow = WorkflowDefinition::where('code', 'tech_request_approval')
-            ->where('is_active', true)
-            ->first();
+        // Use WorkflowService to initialize workflow
+        $workflowService = app(\App\Services\WorkflowService::class);
+        
+        try {
+            $instance = $workflowService->initializeWorkflow('tech_request_approval', $item);
+            
+            // Update request
+            $item->update([
+                'workflow_instance_id' => $instance->id,
+                'status' => 'Submitted',
+                'approval_status' => 'pending',
+                'step' => 1,
+            ]);
 
-        if (!$workflow) {
+            ActivityLog::log('submit', 'requests', $item);
+
             return response()->json([
-                'message' => 'No active workflow found',
+                'message' => 'Request submitted successfully',
+                'data' => $item->load('workflowInstance.definition', 'workflowInstance.approvals'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to submit request: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Resubmit request after revision.
+     */
+    public function resubmit(string $id)
+    {
+        $item = RequestItem::findOrFail($id);
+        $user = auth()->user();
+
+        // Check ownership
+        if ($item->submitted_by !== $user->id) {
+            return response()->json([
+                'message' => 'You can only resubmit your own requests',
+            ], 403);
+        }
+
+        // Check if in revision status
+        if ($item->approval_status !== 'revision_requested') {
+            return response()->json([
+                'message' => 'Request is not in revision status',
             ], 422);
         }
 
-        // Create workflow instance
-        $instance = WorkflowInstance::create([
-            'workflow_definition_id' => $workflow->id,
-            'workflowable_type' => RequestItem::class,
-            'workflowable_id' => $item->id,
-            'current_stage' => $workflow->stages[0]['name'],
-            'current_stage_index' => 0,
-            'status' => 'in_progress',
-            'started_at' => now(),
-        ]);
+        // Check if workflow instance exists
+        if (!$item->workflowInstance) {
+            return response()->json([
+                'message' => 'No workflow instance found',
+            ], 422);
+        }
 
-        // Create first approval record
-        $instance->approvals()->create([
-            'stage_name' => $workflow->stages[0]['name'],
-            'stage_index' => 0,
-            'action' => 'pending',
-        ]);
+        // Use WorkflowService to resubmit
+        $workflowService = app(\App\Services\WorkflowService::class);
+        
+        try {
+            $instance = $workflowService->resubmitWorkflow($item->workflowInstance);
 
-        // Update request
-        $item->update([
-            'workflow_instance_id' => $instance->id,
-            'status' => 'Submitted',
-            'approval_status' => 'pending',
-            'step' => 1,
-        ]);
-
-        ActivityLog::log('submit', 'requests', $item);
-
-        return response()->json([
-            'message' => 'Request submitted successfully',
-            'data' => $item->load('workflowInstance.definition'),
-        ]);
+            return response()->json([
+                'message' => 'Request resubmitted successfully',
+                'data' => $item->fresh(['workflowInstance.definition', 'workflowInstance.approvals']),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to resubmit request: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

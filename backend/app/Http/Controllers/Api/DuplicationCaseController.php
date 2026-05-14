@@ -4,37 +4,67 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\DuplicationCase;
+use App\Models\RequestItem;
+use App\Services\DuplicationAnalysisService;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
 class DuplicationCaseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected $duplicationService;
+
+    public function __construct(DuplicationAnalysisService $duplicationService)
     {
-        return response()->json([
-            'data' => DuplicationCase::orderByDesc('created_at')->get(),
-        ]);
+        $this->duplicationService = $duplicationService;
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Display a listing of the resource.
      */
-    public function store(Request $request)
+    public function index(Request $request)
     {
-        $data = $request->validate([
-            'title' => ['required', 'string'],
-            'systems' => ['required', 'array'],
-            'systems.*' => ['string'],
-            'similarity_score' => ['required', 'numeric', 'min:0', 'max:100'],
-            'status' => ['required', 'string'],
-            'recommendation' => ['nullable', 'string'],
-        ]);
+        $query = DuplicationCase::with(['requestItem', 'existingTechnology', 'analyzer'])
+            ->orderByDesc('created_at');
 
-        $case = DuplicationCase::create($data);
+        // Filter by recommendation
+        if ($recommendation = $request->input('recommendation')) {
+            $query->where('recommendation', $recommendation);
+        }
 
-        return response()->json(['data' => $case], 201);
+        // Filter by similarity score range
+        if ($request->has('min_score')) {
+            $query->where('similarity_score', '>=', $request->input('min_score'));
+        }
+        if ($request->has('max_score')) {
+            $query->where('similarity_score', '<=', $request->input('max_score'));
+        }
+
+        $data = $query->paginate($request->input('per_page', 15));
+
+        return response()->json($data);
+    }
+
+    /**
+     * Analyze a request for duplications.
+     */
+    public function analyze(Request $request, string $requestId)
+    {
+        $requestItem = RequestItem::findOrFail($requestId);
+
+        // Check if already analyzed
+        if ($requestItem->duplicationCase) {
+            return response()->json([
+                'message' => 'Request has already been analyzed',
+                'data' => $requestItem->duplicationCase->load(['existingTechnology', 'analyzer']),
+            ], 422);
+        }
+
+        $case = $this->duplicationService->analyzeRequest($requestItem);
+
+        return response()->json([
+            'message' => 'Duplication analysis completed',
+            'data' => $case->load(['existingTechnology', 'analyzer']),
+        ], 201);
     }
 
     /**
@@ -42,29 +72,48 @@ class DuplicationCaseController extends Controller
      */
     public function show(string $id)
     {
+        $case = DuplicationCase::with([
+            'requestItem.submittedBy',
+            'existingTechnology',
+            'analyzer',
+        ])->findOrFail($id);
+
+        return response()->json(['data' => $case]);
+    }
+
+    /**
+     * Override duplication analysis (manual review).
+     */
+    public function override(Request $request, string $id)
+    {
+        $case = DuplicationCase::findOrFail($id);
+
+        $data = $request->validate([
+            'recommendation' => ['required', 'in:reuse,extend,new'],
+            'analysis_notes' => ['required', 'string'],
+        ]);
+
+        $updatedCase = $this->duplicationService->overrideAnalysis(
+            $case,
+            $data['recommendation'],
+            $data['analysis_notes'],
+            auth()->id()
+        );
+
         return response()->json([
-            'data' => DuplicationCase::findOrFail($id),
+            'message' => 'Duplication analysis overridden successfully',
+            'data' => $updatedCase->load(['existingTechnology', 'analyzer']),
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Get duplication statistics.
      */
-    public function update(Request $request, string $id)
+    public function statistics()
     {
-        $case = DuplicationCase::findOrFail($id);
-        $data = $request->validate([
-            'title' => ['sometimes', 'string'],
-            'systems' => ['sometimes', 'array'],
-            'systems.*' => ['string'],
-            'similarity_score' => ['sometimes', 'numeric', 'min:0', 'max:100'],
-            'status' => ['sometimes', 'string'],
-            'recommendation' => ['nullable', 'string'],
-        ]);
+        $stats = $this->duplicationService->getStatistics();
 
-        $case->update($data);
-
-        return response()->json(['data' => $case]);
+        return response()->json(['data' => $stats]);
     }
 
     /**
@@ -73,8 +122,11 @@ class DuplicationCaseController extends Controller
     public function destroy(string $id)
     {
         $case = DuplicationCase::findOrFail($id);
+
+        ActivityLog::log('delete', 'duplication_cases', $case, $case->toArray(), null);
+
         $case->delete();
 
-        return response()->json(['message' => 'Deleted']);
+        return response()->json(['message' => 'Duplication case deleted successfully']);
     }
 }

@@ -31,12 +31,15 @@ import { Route as UsersIndexRouteImport } from './routes/users.index'
 import { Route as SubCitiesIndexRouteImport } from './routes/sub-cities.index'
 import { Route as RequestsIndexRouteImport } from './routes/requests.index'
 import { Route as RegistryIndexRouteImport } from './routes/registry.index'
+import { Route as ProfileIndexRouteImport } from './routes/profile.index'
+import { Route as NotificationsIndexRouteImport } from './routes/notifications.index'
 import { Route as VendorsCreateRouteImport } from './routes/vendors.create'
 import { Route as UsersCreateRouteImport } from './routes/users.create'
 import { Route as SubCitiesCreateRouteImport } from './routes/sub-cities.create'
 import { Route as SubCitiesIdRouteImport } from './routes/sub-cities.$id'
 import { Route as RequestsCreateRouteImport } from './routes/requests.create'
 import { Route as RegistryCreateRouteImport } from './routes/registry.create'
+import { Route as SubCitiesIdIndexRouteImport } from './routes/sub-cities.$id.index'
 import { Route as UsersIdEditRouteImport } from './routes/users.$id.edit'
 import { Route as SubCitiesIdEditRouteImport } from './routes/sub-cities.$id.edit'
 import { Route as RequestsIdEditRouteImport } from './routes/requests.$id.edit'
@@ -152,6 +155,16 @@ const RegistryIndexRoute = RegistryIndexRouteImport.update({
   path: '/',
   getParentRoute: () => RegistryRoute,
 } as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsIndexRoute = NotificationsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => NotificationsRoute,
+} as any)
 const VendorsCreateRoute = VendorsCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -182,6 +195,11 @@ const RegistryCreateRoute = RegistryCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => RegistryRoute,
 } as any)
+const SubCitiesIdIndexRoute = SubCitiesIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SubCitiesIdRoute,
+} as any)
 const UsersIdEditRoute = UsersIdEditRouteImport.update({
   id: '/$id/edit',
   path: '/$id/edit',
@@ -211,7 +229,7 @@ export interface FileRoutesByFullPath {
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/notifications': typeof NotificationsRoute
+  '/notifications': typeof NotificationsRouteWithChildren
   '/registry': typeof RegistryRouteWithChildren
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
@@ -227,6 +245,8 @@ export interface FileRoutesByFullPath {
   '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
+  '/notifications/': typeof NotificationsIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/registry/': typeof RegistryIndexRoute
   '/requests/': typeof RequestsIndexRoute
   '/sub-cities/': typeof SubCitiesIndexRoute
@@ -236,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/requests/$id/edit': typeof RequestsIdEditRoute
   '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
   '/users/$id/edit': typeof UsersIdEditRoute
+  '/sub-cities/$id/': typeof SubCitiesIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -245,17 +266,17 @@ export interface FileRoutesByTo {
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/notifications': typeof NotificationsRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/surveys': typeof SurveysRoute
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
-  '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
   '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
+  '/notifications': typeof NotificationsIndexRoute
+  '/profile': typeof ProfileIndexRoute
   '/registry': typeof RegistryIndexRoute
   '/requests': typeof RequestsIndexRoute
   '/sub-cities': typeof SubCitiesIndexRoute
@@ -265,6 +286,7 @@ export interface FileRoutesByTo {
   '/requests/$id/edit': typeof RequestsIdEditRoute
   '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
   '/users/$id/edit': typeof UsersIdEditRoute
+  '/sub-cities/$id': typeof SubCitiesIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -275,7 +297,7 @@ export interface FileRoutesById {
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/notifications': typeof NotificationsRoute
+  '/notifications': typeof NotificationsRouteWithChildren
   '/registry': typeof RegistryRouteWithChildren
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
@@ -291,6 +313,8 @@ export interface FileRoutesById {
   '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
+  '/notifications/': typeof NotificationsIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/registry/': typeof RegistryIndexRoute
   '/requests/': typeof RequestsIndexRoute
   '/sub-cities/': typeof SubCitiesIndexRoute
@@ -300,6 +324,7 @@ export interface FileRoutesById {
   '/requests/$id/edit': typeof RequestsIdEditRoute
   '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
   '/users/$id/edit': typeof UsersIdEditRoute
+  '/sub-cities/$id/': typeof SubCitiesIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -327,6 +352,8 @@ export interface FileRouteTypes {
     | '/sub-cities/create'
     | '/users/create'
     | '/vendors/create'
+    | '/notifications/'
+    | '/profile/'
     | '/registry/'
     | '/requests/'
     | '/sub-cities/'
@@ -336,6 +363,7 @@ export interface FileRouteTypes {
     | '/requests/$id/edit'
     | '/sub-cities/$id/edit'
     | '/users/$id/edit'
+    | '/sub-cities/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -345,17 +373,17 @@ export interface FileRouteTypes {
     | '/feasibility'
     | '/forgot-password'
     | '/login'
-    | '/notifications'
     | '/reports'
     | '/settings'
     | '/surveys'
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
-    | '/sub-cities/$id'
     | '/sub-cities/create'
     | '/users/create'
     | '/vendors/create'
+    | '/notifications'
+    | '/profile'
     | '/registry'
     | '/requests'
     | '/sub-cities'
@@ -365,6 +393,7 @@ export interface FileRouteTypes {
     | '/requests/$id/edit'
     | '/sub-cities/$id/edit'
     | '/users/$id/edit'
+    | '/sub-cities/$id'
   id:
     | '__root__'
     | '/'
@@ -390,6 +419,8 @@ export interface FileRouteTypes {
     | '/sub-cities/create'
     | '/users/create'
     | '/vendors/create'
+    | '/notifications/'
+    | '/profile/'
     | '/registry/'
     | '/requests/'
     | '/sub-cities/'
@@ -399,6 +430,7 @@ export interface FileRouteTypes {
     | '/requests/$id/edit'
     | '/sub-cities/$id/edit'
     | '/users/$id/edit'
+    | '/sub-cities/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -409,7 +441,7 @@ export interface RootRouteChildren {
   FeasibilityRoute: typeof FeasibilityRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
-  NotificationsRoute: typeof NotificationsRoute
+  NotificationsRoute: typeof NotificationsRouteWithChildren
   RegistryRoute: typeof RegistryRouteWithChildren
   ReportsRoute: typeof ReportsRoute
   RequestsRoute: typeof RequestsRouteWithChildren
@@ -419,6 +451,7 @@ export interface RootRouteChildren {
   UsersRoute: typeof UsersRouteWithChildren
   VendorsRoute: typeof VendorsRouteWithChildren
   WorkflowsRoute: typeof WorkflowsRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -577,6 +610,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegistryIndexRouteImport
       parentRoute: typeof RegistryRoute
     }
+    '/profile/': {
+      id: '/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications/': {
+      id: '/notifications/'
+      path: '/'
+      fullPath: '/notifications/'
+      preLoaderRoute: typeof NotificationsIndexRouteImport
+      parentRoute: typeof NotificationsRoute
+    }
     '/vendors/create': {
       id: '/vendors/create'
       path: '/create'
@@ -619,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegistryCreateRouteImport
       parentRoute: typeof RegistryRoute
     }
+    '/sub-cities/$id/': {
+      id: '/sub-cities/$id/'
+      path: '/'
+      fullPath: '/sub-cities/$id/'
+      preLoaderRoute: typeof SubCitiesIdIndexRouteImport
+      parentRoute: typeof SubCitiesIdRoute
+    }
     '/users/$id/edit': {
       id: '/users/$id/edit'
       path: '/$id/edit'
@@ -649,6 +703,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface NotificationsRouteChildren {
+  NotificationsIndexRoute: typeof NotificationsIndexRoute
+}
+
+const NotificationsRouteChildren: NotificationsRouteChildren = {
+  NotificationsIndexRoute: NotificationsIndexRoute,
+}
+
+const NotificationsRouteWithChildren = NotificationsRoute._addFileChildren(
+  NotificationsRouteChildren,
+)
 
 interface RegistryRouteChildren {
   RegistryCreateRoute: typeof RegistryCreateRoute
@@ -684,10 +750,12 @@ const RequestsRouteWithChildren = RequestsRoute._addFileChildren(
 
 interface SubCitiesIdRouteChildren {
   SubCitiesIdEditRoute: typeof SubCitiesIdEditRoute
+  SubCitiesIdIndexRoute: typeof SubCitiesIdIndexRoute
 }
 
 const SubCitiesIdRouteChildren: SubCitiesIdRouteChildren = {
   SubCitiesIdEditRoute: SubCitiesIdEditRoute,
+  SubCitiesIdIndexRoute: SubCitiesIdIndexRoute,
 }
 
 const SubCitiesIdRouteWithChildren = SubCitiesIdRoute._addFileChildren(
@@ -745,7 +813,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeasibilityRoute: FeasibilityRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
-  NotificationsRoute: NotificationsRoute,
+  NotificationsRoute: NotificationsRouteWithChildren,
   RegistryRoute: RegistryRouteWithChildren,
   ReportsRoute: ReportsRoute,
   RequestsRoute: RequestsRouteWithChildren,
@@ -755,6 +823,7 @@ const rootRouteChildren: RootRouteChildren = {
   UsersRoute: UsersRouteWithChildren,
   VendorsRoute: VendorsRouteWithChildren,
   WorkflowsRoute: WorkflowsRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

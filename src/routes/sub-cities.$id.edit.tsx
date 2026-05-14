@@ -66,7 +66,7 @@ function Page() {
       toast.success("Sub-city updated successfully");
       queryClient.invalidateQueries({ queryKey: ["sub-cities"] });
       queryClient.invalidateQueries({ queryKey: ["sub-city", id] });
-      navigate({ to: "/sub-cities" });
+      navigate({ to: "/sub-cities/$id", params: { id } });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to update sub-city");

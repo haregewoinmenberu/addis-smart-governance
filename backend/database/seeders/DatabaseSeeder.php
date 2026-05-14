@@ -25,13 +25,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->command->info('Seeding system...');
+
         // Seed roles and permissions first
         $this->call([
             RolesAndPermissionsSeeder::class,
-            SubCityRoleSeeder::class,
-            DefaultUsersSeeder::class,
-            WorkflowDefinitionsSeeder::class,
+            WorkflowDefinitionSeeder::class,
+            SubCitiesSeeder::class,
         ]);
+
+        // Create a default admin user with role assigned
+        $adminUser = User::firstOrCreate(
+            ['email' => 'admin@itdb.gov.et'],
+            [
+                'name' => 'System Administrator',
+                'password' => \Hash::make('Admin@123'),
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Ensure admin has the itdb_administrator role
+        if (!$adminUser->hasRole('itdb_administrator')) {
+            $adminUser->assignRole('itdb_administrator');
+            $this->command->info('✓ Assigned itdb_administrator role to admin user');
+        }
 
         // Seed sample data
         Technology::insert([
@@ -74,10 +92,11 @@ class DatabaseSeeder extends Seeder
             ['title' => 'Vendor SLA Review', 'type' => 'Procurement', 'period' => 'Q3 2025', 'status' => 'Draft', 'generated_at' => '2025-09-06 14:15:00', 'created_at' => now(), 'updated_at' => now()],
         ]);
 
+        // Use correct notification structure with user_id
         Notification::insert([
-            ['title' => 'Audit due in 5 days', 'message' => 'Arada Sub-City audit is due on Sep 18.', 'channel' => 'Email', 'priority' => 'High', 'recipient' => 'audit@addis.gov.et', 'read_at' => null, 'created_at' => now(), 'updated_at' => now()],
-            ['title' => 'New request submitted', 'message' => 'TR-2025-0142 submitted by Bole Sub-City.', 'channel' => 'In-app', 'priority' => 'Medium', 'recipient' => 'procurement@addis.gov.et', 'read_at' => null, 'created_at' => now(), 'updated_at' => now()],
-            ['title' => 'Vulnerability resolved', 'message' => 'Critical patch applied to Traffic Management v2.', 'channel' => 'SMS', 'priority' => 'Low', 'recipient' => 'security@addis.gov.et', 'read_at' => now(), 'created_at' => now(), 'updated_at' => now()],
+            ['user_id' => $adminUser->id, 'title' => 'Audit due in 5 days', 'message' => 'Arada Sub-City audit is due on Sep 18.', 'type' => 'audit', 'channel' => 'Email', 'priority' => 'high', 'read_at' => null, 'sent_at' => now(), 'created_at' => now(), 'updated_at' => now()],
+            ['user_id' => $adminUser->id, 'title' => 'New request submitted', 'message' => 'TR-2025-0142 submitted by Bole Sub-City.', 'type' => 'request', 'channel' => 'In-app', 'priority' => 'normal', 'read_at' => null, 'sent_at' => now(), 'created_at' => now(), 'updated_at' => now()],
+            ['user_id' => $adminUser->id, 'title' => 'Vulnerability resolved', 'message' => 'Critical patch applied to Traffic Management v2.', 'type' => 'security', 'channel' => 'SMS', 'priority' => 'normal', 'read_at' => now(), 'sent_at' => now(), 'created_at' => now(), 'updated_at' => now()],
         ]);
 
         Audit::insert([
@@ -103,5 +122,7 @@ class DatabaseSeeder extends Seeder
             ['title' => 'Digital Permit Expansion', 'office' => 'Arada Sub-City', 'status' => 'In review', 'score' => 72, 'reviewed_at' => null, 'created_at' => now(), 'updated_at' => now()],
             ['title' => 'Citywide Data Exchange', 'office' => 'ITDB Central', 'status' => 'Pending', 'score' => null, 'reviewed_at' => null, 'created_at' => now(), 'updated_at' => now()],
         ]);
+
+        $this->command->info('✓ Sample data seeded successfully!');
     }
 }

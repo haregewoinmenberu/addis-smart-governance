@@ -3,7 +3,6 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
-  useRouter,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -51,19 +50,41 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "STRP - Smart Technology Request Portal | Addis Ababa ITDB" },
+      { 
+        name: "description", 
+        content: "Smart Technology Request Portal for Addis Ababa City Administration Innovation and Technology Development Bureau. Manage technology requests, audits, and governance workflows." 
+      },
+      { name: "author", content: "Addis Ababa City Administration ITDB" },
+      { name: "keywords", content: "ITDB, Addis Ababa, Smart City, Technology Request, Governance, Innovation, Technology Development Bureau" },
+      { property: "og:title", content: "STRP - Smart Technology Request Portal" },
+      { 
+        property: "og:description", 
+        content: "Smart Technology Request Portal for Addis Ababa City Administration Innovation and Technology Development Bureau" 
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:site_name", content: "Addis Ababa ITDB" },
+      { property: "og:image", content: "https://aaitdb.gov.et/uploads/Setting/addis-ababa-city-administration-innovation-and-techenology-development-bureau-2026-03-26-69c4de59f1c4a.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "STRP - Smart Technology Request Portal" },
+      { name: "twitter:description", content: "Smart Technology Request Portal for Addis Ababa City Administration ITDB" },
+      { name: "twitter:image", content: "https://aaitdb.gov.et/uploads/Setting/addis-ababa-city-administration-innovation-and-techenology-development-bureau-2026-03-26-69c4de59f1c4a.png" },
+      { name: "theme-color", content: "#147361" },
+      { name: "application-name", content: "STRP Portal" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        href: "/favicon.png",
+      },
+      {
+        rel: "apple-touch-icon",
+        href: "/favicon.png",
       },
     ],
   }),

@@ -36,8 +36,12 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me']);
+        Route::post('profile/update', [AuthController::class, 'updateProfile']);
+        Route::post('change-password', [AuthController::class, 'changePassword']);
+        Route::get('activity-logs', [AuthController::class, 'activityLogs']);
         Route::get('sessions', [AuthController::class, 'sessions']);
-        Route::delete('sessions/{id}', [AuthController::class, 'revokeSession']);
+        Route::post('sessions/{id}/revoke', [AuthController::class, 'revokeSession']);
+        Route::post('sessions/revoke-all', [AuthController::class, 'revokeAllOtherSessions']);
     });
 
     // Dashboard - All authenticated users
@@ -48,16 +52,22 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     Route::get('modules/{key}', [ModuleController::class, 'show']);
 
     // Settings - View for all, manage for ITDB Admin only
-    Route::get('settings', [SettingsController::class, 'index'])
+    Route::get('settings', [SettingsController::class, 'show'])
         ->middleware('permission:view_settings');
-    Route::put('settings', [SettingsController::class, 'update'])
+    Route::post('settings/update', [SettingsController::class, 'update'])
+        ->middleware('permission:manage_settings');
+    Route::get('settings/{key}', [SettingsController::class, 'getSetting'])
+        ->middleware('permission:view_settings');
+    Route::post('settings/{key}/update', [SettingsController::class, 'updateSetting'])
+        ->middleware('permission:manage_settings');
+    Route::post('settings/clear-cache', [SettingsController::class, 'clearCache'])
         ->middleware('permission:manage_settings');
 
     // Roles & Permissions - ITDB Administrator only
     Route::middleware('role:itdb_administrator')->group(function () {
         Route::get('roles', [RoleController::class, 'index']);
         Route::get('roles/{role}', [RoleController::class, 'show']);
-        Route::put('roles/{role}/permissions', [RoleController::class, 'updatePermissions']);
+        Route::post('roles/{role}/permissions/update', [RoleController::class, 'updatePermissions']);
         Route::get('permissions', [RoleController::class, 'permissions']);
     });
 
@@ -69,9 +79,9 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:create_sub_cities');
         Route::get('/{id}', [SubCityController::class, 'show'])
             ->middleware('permission:view_sub_cities');
-        Route::put('/{id}', [SubCityController::class, 'update'])
+        Route::post('/{id}/update', [SubCityController::class, 'update'])
             ->middleware('permission:edit_sub_cities');
-        Route::delete('/{id}', [SubCityController::class, 'destroy'])
+        Route::post('/{id}/delete', [SubCityController::class, 'destroy'])
             ->middleware('permission:delete_sub_cities');
         Route::post('/{id}/activate', [SubCityController::class, 'activate'])
             ->middleware('permission:edit_sub_cities');
@@ -81,7 +91,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:view_sub_cities');
         Route::get('/{id}/users', [SubCityController::class, 'users'])
             ->middleware('permission:view_sub_cities');
-        Route::put('/{id}/administrator', [SubCityController::class, 'updateAdministrator'])
+        Route::post('/{id}/administrator/update', [SubCityController::class, 'updateAdministrator'])
             ->middleware('permission:edit_sub_cities');
     });
 
@@ -93,9 +103,9 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:create_users');
         Route::get('/{id}', [UserController::class, 'show'])
             ->middleware('permission:view_users');
-        Route::put('/{id}', [UserController::class, 'update'])
+        Route::post('/{id}/update', [UserController::class, 'update'])
             ->middleware('permission:edit_users');
-        Route::delete('/{id}', [UserController::class, 'destroy'])
+        Route::post('/{id}/delete', [UserController::class, 'destroy'])
             ->middleware('permission:delete_users');
         Route::post('/{id}/toggle-active', [UserController::class, 'toggleActive'])
             ->middleware('permission:edit_users');
@@ -115,12 +125,14 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:view_requests');
         Route::get('/{id}', [RequestItemController::class, 'show'])
             ->middleware('permission:view_requests');
-        Route::put('/{id}', [RequestItemController::class, 'update'])
+        Route::post('/{id}/update', [RequestItemController::class, 'update'])
             ->middleware('permission:edit_requests');
-        Route::delete('/{id}', [RequestItemController::class, 'destroy'])
+        Route::post('/{id}/delete', [RequestItemController::class, 'destroy'])
             ->middleware('permission:delete_requests');
         Route::post('/{id}/submit', [RequestItemController::class, 'submit'])
-            ->middleware('permission:create_requests');
+            ->middleware('permission:submit_requests');
+        Route::post('/{id}/resubmit', [RequestItemController::class, 'resubmit'])
+            ->middleware('permission:submit_requests');
     });
 
     // Technology Registry
@@ -133,9 +145,9 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:view_technologies');
         Route::get('/{id}', [TechnologyController::class, 'show'])
             ->middleware('permission:view_technologies');
-        Route::put('/{id}', [TechnologyController::class, 'update'])
+        Route::post('/{id}/update', [TechnologyController::class, 'update'])
             ->middleware('permission:edit_technologies');
-        Route::delete('/{id}', [TechnologyController::class, 'destroy'])
+        Route::post('/{id}/delete', [TechnologyController::class, 'destroy'])
             ->middleware('permission:delete_technologies');
     });
 
@@ -149,16 +161,23 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:view_workflows');
         Route::get('/instances', [WorkflowController::class, 'instances'])
             ->middleware('permission:view_workflows');
+        Route::get('/instances/my-approvals', [WorkflowController::class, 'myApprovals'])
+            ->middleware('permission:approve_workflows');
         Route::get('/instances/{id}', [WorkflowController::class, 'showInstance'])
             ->middleware('permission:view_workflows');
-        Route::post('/instances/{id}/approve', [WorkflowController::class, 'approve']);
-        Route::post('/instances/{id}/reject', [WorkflowController::class, 'reject']);
-        Route::post('/instances/{id}/request-revision', [WorkflowController::class, 'requestRevision']);
+        Route::post('/instances/{id}/approve', [WorkflowController::class, 'approve'])
+            ->middleware('permission:approve_workflows');
+        Route::post('/instances/{id}/reject', [WorkflowController::class, 'reject'])
+            ->middleware('permission:approve_workflows');
+        Route::post('/instances/{id}/request-revision', [WorkflowController::class, 'requestRevision'])
+            ->middleware('permission:approve_workflows');
+        Route::post('/instances/{id}/cancel', [WorkflowController::class, 'cancel'])
+            ->middleware('permission:cancel_workflows');
         Route::get('/{id}', [WorkflowController::class, 'show'])
             ->middleware('permission:view_workflows');
-        Route::put('/{id}', [WorkflowController::class, 'update'])
+        Route::post('/{id}/update', [WorkflowController::class, 'update'])
             ->middleware('permission:edit_workflows');
-        Route::delete('/{id}', [WorkflowController::class, 'destroy'])
+        Route::post('/{id}/delete', [WorkflowController::class, 'destroy'])
             ->middleware('permission:delete_workflows');
     });
 
@@ -170,9 +189,9 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:create_audits');
         Route::get('/{id}', [AuditController::class, 'show'])
             ->middleware('permission:view_audits');
-        Route::put('/{id}', [AuditController::class, 'update'])
+        Route::post('/{id}/update', [AuditController::class, 'update'])
             ->middleware('permission:conduct_audits');
-        Route::delete('/{id}', [AuditController::class, 'destroy'])
+        Route::post('/{id}/delete', [AuditController::class, 'destroy'])
             ->middleware('permission:create_audits');
     });
 
@@ -184,9 +203,9 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:create_vendors');
         Route::get('/{id}', [VendorController::class, 'show'])
             ->middleware('permission:view_vendors');
-        Route::put('/{id}', [VendorController::class, 'update'])
+        Route::post('/{id}/update', [VendorController::class, 'update'])
             ->middleware('permission:edit_vendors');
-        Route::delete('/{id}', [VendorController::class, 'destroy'])
+        Route::post('/{id}/delete', [VendorController::class, 'destroy'])
             ->middleware('permission:edit_vendors');
         Route::post('/{id}/approve', [VendorController::class, 'approve'])
             ->middleware('permission:approve_vendors');
@@ -212,7 +231,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:manage_cybersecurity');
         Route::get('/{id}', [CybersecurityIssueController::class, 'show'])
             ->middleware('permission:view_cybersecurity');
-        Route::put('/{id}', [CybersecurityIssueController::class, 'update'])
+        Route::post('/{id}/update', [CybersecurityIssueController::class, 'update'])
             ->middleware('permission:manage_cybersecurity');
     });
 
@@ -220,21 +239,33 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     Route::prefix('duplications')->group(function () {
         Route::get('/', [DuplicationCaseController::class, 'index'])
             ->middleware('permission:view_duplication');
-        Route::post('/', [DuplicationCaseController::class, 'store'])
+        Route::get('/statistics', [DuplicationCaseController::class, 'statistics'])
+            ->middleware('permission:view_duplication');
+        Route::post('/requests/{requestId}/analyze', [DuplicationCaseController::class, 'analyze'])
             ->middleware('permission:perform_duplication_analysis');
         Route::get('/{id}', [DuplicationCaseController::class, 'show'])
             ->middleware('permission:view_duplication');
+        Route::post('/{id}/override', [DuplicationCaseController::class, 'override'])
+            ->middleware('permission:perform_duplication_analysis');
+        Route::post('/{id}/delete', [DuplicationCaseController::class, 'destroy'])
+            ->middleware('permission:perform_duplication_analysis');
     });
 
     // Feasibility Studies
     Route::prefix('feasibility-studies')->group(function () {
         Route::get('/', [FeasibilityStudyController::class, 'index'])
             ->middleware('permission:view_feasibility');
-        Route::post('/', [FeasibilityStudyController::class, 'store'])
+        Route::get('/criteria', [FeasibilityStudyController::class, 'criteria'])
+            ->middleware('permission:view_feasibility');
+        Route::get('/statistics', [FeasibilityStudyController::class, 'statistics'])
+            ->middleware('permission:view_feasibility');
+        Route::post('/requests/{requestId}/evaluate', [FeasibilityStudyController::class, 'evaluate'])
             ->middleware('permission:conduct_feasibility');
         Route::get('/{id}', [FeasibilityStudyController::class, 'show'])
             ->middleware('permission:view_feasibility');
-        Route::put('/{id}', [FeasibilityStudyController::class, 'update'])
+        Route::post('/{id}/update', [FeasibilityStudyController::class, 'update'])
+            ->middleware('permission:conduct_feasibility');
+        Route::post('/{id}/delete', [FeasibilityStudyController::class, 'destroy'])
             ->middleware('permission:conduct_feasibility');
     });
 
@@ -254,11 +285,25 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])
             ->middleware('permission:view_notifications');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])
+            ->middleware('permission:view_notifications');
+        Route::get('/recent', [NotificationController::class, 'recent'])
+            ->middleware('permission:view_notifications');
+        Route::get('/statistics', [NotificationController::class, 'statistics'])
+            ->middleware('permission:view_notifications');
         Route::get('/{id}', [NotificationController::class, 'show'])
             ->middleware('permission:view_notifications');
         Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])
             ->middleware('permission:view_notifications');
+        Route::post('/{id}/unread', [NotificationController::class, 'markAsUnread'])
+            ->middleware('permission:view_notifications');
         Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])
+            ->middleware('permission:view_notifications');
+        Route::post('/{id}/delete', [NotificationController::class, 'destroy'])
+            ->middleware('permission:view_notifications');
+        Route::post('/read/delete-all', [NotificationController::class, 'deleteAllRead'])
+            ->middleware('permission:view_notifications');
+        Route::post('/all/clear', [NotificationController::class, 'deleteAll'])
             ->middleware('permission:view_notifications');
     });
 });
