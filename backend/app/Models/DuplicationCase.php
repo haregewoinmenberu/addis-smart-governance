@@ -44,16 +44,3 @@ class DuplicationCase extends Model
         return $this->belongsTo(User::class, 'analyzed_by');
     }
 }
-    protected $fillable = [
-        'title',
-        'systems',
-        'similarity_score',
-        'status',
-        'recommendation',
-    ];
-
-    protected $casts = [
-        'systems' => 'array',
-        'similarity_score' => 'decimal:2',
-    ];
-}

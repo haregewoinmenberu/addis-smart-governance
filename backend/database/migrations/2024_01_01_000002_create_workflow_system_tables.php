@@ -54,41 +54,92 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Update request_items table for workflow integration
-        Schema::table('request_items', function (Blueprint $table) {
-            $table->foreignId('workflow_instance_id')->nullable()->after('id')->constrained()->nullOnDelete();
-            $table->foreignId('submitted_by')->nullable()->after('workflow_instance_id')->constrained('users')->nullOnDelete();
-            $table->string('category')->nullable()->after('title');
-            $table->text('justification')->nullable()->after('description');
-            $table->json('documents')->nullable()->after('justification');
-            $table->decimal('estimated_budget', 15, 2)->nullable()->change();
-            $table->string('approval_status')->default('draft')->after('status');
-        });
+        // Update request_items table for workflow integration (only if table exists)
+        if (Schema::hasTable('request_items')) {
+            Schema::table('request_items', function (Blueprint $table) {
+                if (!Schema::hasColumn('request_items', 'workflow_instance_id')) {
+                    $table->foreignId('workflow_instance_id')->nullable()->after('id')->constrained()->nullOnDelete();
+                }
+                if (!Schema::hasColumn('request_items', 'submitted_by')) {
+                    $table->foreignId('submitted_by')->nullable()->after('workflow_instance_id')->constrained('users')->nullOnDelete();
+                }
+                if (!Schema::hasColumn('request_items', 'category')) {
+                    $table->string('category')->nullable()->after('title');
+                }
+                if (!Schema::hasColumn('request_items', 'justification')) {
+                    $table->text('justification')->nullable()->after('description');
+                }
+                if (!Schema::hasColumn('request_items', 'documents')) {
+                    $table->json('documents')->nullable()->after('justification');
+                }
+                if (!Schema::hasColumn('request_items', 'approval_status')) {
+                    $table->string('approval_status')->default('draft')->after('status');
+                }
+            });
+        }
 
-        // Duplication analysis results
-        Schema::table('duplication_cases', function (Blueprint $table) {
-            $table->foreignId('request_item_id')->nullable()->after('id')->constrained()->nullOnDelete();
-            $table->foreignId('existing_technology_id')->nullable()->after('request_item_id')->constrained('technologies')->nullOnDelete();
-            $table->decimal('similarity_score', 5, 2)->nullable()->after('existing_technology_id');
-            $table->string('recommendation')->nullable()->after('similarity_score'); // reuse, extend, new
-            $table->text('analysis_notes')->nullable()->after('recommendation');
-            $table->foreignId('analyzed_by')->nullable()->after('analysis_notes')->constrained('users')->nullOnDelete();
-        });
+        // Duplication analysis results (only if table exists)
+        if (Schema::hasTable('duplication_cases')) {
+            Schema::table('duplication_cases', function (Blueprint $table) {
+                if (!Schema::hasColumn('duplication_cases', 'request_item_id')) {
+                    $table->foreignId('request_item_id')->nullable()->after('id')->constrained()->nullOnDelete();
+                }
+                if (!Schema::hasColumn('duplication_cases', 'existing_technology_id')) {
+                    $table->foreignId('existing_technology_id')->nullable()->after('request_item_id')->constrained('technologies')->nullOnDelete();
+                }
+                if (!Schema::hasColumn('duplication_cases', 'similarity_score')) {
+                    $table->decimal('similarity_score', 5, 2)->nullable()->after('existing_technology_id');
+                }
+                if (!Schema::hasColumn('duplication_cases', 'recommendation')) {
+                    $table->string('recommendation')->nullable()->after('similarity_score'); // reuse, extend, new
+                }
+                if (!Schema::hasColumn('duplication_cases', 'analysis_notes')) {
+                    $table->text('analysis_notes')->nullable()->after('recommendation');
+                }
+                if (!Schema::hasColumn('duplication_cases', 'analyzed_by')) {
+                    $table->foreignId('analyzed_by')->nullable()->after('analysis_notes')->constrained('users')->nullOnDelete();
+                }
+            });
+        }
 
-        // Feasibility studies
-        Schema::table('feasibility_studies', function (Blueprint $table) {
-            $table->foreignId('request_item_id')->nullable()->after('id')->constrained()->nullOnDelete();
-            $table->decimal('technical_score', 5, 2)->nullable()->after('request_item_id');
-            $table->decimal('financial_score', 5, 2)->nullable()->after('technical_score');
-            $table->decimal('security_score', 5, 2)->nullable()->after('financial_score');
-            $table->decimal('infrastructure_score', 5, 2)->nullable()->after('security_score');
-            $table->decimal('integration_score', 5, 2)->nullable()->after('infrastructure_score');
-            $table->decimal('sustainability_score', 5, 2)->nullable()->after('integration_score');
-            $table->decimal('overall_risk_score', 5, 2)->nullable()->after('sustainability_score');
-            $table->text('recommendation')->nullable()->after('overall_risk_score');
-            $table->foreignId('evaluated_by')->nullable()->after('recommendation')->constrained('users')->nullOnDelete();
-            $table->timestamp('evaluated_at')->nullable()->after('evaluated_by');
-        });
+        // Feasibility studies (only if table exists)
+        if (Schema::hasTable('feasibility_studies')) {
+            Schema::table('feasibility_studies', function (Blueprint $table) {
+                if (!Schema::hasColumn('feasibility_studies', 'request_item_id')) {
+                    $table->foreignId('request_item_id')->nullable()->after('id')->constrained()->nullOnDelete();
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'technical_score')) {
+                    $table->decimal('technical_score', 5, 2)->nullable()->after('request_item_id');
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'financial_score')) {
+                    $table->decimal('financial_score', 5, 2)->nullable()->after('technical_score');
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'security_score')) {
+                    $table->decimal('security_score', 5, 2)->nullable()->after('financial_score');
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'infrastructure_score')) {
+                    $table->decimal('infrastructure_score', 5, 2)->nullable()->after('security_score');
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'integration_score')) {
+                    $table->decimal('integration_score', 5, 2)->nullable()->after('infrastructure_score');
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'sustainability_score')) {
+                    $table->decimal('sustainability_score', 5, 2)->nullable()->after('integration_score');
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'overall_risk_score')) {
+                    $table->decimal('overall_risk_score', 5, 2)->nullable()->after('sustainability_score');
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'recommendation')) {
+                    $table->text('recommendation')->nullable()->after('overall_risk_score');
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'evaluated_by')) {
+                    $table->foreignId('evaluated_by')->nullable()->after('recommendation')->constrained('users')->nullOnDelete();
+                }
+                if (!Schema::hasColumn('feasibility_studies', 'evaluated_at')) {
+                    $table->timestamp('evaluated_at')->nullable()->after('evaluated_by');
+                }
+            });
+        }
     }
 
     /**
@@ -96,34 +147,51 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('feasibility_studies', function (Blueprint $table) {
-            $table->dropForeign(['request_item_id']);
-            $table->dropForeign(['evaluated_by']);
-            $table->dropColumn([
-                'request_item_id', 'technical_score', 'financial_score', 'security_score',
-                'infrastructure_score', 'integration_score', 'sustainability_score',
-                'overall_risk_score', 'recommendation', 'evaluated_by', 'evaluated_at'
-            ]);
-        });
+        if (Schema::hasTable('feasibility_studies')) {
+            Schema::table('feasibility_studies', function (Blueprint $table) {
+                $columns = ['request_item_id', 'evaluated_by'];
+                foreach ($columns as $column) {
+                    if (Schema::hasColumn('feasibility_studies', $column)) {
+                        $table->dropForeign(['feasibility_studies_' . $column . '_foreign']);
+                    }
+                }
+                $table->dropColumn([
+                    'request_item_id', 'technical_score', 'financial_score', 'security_score',
+                    'infrastructure_score', 'integration_score', 'sustainability_score',
+                    'overall_risk_score', 'recommendation', 'evaluated_by', 'evaluated_at'
+                ]);
+            });
+        }
 
-        Schema::table('duplication_cases', function (Blueprint $table) {
-            $table->dropForeign(['request_item_id']);
-            $table->dropForeign(['existing_technology_id']);
-            $table->dropForeign(['analyzed_by']);
-            $table->dropColumn([
-                'request_item_id', 'existing_technology_id', 'similarity_score',
-                'recommendation', 'analysis_notes', 'analyzed_by'
-            ]);
-        });
+        if (Schema::hasTable('duplication_cases')) {
+            Schema::table('duplication_cases', function (Blueprint $table) {
+                $columns = ['request_item_id', 'existing_technology_id', 'analyzed_by'];
+                foreach ($columns as $column) {
+                    if (Schema::hasColumn('duplication_cases', $column)) {
+                        $table->dropForeign(['duplication_cases_' . $column . '_foreign']);
+                    }
+                }
+                $table->dropColumn([
+                    'request_item_id', 'existing_technology_id', 'similarity_score',
+                    'recommendation', 'analysis_notes', 'analyzed_by'
+                ]);
+            });
+        }
 
-        Schema::table('request_items', function (Blueprint $table) {
-            $table->dropForeign(['workflow_instance_id']);
-            $table->dropForeign(['submitted_by']);
-            $table->dropColumn([
-                'workflow_instance_id', 'submitted_by', 'category', 'justification',
-                'documents', 'approval_status'
-            ]);
-        });
+        if (Schema::hasTable('request_items')) {
+            Schema::table('request_items', function (Blueprint $table) {
+                $columns = ['workflow_instance_id', 'submitted_by'];
+                foreach ($columns as $column) {
+                    if (Schema::hasColumn('request_items', $column)) {
+                        $table->dropForeign(['request_items_' . $column . '_foreign']);
+                    }
+                }
+                $table->dropColumn([
+                    'workflow_instance_id', 'submitted_by', 'category', 'justification',
+                    'documents', 'approval_status'
+                ]);
+            });
+        }
 
         Schema::dropIfExists('workflow_approvals');
         Schema::dropIfExists('workflow_instances');

@@ -90,9 +90,3 @@ class RequestItem extends Model
         return $this->office === $subCity;
     }
 }
-        'submitted_at' => 'date',
-        'budget' => 'decimal:2',
-        'step' => 'integer',
-        'total_steps' => 'integer',
-    ];
-}

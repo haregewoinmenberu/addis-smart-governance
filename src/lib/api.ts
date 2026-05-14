@@ -29,6 +29,7 @@ export function getAuthToken(): string | null {
 async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "Accept": "application/json",
     ...(options.headers ?? {}),
   };
 
@@ -37,15 +38,30 @@ async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
     headers.Authorization = `Bearer ${token}`;
   }
 
+  console.log('API Request:', {
+    url: `${API_BASE_URL}${path}`,
+    method: options.method ?? "GET",
+    headers,
+    body: options.body,
+  });
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: options.method ?? "GET",
     headers,
     body: options.body ? JSON.stringify(options.body) : undefined,
+    credentials: 'omit', // Don't send cookies to prevent session-based redirects
+  });
+
+  console.log('API Response:', {
+    status: response.status,
+    statusText: response.statusText,
+    headers: Object.fromEntries(response.headers.entries()),
   });
 
   let payload: (T & { message?: string }) | undefined;
   try {
     payload = (await response.json()) as T & { message?: string };
+    console.log('API Response Body:', payload);
   } catch {
     payload = undefined;
   }

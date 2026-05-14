@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     public function login(Request $request)
-    {
+    { 
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
@@ -24,7 +24,7 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = $request->user();
+        $user = Auth::user();
 
         // Check if user is active
         if (!$user->is_active) {
@@ -172,4 +172,3 @@ class AuthController extends Controller
         return response()->json(['message' => 'Session revoked successfully']);
     }
 }
-

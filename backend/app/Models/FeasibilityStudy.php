@@ -69,16 +69,3 @@ class FeasibilityStudy extends Model
             : 0;
     }
 }
-    protected $fillable = [
-        'title',
-        'office',
-        'status',
-        'score',
-        'reviewed_at',
-    ];
-
-    protected $casts = [
-        'reviewed_at' => 'date',
-        'score' => 'integer',
-    ];
-}

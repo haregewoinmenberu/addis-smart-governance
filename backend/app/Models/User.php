@@ -114,5 +114,4 @@ class User extends Authenticatable
     {
         return $this->sub_city_id == $subCityId;
     }
-}
-}
+} 

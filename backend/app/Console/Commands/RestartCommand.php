@@ -13,16 +13,24 @@ class RestartCommand extends Command
     {
         $this->call('migrate:fresh');
         $this->call('db:seed');
-        // Create a personal access client for the default user (id=1)
-        $this->call('passport:client', [
-            '--personal' => true,
-            '--user_id' => 1,
-            '--name' => 'Default Personal Access Client'
-        ]);
-        $this->call('passport:key', [
+        
+        // Ensure Passport keys exist
+        $this->info('Generating Passport encryption keys...');
+        $this->call('passport:keys', [
             '--force' => true
         ]);
+        
+        // Clear all caches
         $this->call('optimize:clear');
-        $this->info('Restart sequence completed.');
+        
+        $this->newLine();
+        $this->info('✓ Restart sequence completed successfully!');
+        $this->newLine();
+        $this->info('Default users created:');
+        $this->info('  • ITDB Admin: admin@itdb.gov.et / password123');
+        $this->info('  • Sub-City Admin: subcity@addis.gov.et / password123');
+        $this->info('  • Auditor: auditor@itdb.gov.et / password123');
+        $this->newLine();
+        $this->comment('Note: Run "php artisan passport:install" manually if you need OAuth clients.');
     }
 }
