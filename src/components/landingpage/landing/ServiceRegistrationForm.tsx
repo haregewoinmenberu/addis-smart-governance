@@ -20,14 +20,31 @@ import {
   type LicensingFormData, type LmsFormData,
 } from "@/lib/service-forms-schema";
 import type { ServiceKey } from "@/lib/services-data";
+import { apiPost } from "@/lib/api";
 
 type Props = { kind: ServiceKey };
 
-async function fakeSubmit(payload: unknown) {
-  // simulate API
-  await new Promise((r) => setTimeout(r, 900));
-  // never log full PII payloads in production; ref only
-  return { reference: "STRP-" + Math.random().toString(36).slice(2, 8).toUpperCase(), payload };
+// Map service kind to form data type
+type FormDataMap = {
+  research: ResearchFormData;
+  transformation: TransformationFormData;
+  licensing: LicensingFormData;
+  lms: LmsFormData;
+};
+
+async function submitServiceForm<K extends ServiceKey>(
+  serviceType: K,
+  formData: FormDataMap[K]
+): Promise<{ reference: string }> {
+  const data = await apiPost<{ success: boolean; data: { reference_number: string } }>(
+    '/service-forms/submit',
+    {
+      serviceType,
+      formData,
+    }
+  );
+  
+  return { reference: data.data.reference_number };
 }
 
 export function ServiceRegistrationForm({ kind }: Props) {
@@ -105,21 +122,23 @@ function AgreeField({ form }: { form: any }) {
   );
 }
 
-function onSubmitHandler<T>(
+function onSubmitHandler<K extends ServiceKey>(
   form: ReturnType<typeof useForm<any>>,
   setLoading: (b: boolean) => void,
   label: string,
+  serviceType: K,
 ) {
-  return form.handleSubmit(async (values: T) => {
+  return form.handleSubmit(async (values) => {
     setLoading(true);
     try {
-      const res = await fakeSubmit(values);
+      const res = await submitServiceForm(serviceType, values);
       toast.success(`${label} received`, {
         description: `Reference: ${res.reference}. You'll get a confirmation by email.`,
       });
       form.reset();
-    } catch {
-      toast.error("Submission failed", { description: "Please try again in a moment." });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Please try again in a moment.';
+      toast.error("Submission failed", { description: message });
     } finally {
       setLoading(false);
     }
@@ -143,7 +162,7 @@ function ResearchForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmitHandler<ResearchFormData>(form, setLoading, "Research proposal")} className="space-y-8">
+      <form onSubmit={onSubmitHandler(form, setLoading, "Research proposal", "research")} className="space-y-8">
         <Section title="Applicant">
           <TextField form={form} name="fullName" label="Full name" placeholder="Dr. Helen T." />
           <TextField form={form} name="institution" label="Institution" placeholder="Addis Ababa University" />
@@ -188,7 +207,7 @@ function TransformationForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmitHandler<TransformationFormData>(form, setLoading, "Transformation request")} className="space-y-8">
+      <form onSubmit={onSubmitHandler(form, setLoading, "Transformation request", "transformation")} className="space-y-8">
         <Section title="Agency">
           <TextField form={form} name="agencyName" label="Agency / Bureau" placeholder="Bureau of …" />
           <SelectField form={form} name="agencyType" label="Type" options={["Bureau", "Sub-city", "Public Enterprise", "Other"]} />
@@ -231,7 +250,7 @@ function LicensingForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmitHandler<LicensingFormData>(form, setLoading, "License application")} className="space-y-8">
+      <form onSubmit={onSubmitHandler(form, setLoading, "License application", "licensing")} className="space-y-8">
         <Section title="Applicant">
           <SelectField form={form} name="applicantType" label="Applicant type" options={["Individual Professional", "Firm", "Vendor"]} />
           <TextField form={form} name="fullName" label="Full / Company name" />
@@ -275,7 +294,7 @@ function LmsForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmitHandler<LmsFormData>(form, setLoading, "Learner registration")} className="space-y-8">
+      <form onSubmit={onSubmitHandler(form, setLoading, "Learner registration", "lms")} className="space-y-8">
         <Section title="Learner">
           <TextField form={form} name="learnerName" label="Full name" />
           <TextField form={form} name="employeeId" label="Employee ID" />

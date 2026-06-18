@@ -30,6 +30,18 @@ export interface ServiceDetail {
   }[];
   ctaText: string;
   ctaSubtext: string;
+  highlights: string[];
+  workflow: Array<{
+    title: string;
+    desc: string;
+  }>;
+  faqs: Array<{
+    q: string;
+    a: string;
+  }>;
+  formKind: ServiceKey;
+  formTitle: string;
+  formSubtitle: string;
 }
 
 export const servicesData: Record<ServiceKey, ServiceDetail> = {
@@ -88,7 +100,48 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
       { label: "Institutions", value: "89" }
     ],
     ctaText: "Start Your Research Journey",
-    ctaSubtext: "Submit your research proposal or join as a peer reviewer"
+    ctaSubtext: "Submit your research proposal or join as a peer reviewer",
+    highlights: [
+      "AI-driven proposal screening and scoring",
+      "Policy & technology research evaluation",
+      "National innovation tracking dashboard",
+      "Inter-institution collaboration spaces"
+    ],
+    workflow: [
+      {
+        title: "Submit proposal",
+        desc: "Complete the structured submission form with objectives, methodology and expected impact (20-30 min)."
+      },
+      {
+        title: "AI screening",
+        desc: "Automated checks for completeness, scope alignment, and duplication detection."
+      },
+      {
+        title: "Expert review",
+        desc: "Routed to a diverse panel for policy and technical evaluation."
+      },
+      {
+        title: "Decision & funding",
+        desc: "Track decision status and approved funding within the dashboard."
+      }
+    ],
+    faqs: [
+      {
+        q: "Who can submit a research proposal?",
+        a: "Any researcher or research institution registered with STRP. This includes university faculty, government research centers, think tanks, and private sector R&D teams."
+      },
+      {
+        q: "How long is the review cycle?",
+        a: "Typically 8-12 weeks from submission to decision. AI screening takes 2-3 days, expert review takes 4-6 weeks, and decision notification takes 1-2 weeks."
+      },
+      {
+        q: "Can proposals be co-authored across institutions?",
+        a: "Yes, co-authorship across government agencies, universities, and private sector organizations is encouraged. All co-authors must have STRP accounts."
+      }
+    ],
+    formKind: "research",
+    formTitle: "Research Proposal Registration",
+    formSubtitle: "Provide the details below to register your research proposal with STRP."
   },
   
   transformation: {
@@ -146,7 +199,48 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
       { label: "Uptime SLA", value: "99.9%" }
     ],
     ctaText: "Begin Digital Transformation",
-    ctaSubtext: "Request a system assessment or start a modernization project"
+    ctaSubtext: "Request a system assessment or start a modernization project",
+    highlights: [
+      "Government system modernization roadmaps",
+      "Digital infrastructure transformation platform",
+      "Smart city integration pipeline",
+      "Digital maturity assessment tools"
+    ],
+    workflow: [
+      {
+        title: "Assess current state",
+        desc: "Complete digital maturity assessment covering systems, infrastructure, and organizational readiness."
+      },
+      {
+        title: "Plan transformation",
+        desc: "AI-generated roadmap with phased timelines, resource allocation, and risk mitigation strategies."
+      },
+      {
+        title: "Implement changes",
+        desc: "Execute modernization with dedicated project management, vendor coordination, and change management support."
+      },
+      {
+        title: "Monitor & optimize",
+        desc: "Track metrics, measure ROI, and optimize systems based on real-time performance data."
+      }
+    ],
+    faqs: [
+      {
+        q: "What systems can be modernized?",
+        a: "Any legacy government system: HR management, financial systems, citizen services, internal operations, and data management systems are all candidates for modernization."
+      },
+      {
+        q: "How long does a transformation project take?",
+        a: "Typically 6-24 months depending on scope and complexity. Small infrastructure upgrades may take 3-6 months, while enterprise-wide transformations can take 18-24 months."
+      },
+      {
+        q: "Are there standards we must follow?",
+        a: "Yes, all transformations must follow Ethiopian government IT standards, security protocols, and open data guidelines to ensure interoperability and data protection."
+      }
+    ],
+    formKind: "transformation",
+    formTitle: "Digital Transformation Request",
+    formSubtitle: "Submit your organization's transformation needs and we'll provide a customized digital roadmap."
   },
   
   licensing: {
@@ -204,7 +298,48 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
       { label: "Verification API Calls", value: "45K/mo" }
     ],
     ctaText: "Get Licensed Today",
-    ctaSubtext: "Apply for professional certification or register as a vendor"
+    ctaSubtext: "Apply for professional certification or register as a vendor",
+    highlights: [
+      "Digital license issuance and management",
+      "Automated skills assessment and verification",
+      "Vendor registration and compliance tracking",
+      "Professional directory and credential lookup"
+    ],
+    workflow: [
+      {
+        title: "Apply online",
+        desc: "Submit application with professional credentials, education, and work experience documentation."
+      },
+      {
+        title: "Document verification",
+        desc: "Automated background checks and credential verification through integrated government databases."
+      },
+      {
+        title: "Skills assessment",
+        desc: "AI-powered technical assessment and peer review to ensure professional competency."
+      },
+      {
+        title: "License issuance",
+        desc: "Receive blockchain-verified digital license and access professional directory immediately upon approval."
+      }
+    ],
+    faqs: [
+      {
+        q: "Who can apply for IT professional licensing?",
+        a: "Software developers, systems administrators, network engineers, IT security professionals, and other technology specialists with relevant education or work experience."
+      },
+      {
+        q: "How long is a license valid?",
+        a: "Professional licenses are valid for 3 years. Renewal requires proof of continued professional development and payment of renewal fees."
+      },
+      {
+        q: "Can proposals be co-authored across institutions?",
+        a: "Yes, the verification API provides instant credential checks for government procurement teams, vendor management systems, and third-party integrations."
+      }
+    ],
+    formKind: "licensing",
+    formTitle: "Professional License Application",
+    formSubtitle: "Apply for IT professional certification or vendor registration with STRP."
   },
   
   lms: {
@@ -262,9 +397,52 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
       { label: "Avg. Completion Rate", value: "84%" }
     ],
     ctaText: "Start Learning Today",
-    ctaSubtext: "Browse courses or create a custom training program for your agency"
+    ctaSubtext: "Browse courses or create a custom training program for your agency",
+    highlights: [
+      "Government-specific training curriculum",
+      "Digital literacy and advanced tech courses",
+      "Self-paced and instructor-led learning",
+      "Certificates and skill tracking system"
+    ],
+    workflow: [
+      {
+        title: "Browse catalog",
+        desc: "Explore 340+ courses covering digital skills, leadership, project management, and government-specific topics."
+      },
+      {
+        title: "Enroll in courses",
+        desc: "Self-enroll in available courses or have your manager assign courses aligned with your career path."
+      },
+      {
+        title: "Complete training",
+        desc: "Learn at your own pace with interactive modules, assessments, and discussion forums."
+      },
+      {
+        title: "Earn credentials",
+        desc: "Receive certificates upon completion, visible on your profile and transferable across government agencies."
+      }
+    ],
+    faqs: [
+      {
+        q: "What types of courses are available?",
+        a: "Courses cover digital literacy, cybersecurity, data analytics, project management, leadership skills, and policy implementation—all tailored for government professionals."
+      },
+      {
+        q: "How do I get access to the LMS?",
+        a: "All government employees and civil servants can access the LMS using their STRP credentials. Agency managers can also enroll teams in specific training programs."
+      },
+      {
+        q: "Are certificates recognized across agencies?",
+        a: "Yes, all certificates are recognized by participating government agencies and can be included in your official personnel file and used for career advancement."
+      }
+    ],
+    formKind: "lms",
+    formTitle: "Learning Program Registration",
+    formSubtitle: "Register your organization for training programs or create a custom curriculum for your agency."
   }
 };
+
+export const SERVICES = servicesData;
 
 export function getServiceBySlug(slug: string): ServiceDetail | undefined {
   return servicesData[slug as ServiceKey];

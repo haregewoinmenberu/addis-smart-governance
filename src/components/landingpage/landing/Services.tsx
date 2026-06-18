@@ -13,7 +13,7 @@ type Service = {
 const services: Service[] = [
   {
     icon: FlaskConical,
-    title: "Research & Innovation Hub",
+    title: "Research",
     slug: "research",
     bullets: [
       "AI-driven research submission system",

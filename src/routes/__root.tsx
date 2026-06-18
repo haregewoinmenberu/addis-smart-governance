@@ -36,13 +36,33 @@ function NotFoundComponent() {
 function ErrorComponent({ error }: { error: Error; reset: () => void }) {
   console.error(error);
   
-  // Redirect immediately to login page
-  if (typeof window !== 'undefined') {
-    window.location.replace('/login');
+  // Only redirect to login for 401 Unauthorized errors
+  if (typeof window !== 'undefined' && error instanceof Error) {
+    if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+      window.location.replace('/login');
+      return null;
+    }
   }
 
-  // Return null to avoid rendering anything
-  return null;
+  // For other errors, show error page
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-4xl font-bold text-foreground">Error</h1>
+        <p className="mt-4 text-muted-foreground">
+          {error?.message || 'An unexpected error occurred'}
+        </p>
+        <div className="mt-6">
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Go home
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({

@@ -19,10 +19,17 @@ use App\Http\Controllers\Api\WorkflowController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\SubCityController;
+use App\Http\Controllers\Api\ServiceFormSubmissionController;
 
 // Public routes
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
+});
+
+// Service Form Submission - Public endpoint (can be called without auth)
+Route::prefix('service-forms')->group(function () {
+    Route::post('/submit', [ServiceFormSubmissionController::class, 'submitForm']);
+    Route::get('/status/{referenceNumber}', [ServiceFormSubmissionController::class, 'getSubmissionStatus']);
 });
 
 Route::get('health', function () {
@@ -305,5 +312,10 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:view_notifications');
         Route::post('/all/clear', [NotificationController::class, 'deleteAll'])
             ->middleware('permission:view_notifications');
+    });
+
+    // Service Form Submissions - Protected routes
+    Route::prefix('service-forms')->group(function () {
+        Route::get('/my-submissions', [ServiceFormSubmissionController::class, 'listUserSubmissions']);
     });
 });

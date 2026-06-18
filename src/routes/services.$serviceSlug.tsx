@@ -1,146 +1,105 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { getServiceBySlug, getAllServices } from "@/lib/services-data";
-import { Navbar } from "@/components/landingpage/landing/Navbar";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { ArrowLeft, CheckCircle2, ChevronRight, Sparkles, HelpCircle, Mail } from "lucide-react";
+
 import { Footer } from "@/components/landingpage/landing/Footer";
+import { Navbar } from "@/components/landingpage/landing/Navbar";
 import { ServiceRegistrationForm } from "@/components/landingpage/landing/ServiceRegistrationForm";
-import { ArrowLeft, ArrowRight, CheckCircle2, FileText, ChevronDown, Zap, Target, Users, TrendingUp } from "lucide-react";
-import { useState, useRef } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { SERVICES, type ServiceKey } from "@/lib/services-data";
 
 export const Route = createFileRoute("/services/$serviceSlug")({
-  head: ({ params }) => {
-    const service = getServiceBySlug(params.serviceSlug);
+  // Public route - no authentication required
+  beforeLoad: () => {
+    // This ensures the route is public and accessible to everyone
+    return {};
+  },
+  loader: ({ params }) => {
+    const key = params.serviceSlug as ServiceKey;
+    const service = SERVICES[key];
+
+    if (!service) {
+      throw notFound();
+    }
+
+    return { service };
+  },
+  head: ({ loaderData }) => {
+    const service = loaderData?.service;
+
+    if (!service) {
+      return { meta: [{ title: "Service not found — STRP" }] };
+    }
+
     return {
       meta: [
-        { title: service ? `${service.title} — STRP Portal` : "Service — STRP Portal" },
-        {
-          name: "description",
-          content: service?.description || "Smart Technology Regulatory Portal service details",
-        },
-        { property: "og:title", content: service?.title || "STRP Service" },
-        {
-          property: "og:description",
-          content: service?.description || "STRP service details",
-        },
+        { title: `${service.title} — STRP` },
+        { name: "description", content: service.tagline },
+        { property: "og:title", content: `${service.title} — STRP` },
+        { property: "og:description", content: service.tagline },
       ],
     };
   },
-  component: ServiceDetailPage,
+  component: ServiceDetail,
+  notFoundComponent: () => (
+    <div className="grid min-h-screen place-items-center px-4 text-center">
+      <div>
+        <div className="text-sm font-semibold text-primary">404</div>
+        <h1 className="mt-2 text-2xl font-bold">Service not found</h1>
+        <Link to="/" className="mt-4 inline-block text-sm text-primary underline">
+          Back to home
+        </Link>
+      </div>
+    </div>
+  ),
 });
 
-function ServiceDetailPage() {
-  const { serviceSlug } = Route.useParams();
-  const navigate = useNavigate();
-  const service = getServiceBySlug(serviceSlug);
-  const [showForm, setShowForm] = useState(false);
-  const formRef = useRef<HTMLDivElement>(null);
-
-  const scrollToForm = () => {
-    setShowForm(true);
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  };
-
-  if (!service) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="flex min-h-[80vh] items-center justify-center px-4">
-          <div className="max-w-md text-center">
-            <h1 className="text-4xl font-bold text-foreground">Service Not Found</h1>
-            <p className="mt-4 text-muted-foreground">
-              The service you're looking for doesn't exist or has been moved.
-            </p>
-            <Link
-              to="/"
-              className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-primary px-6 text-sm font-semibold text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02]"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Link>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  const Icon = service.icon;
-  const allServices = getAllServices();
-  const currentIndex = allServices.findIndex((s) => s.slug === serviceSlug);
-  const nextService = allServices[(currentIndex + 1) % allServices.length];
-  const prevService = allServices[(currentIndex - 1 + allServices.length) % allServices.length];
+function ServiceDetail() {
+  const { service } = Route.useLoaderData();
 
   return (
-    <div className="min-h-screen bg-background">
+    <main className="relative min-h-screen bg-background text-foreground">
       <Navbar />
 
-      {/* Hero Section - Simplified & Focused */}
-      <section className="relative overflow-hidden pt-32 pb-24 sm:pt-40 sm:pb-32">
-        {/* Backdrop */}
+      {/* Hero Section */}
+      <section className="relative overflow-hidden pt-32 pb-12 sm:pt-40">
         <div className="absolute inset-0 -z-10 bg-gradient-hero" />
-        <div
-          className="absolute inset-x-0 top-0 -z-10 h-[600px] opacity-60"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 40%), radial-gradient(circle at 80% 10%, color-mix(in oklab, var(--primary-glow) 14%, transparent), transparent 45%)",
-          }}
-        />
-
         <div className="mx-auto max-w-7xl px-4">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
-            <Link to="/" className="hover:text-primary transition-colors">
+          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Link to="/" className="hover:text-foreground">
               Home
             </Link>
-            <ChevronDown className="h-3 w-3 -rotate-90" />
-            <Link to="/#services" className="hover:text-primary transition-colors">
+            <ChevronRight className="h-3.5 w-3.5" />
+            <Link to="/" hash="services" className="hover:text-foreground">
               Services
             </Link>
-            <ChevronDown className="h-3 w-3 -rotate-90" />
-            <span className="text-foreground font-medium">{service.shortTitle}</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+            <span className="font-medium text-foreground">{service.title}</span>
           </nav>
 
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Service Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2">
-              <Icon className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-primary">{service.shortTitle}</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="mt-6 text-balance text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          {/* Hero Content */}
+          <div className="mt-8">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground/70 shadow-soft">
+              <Sparkles className="h-3 w-3 text-primary" />
+              STRP Service Module
+            </span>
+            <h1 className="mt-6 text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
               {service.title}
             </h1>
-
-            {/* Tagline */}
-            <p className="mt-6 text-xl leading-relaxed text-muted-foreground max-w-2xl mx-auto">
-              {service.tagline}
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+              {service.description}
             </p>
 
-            {/* CTA Buttons - Prominent */}
-            <div className="mt-10 flex flex-wrap justify-center gap-4">
-              <button
-                onClick={scrollToForm}
-                className="group inline-flex h-14 items-center gap-2 rounded-xl bg-gradient-primary px-8 text-base font-semibold text-primary-foreground shadow-elegant transition-all hover:scale-[1.02] hover:shadow-glow"
-              >
-                <FileText className="h-5 w-5" />
-                Apply Now
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </button>
-              <Link
-                to="/login"
-                className="inline-flex h-14 items-center gap-2 rounded-xl border-2 border-border bg-surface px-8 text-base font-semibold transition-all hover:border-primary/50 hover:bg-surface-elevated"
-              >
-                Sign In
-              </Link>
-            </div>
-
-            {/* Stats Row - Compact */}
-            <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-4 max-w-4xl mx-auto">
+            {/* Stats */}
+            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4 max-w-3xl">
               {service.stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-3xl font-bold text-gradient">{stat.value}</div>
+                <div key={index} className="rounded-xl border border-border bg-surface p-4 text-center shadow-soft">
+                  <div className="text-2xl font-bold text-gradient sm:text-3xl">{stat.value}</div>
                   <div className="mt-1 text-xs text-muted-foreground">{stat.label}</div>
                 </div>
               ))}
@@ -149,50 +108,17 @@ function ServiceDetailPage() {
         </div>
       </section>
 
-      {/* Why Choose This Service - Value Props */}
-      <section className="py-20 bg-surface-elevated/50">
+      {/* Features Section */}
+      <section className="py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Why Choose {service.shortTitle}?
-            </h2>
-            <p className="mt-3 text-base text-muted-foreground max-w-2xl mx-auto">
-              Built specifically for Ethiopian government and public sector needs
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
-            {[
-              { icon: Zap, title: "Fast & Efficient", desc: "Streamlined processes save time" },
-              { icon: Target, title: "Purpose-Built", desc: "Designed for public sector" },
-              { icon: Users, title: "Collaborative", desc: "Connect teams & agencies" },
-              { icon: TrendingUp, title: "Measurable Impact", desc: "Track results & outcomes" }
-            ].map((value, index) => (
-              <div key={index} className="text-center">
-                <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-elegant mb-4">
-                  <value.icon className="h-6 w-6" />
-                </div>
-                <h3 className="font-semibold text-base mb-2">{value.title}</h3>
-                <p className="text-sm text-muted-foreground">{value.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section - Card Style */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Key Capabilities
-            </h2>
-            <p className="mt-3 text-base text-muted-foreground">
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Key Capabilities</h2>
+            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
               Everything you need in one comprehensive platform
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {service.features.map((feature, index) => {
               const FeatureIcon = feature.icon;
               return (
@@ -220,14 +146,12 @@ function ServiceDetailPage() {
         </div>
       </section>
 
-      {/* Benefits Section - Simplified List */}
-      <section className="py-20 bg-surface-elevated/50">
+      {/* Benefits Section */}
+      <section className="py-16 sm:py-24 bg-surface-elevated/50">
         <div className="mx-auto max-w-4xl px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Expected Outcomes
-            </h2>
-            <p className="mt-3 text-base text-muted-foreground">
+          <div className="mb-12 text-center">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Expected Outcomes</h2>
+            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
               Measurable impact for your agency and constituents
             </p>
           </div>
@@ -251,105 +175,112 @@ function ServiceDetailPage() {
         </div>
       </section>
 
-      {/* Application Form Section - Sticky CTA */}
-      <section ref={formRef} className="px-4 py-20 scroll-mt-20">
-        <div className="mx-auto max-w-4xl">
-          {/* Form Header - Always Visible */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 mb-4">
-              <FileText className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-primary">Application Form</span>
-            </div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-3">
-              {service.ctaText}
-            </h2>
-            <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-              {service.ctaSubtext}
-            </p>
-          </div>
-
-          {/* Form Container */}
-          <div className="rounded-3xl border border-border bg-surface shadow-elegant overflow-hidden">
-            {/* Form Toggle */}
-            {!showForm ? (
-              <div className="p-12 text-center">
-                <div className="max-w-md mx-auto">
-                  <p className="text-sm text-muted-foreground mb-6">
-                    No account required. Submit your application and we'll get back to you within 3-5 business days.
-                  </p>
-                  <button
-                    onClick={scrollToForm}
-                    className="group inline-flex h-14 items-center gap-2 rounded-xl bg-gradient-primary px-8 text-base font-semibold text-primary-foreground shadow-elegant transition-all hover:scale-[1.02] hover:shadow-glow w-full justify-center sm:w-auto"
-                  >
-                    <FileText className="h-5 w-5" />
-                    Start Application
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </button>
-                  <p className="text-xs text-muted-foreground mt-4">
-                    Already have an account?{" "}
-                    <Link to="/login" className="text-primary hover:underline font-medium">
-                      Sign in here
-                    </Link>
-                  </p>
+      {/* Support Box */}
+      <section className="py-6">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="rounded-2xl border border-border bg-gradient-primary p-6 text-primary-foreground shadow-elegant sm:p-8">
+            <div className="flex items-start gap-4">
+              <HelpCircle className="h-6 w-6 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-sm font-semibold">Need help?</div>
+                <div className="mt-1 text-sm leading-relaxed text-primary-foreground/90">
+                  Service desk available 24/7. Reach the STRP support line for assistance with your application.
                 </div>
+                <a
+                  href="mailto:support@strp.gov.et"
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold backdrop-blur transition-colors hover:bg-white/25"
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                  support@strp.gov.et
+                </a>
               </div>
-            ) : (
-              <div className="p-6 sm:p-10">
-                <ServiceRegistrationForm kind={service.slug} />
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Explore More Services */}
-      <section className="border-t border-border py-16 bg-surface-elevated/30">
+      {/* How It Works */}
+      <section className="py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold">Explore More Services</h3>
-            <p className="text-sm text-muted-foreground mt-2">Discover other ways STRP can help your agency</p>
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">How it works</h2>
+            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+              Simple workflow designed for efficiency and transparency
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            {/* Previous Service */}
-            <Link
-              to="/services/$serviceSlug"
-              params={{ serviceSlug: prevService.slug }}
-              className="group rounded-xl border border-border bg-surface p-5 transition-all hover:border-primary/30 hover:shadow-soft"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <ArrowLeft className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-x-1" />
-                <span className="text-xs text-muted-foreground">Previous</span>
-              </div>
-              <div className="font-semibold text-sm">{prevService.shortTitle}</div>
-            </Link>
+          <ol className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {service.workflow.map((step, index) => (
+              <li
+                key={step.title}
+                className="group relative flex flex-col rounded-2xl border border-border bg-surface p-6 shadow-soft hover:shadow-elegant transition-shadow"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px]">
+                      {index + 1}
+                    </span>
+                    STEP
+                  </span>
+                  {index < service.workflow.length - 1 && (
+                    <div className="hidden lg:block absolute -right-2 top-1/2 -translate-y-1/2 translate-x-full">
+                      <div className="h-0.5 w-4 bg-border" />
+                    </div>
+                  )}
+                </div>
+                <h3 className="mt-4 font-semibold leading-snug">{step.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{step.desc}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
 
-            {/* All Services */}
-            <Link
-              to="/#services"
-              className="rounded-xl border border-primary/20 bg-primary/5 p-5 text-center transition-all hover:bg-primary/10"
-            >
-              <div className="text-xs text-primary mb-2">View All</div>
-              <div className="font-semibold text-sm text-primary">All Services</div>
-            </Link>
-
-            {/* Next Service */}
-            <Link
-              to="/services/$serviceSlug"
-              params={{ serviceSlug: nextService.slug }}
-              className="group rounded-xl border border-border bg-surface p-5 transition-all hover:border-primary/30 hover:shadow-soft text-right"
-            >
-              <div className="flex items-center justify-end gap-3 mb-2">
-                <span className="text-xs text-muted-foreground">Next</span>
-                <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-              </div>
-              <div className="font-semibold text-sm">{nextService.shortTitle}</div>
-            </Link>
+      {/* Form Section */}
+      <section id="apply" className="py-16 sm:py-24">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 lg:grid-cols-[1fr_360px]">
+          <div className="rounded-3xl border border-border bg-surface p-6 shadow-soft sm:p-10">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">{service.formTitle}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{service.formSubtitle}</p>
+            <div className="mt-8">
+              <ServiceRegistrationForm kind={service.formKind} />
+            </div>
           </div>
+
+          {/* FAQs Sidebar */}
+          <aside className="space-y-4">
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-soft">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <HelpCircle className="h-4 w-4" />
+                FAQs
+              </div>
+              <Accordion type="single" collapsible className="mt-4">
+                {service.faqs.map((faq) => (
+                  <AccordionItem key={faq.q} value={faq.q}>
+                    <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                      {faq.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-xs leading-relaxed text-muted-foreground">
+                      {faq.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+
+            <Link
+              to="/"
+              hash="services"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to all services
+            </Link>
+          </aside>
         </div>
       </section>
 
       <Footer />
-    </div>
+    </main>
   );
 }
