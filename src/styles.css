@@ -222,13 +222,40 @@
   .bg-gradient-primary { background-image: var(--gradient-primary); }
   .bg-gradient-surface { background-image: var(--gradient-surface); }
   .bg-gradient-hero { background-image: var(--gradient-hero); }
+  .bg-gradient-cta { background-image: var(--gradient-primary); }
   .shadow-elegant { box-shadow: var(--shadow-md); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
+  .shadow-soft { box-shadow: var(--shadow-sm); }
   .glass {
     background: color-mix(in oklab, var(--card) 70%, transparent);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  }
+  .glass-strong {
+    background: color-mix(in oklab, var(--card) 85%, transparent);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  }
+  .bg-surface {
+    background: var(--card);
+  }
+  .bg-surface-elevated {
+    background: color-mix(in oklab, var(--card) 98%, var(--muted));
+  }
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hover-lift {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
   }
   .scrollbar::-webkit-scrollbar {
     width: 7px;
@@ -258,3 +285,21 @@
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+.animate-shimmer { animation: shimmer 3s ease-in-out infinite; }
+
+@keyframes wave {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-wave { animation: wave 8s ease-in-out infinite; }
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--color-primary); }
+  50% { opacity: 0.6; box-shadow: 0 0 4px var(--color-primary); }
+}
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }

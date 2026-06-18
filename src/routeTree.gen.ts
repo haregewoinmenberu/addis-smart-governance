@@ -23,6 +23,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeasibilityRouteImport } from './routes/feasibility'
 import { Route as DuplicationRouteImport } from './routes/duplication'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CybersecurityRouteImport } from './routes/cybersecurity'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,6 +38,7 @@ import { Route as VendorsCreateRouteImport } from './routes/vendors.create'
 import { Route as UsersCreateRouteImport } from './routes/users.create'
 import { Route as SubCitiesCreateRouteImport } from './routes/sub-cities.create'
 import { Route as SubCitiesIdRouteImport } from './routes/sub-cities.$id'
+import { Route as ServicesServiceSlugRouteImport } from './routes/services.$serviceSlug'
 import { Route as RequestsCreateRouteImport } from './routes/requests.create'
 import { Route as RegistryCreateRouteImport } from './routes/registry.create'
 import { Route as SubCitiesIdIndexRouteImport } from './routes/sub-cities.$id.index'
@@ -115,6 +117,11 @@ const DuplicationRoute = DuplicationRouteImport.update({
   path: '/duplication',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CybersecurityRoute = CybersecurityRouteImport.update({
   id: '/cybersecurity',
   path: '/cybersecurity',
@@ -185,6 +192,11 @@ const SubCitiesIdRoute = SubCitiesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => SubCitiesRoute,
 } as any)
+const ServicesServiceSlugRoute = ServicesServiceSlugRouteImport.update({
+  id: '/services/$serviceSlug',
+  path: '/services/$serviceSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RequestsCreateRoute = RequestsCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -225,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/cybersecurity': typeof CybersecurityRoute
+  '/dashboard': typeof DashboardRoute
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -241,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
   '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
@@ -262,6 +276,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/cybersecurity': typeof CybersecurityRoute
+  '/dashboard': typeof DashboardRoute
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -272,6 +287,7 @@ export interface FileRoutesByTo {
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
@@ -293,6 +309,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/cybersecurity': typeof CybersecurityRoute
+  '/dashboard': typeof DashboardRoute
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -309,6 +326,7 @@ export interface FileRoutesById {
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
   '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
@@ -332,6 +350,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/cybersecurity'
+    | '/dashboard'
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
@@ -348,6 +367,7 @@ export interface FileRouteTypes {
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
+    | '/services/$serviceSlug'
     | '/sub-cities/$id'
     | '/sub-cities/create'
     | '/users/create'
@@ -369,6 +389,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/cybersecurity'
+    | '/dashboard'
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
@@ -379,6 +400,7 @@ export interface FileRouteTypes {
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
+    | '/services/$serviceSlug'
     | '/sub-cities/create'
     | '/users/create'
     | '/vendors/create'
@@ -399,6 +421,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/cybersecurity'
+    | '/dashboard'
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
@@ -415,6 +438,7 @@ export interface FileRouteTypes {
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
+    | '/services/$serviceSlug'
     | '/sub-cities/$id'
     | '/sub-cities/create'
     | '/users/create'
@@ -437,6 +461,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
   CybersecurityRoute: typeof CybersecurityRoute
+  DashboardRoute: typeof DashboardRoute
   DuplicationRoute: typeof DuplicationRoute
   FeasibilityRoute: typeof FeasibilityRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -451,6 +476,7 @@ export interface RootRouteChildren {
   UsersRoute: typeof UsersRouteWithChildren
   VendorsRoute: typeof VendorsRouteWithChildren
   WorkflowsRoute: typeof WorkflowsRoute
+  ServicesServiceSlugRoute: typeof ServicesServiceSlugRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
 }
 
@@ -554,6 +580,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DuplicationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cybersecurity': {
       id: '/cybersecurity'
       path: '/cybersecurity'
@@ -651,6 +684,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/sub-cities/$id'
       preLoaderRoute: typeof SubCitiesIdRouteImport
       parentRoute: typeof SubCitiesRoute
+    }
+    '/services/$serviceSlug': {
+      id: '/services/$serviceSlug'
+      path: '/services/$serviceSlug'
+      fullPath: '/services/$serviceSlug'
+      preLoaderRoute: typeof ServicesServiceSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/requests/create': {
       id: '/requests/create'
@@ -809,6 +849,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
   CybersecurityRoute: CybersecurityRoute,
+  DashboardRoute: DashboardRoute,
   DuplicationRoute: DuplicationRoute,
   FeasibilityRoute: FeasibilityRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
@@ -823,6 +864,7 @@ const rootRouteChildren: RootRouteChildren = {
   UsersRoute: UsersRouteWithChildren,
   VendorsRoute: VendorsRouteWithChildren,
   WorkflowsRoute: WorkflowsRoute,
+  ServicesServiceSlugRoute: ServicesServiceSlugRoute,
   ProfileIndexRoute: ProfileIndexRoute,
 }
 export const routeTree = rootRouteImport

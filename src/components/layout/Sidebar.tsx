@@ -22,7 +22,7 @@ interface NavItem {
 
 const nav: NavItem[] = [
   { 
-    to: "/", 
+    to: "/dashboard", 
     label: "Dashboard", 
     icon: LayoutDashboard,
     permission: "view_dashboard"
@@ -195,7 +195,7 @@ export const Sidebar = memo(function Sidebar() {
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {visibleNavItems.map((item) => {
-          const active = item.to === "/" ? path === "/" : path.startsWith(item.to);
+          const active = item.to === "/dashboard" ? path === "/dashboard" : path.startsWith(item.to);
           return (
             <NavItem
               key={item.to}

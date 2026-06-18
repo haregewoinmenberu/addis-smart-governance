@@ -31,7 +31,7 @@ function Login() {
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       console.log("Already authenticated, redirecting from login page");
-      const redirectPath = search.redirect && search.redirect !== '/login' ? search.redirect : '/';
+      const redirectPath = search.redirect && search.redirect !== '/login' ? search.redirect : '/dashboard';
       navigate({ to: redirectPath as any, replace: true });
     }
   }, [isAuthenticated, isLoading, navigate, search.redirect]);
@@ -48,10 +48,10 @@ function Login() {
       await refetchUser();
       
       // Get the redirect path, but make sure it's not /login
-      const redirectPath = search.redirect && search.redirect !== '/login' ? search.redirect : '/';
+      const redirectPath = search.redirect && search.redirect !== '/login' ? search.redirect : '/dashboard';
       console.log("Redirecting to:", redirectPath);
       
-      // Navigate to the redirect path or home
+      // Navigate to the redirect path or dashboard
       navigate({ to: redirectPath as any, replace: true });
     },
   });
