@@ -23,7 +23,7 @@ const services: Service[] = [
   },
   {
     icon: Cpu,
-    title: "Technology Transformation",
+    title: "Technology Transfer",
     slug: "transformation",
     bullets: [
       "Government system modernization",

@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
@@ -59,10 +60,11 @@ const statusStyle = (s: string) => {
 
 function Page() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const { hasPermission } = usePermissions();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(search.q);
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
     action: "delete" | "submit" | null;
@@ -258,9 +260,7 @@ function Page() {
                     <td className="px-4 py-3"><Badge variant="secondary" className={statusStyle(r.status)}>{r.status}</Badge></td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="h-1.5 w-24 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full bg-gradient-primary" style={{ width: `${(r.step / r.total_steps) * 100}%` }} />
-                        </div>
+                        <Progress value={(r.step / r.total_steps) * 100} className="h-1.5 w-24 rounded-full bg-muted" />
                         <span className="text-xs text-muted-foreground">{r.step}/{r.total_steps}</span>
                       </div>
                     </td>

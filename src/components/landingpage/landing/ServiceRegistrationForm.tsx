@@ -1,14 +1,14 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2, Send } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -43,7 +43,7 @@ async function submitServiceForm<K extends ServiceKey>(
       formData,
     }
   );
-  
+
   return { reference: data.data.reference_number };
 }
 
@@ -64,35 +64,33 @@ export function ServiceRegistrationForm({ kind }: Props) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-4">
-      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+    <div className="space-y-5">
+      <div className="text-sm font-semibold text-foreground">{title}</div>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">{children}</div>
     </div>
   );
 }
 
 function SubmitRow({
   loading,
-  label = "Submit application",
+  label = "Submit",
 }: {
   loading: boolean;
   label?: string;
 }) {
   return (
-    <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-xs text-muted-foreground">
-        Your information is encrypted and reviewed by authorized STRP officers only.
-      </p>
+    <div className="space-y-3 pt-2">
       <Button
         type="submit"
         disabled={loading}
-        className="h-11 rounded-xl bg-gradient-primary text-primary-foreground shadow-elegant"
+        className="h-12 w-full rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90"
       >
-        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         {label}
       </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        Your information is encrypted and reviewed by authorized STRP officers only.
+      </p>
     </div>
   );
 }
@@ -103,7 +101,7 @@ function AgreeField({ form }: { form: any }) {
       control={form.control}
       name="agree"
       render={({ field }) => (
-        <FormItem className="sm:col-span-2 flex flex-row items-start gap-3 rounded-xl border border-border bg-secondary/50 p-4">
+        <FormItem className="sm:col-span-2 flex flex-row items-start gap-3">
           <FormControl>
             <Checkbox
               checked={field.value}
@@ -111,7 +109,7 @@ function AgreeField({ form }: { form: any }) {
             />
           </FormControl>
           <div className="space-y-1 leading-snug">
-            <FormLabel className="text-sm font-medium">
+            <FormLabel className="text-sm font-normal text-foreground">
               I confirm the information is accurate and I consent to STRP processing.
             </FormLabel>
             <FormMessage />
@@ -333,9 +331,16 @@ function TextField({ form, name, label, placeholder, type = "text" }: any) {
       control={form.control}
       name={name}
       render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <FormControl><Input type={type} placeholder={placeholder} {...field} /></FormControl>
+        <FormItem className="space-y-2">
+          <FormLabel className="text-sm font-semibold text-foreground">{label}</FormLabel>
+          <FormControl>
+            <Input
+              type={type}
+              placeholder={placeholder}
+              {...field}
+              className="h-11 rounded-lg border-border bg-background px-3 text-sm shadow-none"
+            />
+          </FormControl>
           <FormMessage />
         </FormItem>
       )}
@@ -349,10 +354,15 @@ function NumberField({ form, name, label }: any) {
       control={form.control}
       name={name}
       render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
+        <FormItem className="space-y-2">
+          <FormLabel className="text-sm font-semibold text-foreground">{label}</FormLabel>
           <FormControl>
-            <Input type="number" {...field} onChange={(e) => field.onChange(e.target.value)} />
+            <Input
+              type="number"
+              {...field}
+              onChange={(e) => field.onChange(e.target.value)}
+              className="h-11 rounded-lg border-border bg-background px-3 text-sm shadow-none"
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -367,12 +377,16 @@ function TextAreaField({ form, name, label, placeholder, rows = 4 }: any) {
       control={form.control}
       name={name}
       render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <FormControl><Textarea rows={rows} placeholder={placeholder} {...field} /></FormControl>
-          <FormDescription className="text-xs">
-            {typeof field.value === "string" ? `${field.value.length} characters` : null}
-          </FormDescription>
+        <FormItem className="space-y-2">
+          <FormLabel className="text-sm font-semibold text-foreground">{label}</FormLabel>
+          <FormControl>
+            <Textarea
+              rows={rows}
+              placeholder={placeholder}
+              {...field}
+              className="rounded-lg border-border bg-background px-3 py-2.5 text-sm shadow-none resize-none"
+            />
+          </FormControl>
           <FormMessage />
         </FormItem>
       )}
@@ -386,11 +400,13 @@ function SelectField({ form, name, label, options }: { form: any; name: string; 
       control={form.control}
       name={name}
       render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
+        <FormItem className="space-y-2">
+          <FormLabel className="text-sm font-semibold text-foreground">{label}</FormLabel>
           <Select onValueChange={field.onChange} value={field.value}>
             <FormControl>
-              <SelectTrigger><SelectValue placeholder={`Select ${label.toLowerCase()}`} /></SelectTrigger>
+              <SelectTrigger className="h-11 rounded-lg border-border bg-background px-3 text-sm shadow-none">
+                <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+              </SelectTrigger>
             </FormControl>
             <SelectContent>
               {options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}

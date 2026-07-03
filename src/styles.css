@@ -223,6 +223,19 @@
   .bg-gradient-surface { background-image: var(--gradient-surface); }
   .bg-gradient-hero { background-image: var(--gradient-hero); }
   .bg-gradient-cta { background-image: var(--gradient-primary); }
+  .hero-radial-glow {
+    background-image:
+      radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 40%),
+      radial-gradient(circle at 80% 10%, color-mix(in oklab, var(--primary-glow) 14%, transparent), transparent 45%);
+  }
+  .hero-grid-overlay {
+    background-image:
+      linear-gradient(to right, var(--border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 40%, transparent 80%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 40%, transparent 80%);
+  }
   .shadow-elegant { box-shadow: var(--shadow-md); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
   .shadow-soft { box-shadow: var(--shadow-sm); }

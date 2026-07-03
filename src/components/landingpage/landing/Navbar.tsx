@@ -1,13 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X, Globe, Moon, Sun } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const navLinks = [
   { label: "Home", href: "#home" },
   { label: "Services", href: "#services" },
   { label: "About STRP", href: "#about" },
-  { label: "Digital Transformation", href: "#transformation" },
-  { label: "Help Center", href: "#help" },
 ];
 
 const languages = ["EN", "AM", "ORO"] as const;
@@ -48,21 +47,13 @@ export function Navbar() {
         >
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary shadow-elegant">
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-primary-foreground" fill="none">
-                <path
-                  d="M12 2L3 7v6c0 5 3.5 8.5 9 10 5.5-1.5 9-5 9-10V7l-9-5z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                />
-                <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+            <div className="relative grid h-11 w-11 place-items-center rounded-xl border border-border/60 bg-white p-1 shadow-soft">
+              <img src={logo} alt="ITDB logo" className="h-full w-full object-contain" />
             </div>
             <div className="leading-tight">
               <div className="text-sm font-bold tracking-tight">STRP</div>
               <div className="hidden text-[10px] font-medium text-muted-foreground sm:block">
-                Gov Tech Portal
+                ITDB Portal
               </div>
             </div>
           </Link>
@@ -106,6 +97,7 @@ export function Navbar() {
             </Link>
             <Link
               to="/login"
+              search={{ redirect: "/dashboard" }}
               className="hidden h-9 items-center rounded-lg bg-gradient-primary px-4 text-sm font-semibold text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02] md:inline-flex"
             >
               Login
@@ -145,6 +137,7 @@ export function Navbar() {
               </Link>
               <Link
                 to="/login"
+                search={{ redirect: "/dashboard" }}
                 className="rounded-lg bg-gradient-primary py-2 text-center text-sm font-semibold text-primary-foreground"
               >
                 Login

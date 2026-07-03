@@ -1,8 +1,12 @@
 import heroDashboard from "@/assets/hero-dashboard.jpg";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, FileText, PlayCircle, Sparkles, Activity, BadgeCheck, GraduationCap, LineChart } from "lucide-react";
+import { ArrowRight, PlayCircle, Search } from "lucide-react";
+import { useState } from "react";
+
+const quickTags = ["Licensing", "Research grant", "Digital transformation", "Training"];
 
 export function Hero() {
+  const [query, setQuery] = useState("");
   return (
     <section id="home" className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
       {/* Backdrop */}
@@ -28,34 +32,41 @@ export function Hero() {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 lg:grid-cols-[1.05fr_1fr]">
         {/* Left */}
-        <div> 
+        <div>
           <h1 className="mt-6 text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-            One Government Portal for{" "}
-            <span className="text-gradient">All Technology Services</span>{" "}
-            in Addis Ababa
+            ITDB Portal for <span className="text-gradient">All Tech Services</span> in Addis Ababa
           </h1>
 
           <p className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
-            A unified digital governance platform enabling research, innovation
-            transformation, professional licensing, and smart learning management
-            under one secure ecosystem.
+            Start using Addis Ababa City Innovation and Technology Development Bureau unified
+            Government Technology Portal today.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              to="/login"
-              className="group inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-primary px-5 text-sm font-semibold text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02]"
+
+          {/* Search bar */}
+          <form
+            role="search"
+            onSubmit={(e) => e.preventDefault()}
+            className="mt-16 flex items-center gap-2 rounded-2xl border border-border bg-surface p-2 shadow-elegant max-w-lg focus-within:ring-2 focus-within:ring-primary/30"
+          >
+            <div className="flex items-center gap-2 px-3 flex-1">
+              <Search className="h-5 w-5 text-muted-foreground" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search services, licenses, programs…"
+                className="w-full bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
+              />
+            </div>
+            <button
+              type="submit"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-gradient-primary px-4 text-sm font-semibold text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02]"
             >
-              <span className="text-base"></span>
-              Explore Services
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-             
-            <button className="inline-flex h-12 items-center gap-2 rounded-xl px-2 text-sm font-semibold text-foreground/80 transition-colors hover:text-primary">
-              <PlayCircle className="h-5 w-5" />
-              Watch Demo
+              Search
+              <ArrowRight className="h-4 w-4" />
             </button>
-          </div> 
+          </form>  
         </div>
 
         {/* Right visual */}
@@ -75,10 +86,9 @@ export function Hero() {
               height={960}
               className="block w-full"
             />
-          </div> 
+          </div>
         </div>
       </div>
     </section>
   );
 }
-

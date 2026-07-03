@@ -84,10 +84,6 @@ function ServiceDetail() {
 
           {/* Hero Content */}
           <div className="mt-8">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground/70 shadow-soft">
-              <Sparkles className="h-3 w-3 text-primary" />
-              STRP Service Module
-            </span>
             <h1 className="mt-6 text-balance text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
               {service.title}
             </h1>
@@ -107,98 +103,7 @@ function ServiceDetail() {
           </div>
         </div>
       </section>
-
-      {/* Features Section */}
-      <section className="py-16 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Key Capabilities</h2>
-            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-              Everything you need in one comprehensive platform
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            {service.features.map((feature, index) => {
-              const FeatureIcon = feature.icon;
-              return (
-                <div
-                  key={index}
-                  className="group relative rounded-2xl border border-border bg-surface p-8 shadow-soft transition-all hover:shadow-elegant hover:border-primary/30"
-                >
-                  <div className="flex gap-4">
-                    <div className="shrink-0">
-                      <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
-                        <FeatureIcon className="h-6 w-6" />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      <section className="py-16 sm:py-24 bg-surface-elevated/50">
-        <div className="mx-auto max-w-4xl px-4">
-          <div className="mb-12 text-center">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Expected Outcomes</h2>
-            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-              Measurable impact for your agency and constituents
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {service.benefits.map((benefit, index) => (
-              <div
-                key={index}
-                className="flex gap-3 rounded-xl border border-border bg-surface p-5 hover:border-primary/30 transition-colors"
-              >
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-primary mt-0.5" />
-                <div>
-                  <h3 className="text-sm font-semibold mb-1">{benefit.title}</h3>
-                  <p className="text-xs leading-relaxed text-muted-foreground">
-                    {benefit.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Support Box */}
-      <section className="py-6">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="rounded-2xl border border-border bg-gradient-primary p-6 text-primary-foreground shadow-elegant sm:p-8">
-            <div className="flex items-start gap-4">
-              <HelpCircle className="h-6 w-6 shrink-0 mt-0.5" />
-              <div>
-                <div className="text-sm font-semibold">Need help?</div>
-                <div className="mt-1 text-sm leading-relaxed text-primary-foreground/90">
-                  Service desk available 24/7. Reach the STRP support line for assistance with your application.
-                </div>
-                <a
-                  href="mailto:support@strp.gov.et"
-                  className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold backdrop-blur transition-colors hover:bg-white/25"
-                >
-                  <Mail className="h-3.5 w-3.5" />
-                  support@strp.gov.et
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+ 
       {/* How It Works */}
       <section className="py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4">

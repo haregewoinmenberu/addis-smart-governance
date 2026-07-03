@@ -47,16 +47,16 @@ export interface ServiceDetail {
 export const servicesData: Record<ServiceKey, ServiceDetail> = {
   research: {
     slug: "research",
-    title: "Research & Innovation Hub",
-    shortTitle: "Research Hub",
+    title: "Research ",
+    shortTitle: "Research ",
     icon: FlaskConical,
     tagline: "Driving Ethiopia's Digital Future Through Evidence-Based Innovation",
-    description: "AI-driven research submission, evaluation, and tracking system for national technology policy and innovation research.",
-    longDescription: "The Research & Innovation Hub is a comprehensive platform designed to streamline research submission, peer review, and policy implementation tracking. It connects researchers, policymakers, and innovators across Ethiopia to build an evidence-based foundation for digital transformation.",
+    description: "research submission, evaluation, and tracking system for national technology policy and innovation research.",
+    longDescription: "The Research  is a comprehensive platform designed to streamline research submission, peer review, and policy implementation tracking. It connects researchers, policymakers, and innovators across Ethiopia to build an evidence-based foundation for digital transformation.",
     features: [
       {
         icon: Sparkles,
-        title: "AI-Driven Research Submission",
+        title: "Research Submission",
         description: "Submit research proposals through an intelligent form system that guides you through requirements, automatically validates data, and matches your research with relevant policy areas."
       },
       {
@@ -102,7 +102,7 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
     ctaText: "Start Your Research Journey",
     ctaSubtext: "Submit your research proposal or join as a peer reviewer",
     highlights: [
-      "AI-driven proposal screening and scoring",
+      "proposal screening and scoring",
       "Policy & technology research evaluation",
       "National innovation tracking dashboard",
       "Inter-institution collaboration spaces"
@@ -110,10 +110,10 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
     workflow: [
       {
         title: "Submit proposal",
-        desc: "Complete the structured submission form with objectives, methodology and expected impact (20-30 min)."
+        desc: "Complete the structured submission form with objectives, methodology and expected impact."
       },
       {
-        title: "AI screening",
+        title: "Screening",
         desc: "Automated checks for completeness, scope alignment, and duplication detection."
       },
       {
@@ -146,7 +146,7 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
   
   transformation: {
     slug: "transformation",
-    title: "Technology Transformation",
+    title: "Technology Transfer",
     shortTitle: "Digital Transformation",
     icon: Cpu,
     tagline: "Modernizing Government Systems for the Digital Age",

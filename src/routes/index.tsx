@@ -4,10 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/landingpage/landing/Navbar";
 import { Hero } from "@/components/landingpage/landing/Hero";
 import { Services } from "@/components/landingpage/landing/Services";
-import { FeatureStrip } from "@/components/landingpage/landing/FeatureStrip";
 import { GovernanceValue } from "@/components/landingpage/landing/GovernanceValue";
 import { HowItWorks } from "@/components/landingpage/landing/HowItWorks";
-import { CtaBanner } from "@/components/landingpage/landing/CtaBanner";
 import { Footer } from "@/components/landingpage/landing/Footer";
 
 export const Route = createFileRoute("/")({
@@ -71,10 +69,8 @@ function Index() {
       <Navbar />
       <Hero />
       <Services />
-      <FeatureStrip />
       <GovernanceValue />
       <HowItWorks />
-      <CtaBanner />
       <Footer />
     </main>
   );
