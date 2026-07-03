@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CybersecurityIssueController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DuplicationCaseController;
 use App\Http\Controllers\Api\FeasibilityStudyController;
+use App\Http\Controllers\Api\InstitutionController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ReportController;
@@ -20,10 +21,26 @@ use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\SubCityController;
 use App\Http\Controllers\Api\ServiceFormSubmissionController;
+use App\Http\Controllers\Api\InstitutionDocumentController;
+use App\Http\Controllers\Api\InstitutionTeamController;
 
 // Public routes
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
+});
+
+// Institution Registration - Public endpoint
+Route::prefix('institutions')->group(function () {
+    Route::post('/register', [InstitutionController::class, 'register']);
+    Route::get('/types', [InstitutionController::class, 'types']);
+    Route::get('/debug', function(Request $request) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Institution routes are working',
+            'request_data' => $request->all(),
+            'headers' => $request->headers->all(),
+        ]);
+    });
 });
 
 // Service Form Submission - Public endpoint (can be called without auth)
@@ -318,4 +335,43 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     Route::prefix('service-forms')->group(function () {
         Route::get('/my-submissions', [ServiceFormSubmissionController::class, 'listUserSubmissions']);
     });
+
+    // Institutions - Protected routes
+    Route::prefix('institutions')->group(function () {
+        // My institution (institutional users)
+        Route::get('/my-institution', [InstitutionController::class, 'myInstitution']);
+        
+        // All institutions (admin)
+        Route::get('/', [InstitutionController::class, 'index']);
+        Route::get('/statistics', [InstitutionController::class, 'statistics']);
+        
+        // Single institution
+        Route::get('/{id}', [InstitutionController::class, 'show']);
+        Route::post('/{id}/update', [InstitutionController::class, 'update']);
+        Route::post('/{id}/verify', [InstitutionController::class, 'verify']);
+        Route::post('/{id}/change-status', [InstitutionController::class, 'changeStatus']);
+        
+        // Institution service requests
+        Route::get('/{id}/requests', [InstitutionController::class, 'requests']);
+        
+        // Institution documents
+        Route::get('/{id}/documents', [InstitutionDocumentController::class, 'index']);
+        Route::post('/{id}/documents', [InstitutionDocumentController::class, 'store']);
+        Route::get('/{id}/documents/statistics', [InstitutionDocumentController::class, 'statistics']);
+        Route::get('/{id}/documents/{documentId}', [InstitutionDocumentController::class, 'show']);
+        Route::get('/{id}/documents/{documentId}/download', [InstitutionDocumentController::class, 'download']);
+        Route::post('/{id}/documents/{documentId}/delete', [InstitutionDocumentController::class, 'destroy']);
+        
+        // Institution team members
+        Route::get('/{id}/team', [InstitutionTeamController::class, 'index']);
+        Route::post('/{id}/team', [InstitutionTeamController::class, 'store']);
+        Route::get('/{id}/team/statistics', [InstitutionTeamController::class, 'statistics']);
+        Route::get('/{id}/team/{memberId}', [InstitutionTeamController::class, 'show']);
+        Route::post('/{id}/team/{memberId}/update', [InstitutionTeamController::class, 'update']);
+        Route::post('/{id}/team/{memberId}/delete', [InstitutionTeamController::class, 'destroy']);
+        Route::post('/{id}/team/{memberId}/resend-invitation', [InstitutionTeamController::class, 'resendInvitation']);
+    });
+    
+    // Team invitation acceptance
+    Route::post('/team/accept-invitation', [InstitutionTeamController::class, 'acceptInvitation']);
 });

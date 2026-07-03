@@ -99,6 +99,12 @@ export function Navbar() {
               {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <Link
+              to="/institution-register"
+              className="hidden h-9 items-center rounded-lg border border-primary/30 bg-primary/5 px-4 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 lg:inline-flex"
+            >
+              Register Institution
+            </Link>
+            <Link
               to="/login"
               className="hidden h-9 items-center rounded-lg bg-gradient-primary px-4 text-sm font-semibold text-primary-foreground shadow-elegant transition-transform hover:scale-[1.02] md:inline-flex"
             >
@@ -130,10 +136,16 @@ export function Navbar() {
                 </li>
               ))}
             </ul>
-            <div className="mt-2 flex gap-2 border-t border-border pt-3">
+            <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
+              <Link
+                to="/institution-register"
+                className="rounded-lg border border-primary/30 bg-primary/5 py-2 text-center text-sm font-semibold text-primary"
+              >
+                Register Institution
+              </Link>
               <Link
                 to="/login"
-                className="flex-1 rounded-lg bg-gradient-primary py-2 text-center text-sm font-semibold text-primary-foreground"
+                className="rounded-lg bg-gradient-primary py-2 text-center text-sm font-semibold text-primary-foreground"
               >
                 Login
               </Link>

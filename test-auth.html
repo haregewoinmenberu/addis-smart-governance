@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Test - STRP Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .test-section {
+            background: #f7f9fc;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        .result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-badge.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #856404;
+        }
+        .info-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Authentication Test</h1>
+        <p class="subtitle">STRP Portal - Login & Logout Verification</p>
+
+        <div class="info-box">
+            <strong>📋 Testing Instructions:</strong>
+            1. Make sure backend server is running (php artisan serve)<br>
+            2. Enter valid user credentials below<br>
+            3. Click "Test Login" to authenticate<br>
+            4. After successful login, click "Test Logout"
+        </div>
+
+        <!-- Login Test -->
+        <div class="test-section">
+            <h2>1. Test Login</h2>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="user@example.com" value="test@example.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••" value="password123">
+            </div>
+            <button id="loginBtn">🔑 Test Login</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <!-- Get User Test -->
+        <div class="test-section">
+            <h2>2. Test Get Current User</h2>
+            <span class="status-badge inactive" id="authStatus">Not Authenticated</span>
+            <button id="getUserBtn" disabled>👤 Get Current User</button>
+            <div id="getUserResult"></div>
+        </div>
+
+        <!-- Logout Test -->
+        <div class="test-section">
+            <h2>3. Test Logout</h2>
+            <button id="logoutBtn" disabled>🚪 Test Logout</button>
+            <div id="logoutResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/api';
+        let authToken = null;
+
+        const loginBtn = document.getElementById('loginBtn');
+        const getUserBtn = document.getElementById('getUserBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const authStatus = document.getElementById('authStatus');
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+
+        function updateAuthStatus(authenticated) {
+            if (authenticated) {
+                authStatus.textContent = '✓ Authenticated';
+                authStatus.className = 'status-badge active';
+                getUserBtn.disabled = false;
+                logoutBtn.disabled = false;
+                loginBtn.disabled = true;
+            } else {
+                authStatus.textContent = 'Not Authenticated';
+                authStatus.className = 'status-badge inactive';
+                getUserBtn.disabled = true;
+                logoutBtn.disabled = true;
+                loginBtn.disabled = false;
+                authToken = null;
+            }
+        }
+
+        // Test Login
+        loginBtn.addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showResult('loginResult', 'Error: Please enter both email and password', 'error');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            showResult('loginResult', 'Logging in...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.access_token;
+                    updateAuthStatus(true);
+                    showResult('loginResult', 
+                        `✅ Login Successful!\n\n` +
+                        `Token Type: ${data.token_type}\n` +
+                        `User: ${data.user.name}\n` +
+                        `Email: ${data.user.email}\n` +
+                        `Type: ${data.user.user_type}\n` +
+                        `Roles: ${data.user.roles.map(r => r.display_name).join(', ')}\n` +
+                        `Token: ${data.access_token.substring(0, 50)}...`,
+                        'success'
+                    );
+                } else {
+                    loginBtn.disabled = false;
+                    showResult('loginResult', 
+                        `❌ Login Failed!\n\n` +
+                        `Status: ${response.status}\n` +
+                        `Message: ${data.message || 'Unknown error'}`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                loginBtn.disabled = false;
+                showResult('loginResult', 
+                    `❌ Network Error!\n\n${error.message}\n\n` +
+                    `Make sure backend server is running on ${API_URL}`,
+                    'error'
+                );
+            }
+        });
+
+        // Test Get Current User
+        getUserBtn.addEventListener('click', async () => {
+            showResult('getUserResult', 'Fetching user data...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult('getUserResult', 
+                        `✅ User Data Retrieved!\n\n` +
+                        `Name: ${data.user.name}\n` +
+                        `Email: ${data.user.email}\n` +
+                        `Phone: ${data.user.phone || 'N/A'}\n` +
+                        `Position: ${data.user.position || 'N/A'}\n` +
+                        `Department: ${data.user.department || 'N/A'}\n` +
+                        `User Type: ${data.user.user_type}\n` +
+                        `Active: ${data.user.is_active ? 'Yes' : 'No'}\n` +
+                        `MFA Enabled: ${data.user.mfa_enabled ? 'Yes' : 'No'}\n` +
+                        `Last Login: ${data.user.last_login_at || 'N/A'}\n` +
+                        `Roles: ${data.user.roles.map(r => r.display_name).join(', ')}\n` +
+                        `Permissions: ${data.user.permissions.length} permissions`,
+                        'success'
+                    );
+                } else {
+                    if (response.status === 401) {
+                        updateAuthStatus(false);
+                    }
+                    showResult('getUserResult', 
+                        `❌ Failed to get user!\n\n` +
+                        `Status: ${response.status}\n` +
+                        `Message: ${data.message || 'Unauthorized'}`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('getUserResult', 
+                    `❌ Network Error!\n\n${error.message}`,
+                    'error'
+                );
+            }
+        });
+
+        // Test Logout
+        logoutBtn.addEventListener('click', async () => {
+            showResult('logoutResult', 'Logging out...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    updateAuthStatus(false);
+                    showResult('logoutResult', 
+                        `✅ Logout Successful!\n\n` +
+                        `Message: ${data.message}\n` +
+                        `Token has been revoked.`,
+                        'success'
+                    );
+                    showResult('loginResult', '', 'info');
+                    showResult('getUserResult', '', 'info');
+                } else {
+                    showResult('logoutResult', 
+                        `❌ Logout Failed!\n\n` +
+                        `Status: ${response.status}\n` +
+                        `Message: ${data.message || 'Unknown error'}`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('logoutResult', 
+                    `❌ Network Error!\n\n${error.message}`,
+                    'error'
+                );
+            }
+        });
+    </script>
+</body>
+</html>

@@ -20,6 +20,7 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RegistryRouteImport } from './routes/registry'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InstitutionRegisterRouteImport } from './routes/institution-register'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeasibilityRouteImport } from './routes/feasibility'
 import { Route as DuplicationRouteImport } from './routes/duplication'
@@ -100,6 +101,11 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstitutionRegisterRoute = InstitutionRegisterRouteImport.update({
+  id: '/institution-register',
+  path: '/institution-register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/institution-register': typeof InstitutionRegisterRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRouteWithChildren
   '/registry': typeof RegistryRouteWithChildren
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/institution-register': typeof InstitutionRegisterRoute
   '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
@@ -313,6 +321,7 @@ export interface FileRoutesById {
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/institution-register': typeof InstitutionRegisterRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRouteWithChildren
   '/registry': typeof RegistryRouteWithChildren
@@ -354,6 +363,7 @@ export interface FileRouteTypes {
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
+    | '/institution-register'
     | '/login'
     | '/notifications'
     | '/registry'
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
+    | '/institution-register'
     | '/login'
     | '/reports'
     | '/settings'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
+    | '/institution-register'
     | '/login'
     | '/notifications'
     | '/registry'
@@ -465,6 +477,7 @@ export interface RootRouteChildren {
   DuplicationRoute: typeof DuplicationRoute
   FeasibilityRoute: typeof FeasibilityRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  InstitutionRegisterRoute: typeof InstitutionRegisterRoute
   LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRouteWithChildren
   RegistryRoute: typeof RegistryRouteWithChildren
@@ -557,6 +570,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/institution-register': {
+      id: '/institution-register'
+      path: '/institution-register'
+      fullPath: '/institution-register'
+      preLoaderRoute: typeof InstitutionRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -853,6 +873,7 @@ const rootRouteChildren: RootRouteChildren = {
   DuplicationRoute: DuplicationRoute,
   FeasibilityRoute: FeasibilityRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  InstitutionRegisterRoute: InstitutionRegisterRoute,
   LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRouteWithChildren,
   RegistryRoute: RegistryRouteWithChildren,

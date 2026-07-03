@@ -93,8 +93,11 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
+  position?: string;
   sub_city?: string;
   department?: string;
+  user_type?: 'INTERNAL' | 'INSTITUTIONAL' | 'EXTERNAL';
+  institution_id?: number;
   is_active: boolean;
   mfa_enabled: boolean;
   last_login_at?: string;

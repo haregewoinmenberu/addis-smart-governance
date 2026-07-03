@@ -69,6 +69,9 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
+                'user_type' => $user->user_type,
+                'institution_id' => $user->institution_id,
+                'position' => $user->position,
                 'sub_city' => $user->subCity ? $user->subCity->name : null,
                 'sub_city_id' => $user->sub_city_id,
                 'sub_city_details' => $user->subCity ? [
@@ -101,6 +104,9 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
+                'user_type' => $user->user_type,
+                'institution_id' => $user->institution_id,
+                'position' => $user->position,
                 'sub_city' => $user->subCity ? $user->subCity->name : null,
                 'sub_city_id' => $user->sub_city_id,
                 'sub_city_details' => $user->subCity ? [
@@ -204,6 +210,9 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
+                'user_type' => $user->user_type,
+                'institution_id' => $user->institution_id,
+                'position' => $user->position,
                 'sub_city' => $user->subCity ? $user->subCity->name : null,
                 'sub_city_id' => $user->sub_city_id,
                 'sub_city_details' => $user->subCity ? [

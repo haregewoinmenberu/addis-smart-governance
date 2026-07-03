@@ -23,6 +23,10 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'position',
+        'institution_id',
+        'user_type',
+        'is_primary_contact',
         'sub_city_id',
         'department',
         'is_active',
@@ -103,6 +107,30 @@ class User extends Authenticatable
     public function workflowApprovals()
     {
         return $this->hasMany(WorkflowApproval::class, 'approver_id');
+    }
+
+    /**
+     * Get the institution this user belongs to.
+     */
+    public function institution()
+    {
+        return $this->belongsTo(Institution::class);
+    }
+
+    /**
+     * Check if user is institutional user
+     */
+    public function isInstitutional()
+    {
+        return $this->user_type === 'INSTITUTIONAL';
+    }
+
+    /**
+     * Check if user is internal AAITDB staff
+     */
+    public function isInternal()
+    {
+        return $this->user_type === 'INTERNAL';
     }
 
     /**

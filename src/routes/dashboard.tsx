@@ -3,11 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { EnhancedInstitutionDashboard } from "@/components/dashboard/EnhancedInstitutionDashboard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RequireAuth } from "@/components/auth/RequireAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { getDashboard } from "@/lib/api";
 import {
   Database, Activity, Clock, Copy, ShieldAlert, CheckCircle2,
@@ -44,11 +46,22 @@ const statIcons = [
 ];
 
 function Dashboard() {
+  const { user } = useAuth();
   const { data } = useQuery({
     queryKey: ["dashboard"],
     queryFn: getDashboard,
   });
 
+  // Show institution dashboard for institutional users
+  if (user?.user_type === 'INSTITUTIONAL') {
+    return (
+      <div className="min-h-screen bg-background">
+        <EnhancedInstitutionDashboard />
+      </div>
+    );
+  }
+
+  // Show executive dashboard for internal users
   const stats = (data?.stats ?? []).map((item, index) => ({
     ...item,
     icon: statIcons[index] ?? Database,

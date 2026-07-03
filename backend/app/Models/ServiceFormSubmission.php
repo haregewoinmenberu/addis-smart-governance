@@ -14,6 +14,7 @@ class ServiceFormSubmission extends Model
     protected $table = 'service_form_submissions';
 
     protected $fillable = [
+        'institution_id',
         'service_type',
         'reference_number',
         'form_data',
@@ -45,6 +46,11 @@ class ServiceFormSubmission extends Model
             ->useLogName('service_form_submissions')
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    public function institution()
+    {
+        return $this->belongsTo(Institution::class);
     }
 
     public function submittedBy()
