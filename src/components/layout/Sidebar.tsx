@@ -3,6 +3,7 @@ import {
   LayoutDashboard, FileStack, ClipboardCheck, Database, ShieldCheck,
   Lock, Building2, GitBranch, BarChart3, MessageSquare, Bell,
   Users, Settings, ChevronLeft, Sparkles, Layers, Building, LogOut,
+  Lightbulb, FlaskConical, TrendingUp, Award, BookOpen, Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useMemo, memo } from "react";
@@ -18,6 +19,8 @@ interface NavItem {
   permissions?: PermissionName[];
   requireAll?: boolean;
   adminOnly?: boolean;
+  separator?: boolean;
+  sectionLabel?: string;
 }
 
 const nav: NavItem[] = [
@@ -27,11 +30,54 @@ const nav: NavItem[] = [
     icon: LayoutDashboard,
     permission: "view_dashboard"
   },
+  
+  // Research Section
+  { 
+    to: "/research/ideas", 
+    label: "Research Ideas", 
+    icon: Lightbulb,
+    permissions: ["view-research-ideas", "create-research-ideas"],
+    sectionLabel: "Research Management"
+  },
+  { 
+    to: "/research/screenings", 
+    label: "Screenings", 
+    icon: Target,
+    permissions: ["view-research-screenings", "create-research-screenings"]
+  },
+  { 
+    to: "/research/projects", 
+    label: "Research Projects", 
+    icon: FlaskConical,
+    permissions: ["view-research-projects", "manage-research-projects"]
+  },
+  { 
+    to: "/research/evaluations", 
+    label: "Evaluations", 
+    icon: TrendingUp,
+    permissions: ["evaluate-research", "assess-trl"]
+  },
+  { 
+    to: "/research/transfers", 
+    label: "Tech Transfers", 
+    icon: Award,
+    permissions: ["manage-technology-transfer", "approve-technology-transfer"]
+  },
+  { 
+    to: "/research/reports", 
+    label: "Research Reports", 
+    icon: BookOpen,
+    permissions: ["view-research-reports", "view-research-analytics"],
+    separator: true
+  },
+  
+  // IT Governance Section
   { 
     to: "/requests", 
     label: "Technology Requests", 
     icon: FileStack,
-    permission: "view_requests"
+    permission: "view_requests",
+    sectionLabel: "IT Governance"
   },
   { 
     to: "/duplication", 
@@ -91,13 +137,17 @@ const nav: NavItem[] = [
     to: "/notifications", 
     label: "Notifications", 
     icon: Bell,
-    permission: "view_notifications"
+    permission: "view_notifications",
+    separator: true
   },
+  
+  // Admin Section
   { 
     to: "/sub-cities", 
     label: "Sub-Cities", 
     icon: Building,
-    adminOnly: true
+    adminOnly: true,
+    sectionLabel: "Administration"
   },
   { 
     to: "/users", 
@@ -194,15 +244,26 @@ export const Sidebar = memo(function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-        {visibleNavItems.map((item) => {
+        {visibleNavItems.map((item, index) => {
           const active = item.to === "/dashboard" ? path === "/dashboard" : path.startsWith(item.to);
+          const showSectionLabel = item.sectionLabel && (index === 0 || visibleNavItems[index - 1]?.separator);
+          
           return (
-            <NavItem
-              key={item.to}
-              item={item}
-              active={active}
-              collapsed={collapsed}
-            />
+            <div key={item.to}>
+              {item.separator && !collapsed && (
+                <div className="my-2 border-t border-sidebar-border/50" />
+              )}
+              {showSectionLabel && !collapsed && (
+                <div className="px-3 py-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  {item.sectionLabel}
+                </div>
+              )}
+              <NavItem
+                item={item}
+                active={active}
+                collapsed={collapsed}
+              />
+            </div>
           );
         })}
       </nav>

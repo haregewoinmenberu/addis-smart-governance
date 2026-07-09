@@ -58,7 +58,7 @@ class NotificationController extends Controller
      * Get recent notifications (for dropdown).
      */
     public function recent(Request $request)
-    {
+    {        
         $limit = $request->input('limit', 5);
 
         $notifications = $request->user()

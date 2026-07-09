@@ -23,7 +23,7 @@ export const Route = createFileRoute("/login")({
 function Login() {
   const navigate = useNavigate();
   const search = Route.useSearch();
-  const { isAuthenticated, isLoading, refetchUser } = useAuth();
+  const { isAuthenticated, isLoading, refetchUser, setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -39,20 +39,29 @@ function Login() {
   const mutation = useMutation({
     mutationFn: async () => {
       const result = await login(email, password);
+      console.log("Login API response:", result);
       return result;
     },
-    onSuccess: async () => {
-      console.log("Login successful, refetching user data");
+    onSuccess: async (data) => {
+      console.log("Login successful");
+      console.log("Access token:", data.access_token ? "present" : "missing");
+      console.log("User data:", data.user ? "present" : "missing");
       
-      // Refetch user data to update authentication state
-      await refetchUser();
+      // Set the user directly from login response
+      // This will immediately update the auth state
+      setUser(data.user);
       
-      // Get the redirect path, but make sure it's not /login
-      const redirectPath = search.redirect && search.redirect !== '/login' ? search.redirect : '/dashboard';
-      console.log("Redirecting to:", redirectPath);
+      // Get the redirect path - default to dashboard, not root
+      const redirectPath = search.redirect && search.redirect !== '/login' && search.redirect !== '/' 
+        ? search.redirect 
+        : '/dashboard';
+      console.log("Navigating to:", redirectPath);
       
-      // Navigate to the redirect path or dashboard
+      // Navigate directly to dashboard to avoid redirect chain through index
       navigate({ to: redirectPath as any, replace: true });
+    },
+    onError: (error) => {
+      console.error("Login error:", error);
     },
   });
 

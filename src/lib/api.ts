@@ -7,6 +7,20 @@ type ApiOptions = {
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 const TOKEN_KEY = "strp_token";
 
+/**
+ * Error thrown by API calls. Carries the HTTP status so callers/boundaries can
+ * distinguish 401 (not authenticated -> go to login) from 403 (authenticated
+ * but forbidden -> do NOT redirect, the session is still valid).
+ */
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 export function setAuthToken(token: string) {
   if (typeof window !== 'undefined') {
     localStorage.setItem(TOKEN_KEY, token);
@@ -53,6 +67,10 @@ async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
   }
 
   if (!response.ok) {
+    // Only a genuine 401 (invalid/expired token) means the session is dead.
+    // A 403 means the user IS authenticated but lacks permission for this
+    // resource — we must NOT clear the token or bounce to /login for that,
+    // otherwise routes the user can't access cause an infinite login loop.
     if (response.status === 401) {
       // Only clear token and redirect if this is NOT the /auth/me endpoint
       // The AuthContext will handle /auth/me failures
@@ -64,7 +82,7 @@ async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
       }
     }
     const message = payload?.message ?? "Request failed";
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   return payload as T;
@@ -116,6 +134,14 @@ export async function getDashboard() {
   return apiGet<{ stats: unknown[]; investment: unknown[]; subcity: unknown[]; compliance: unknown[]; insights: unknown[]; approvals: unknown[]; readiness: unknown[] }>(
     "/dashboard",
   );
+}
+
+export async function getResearchProjectDashboard() {
+  return apiGet<Record<string, unknown>>("/research-projects/dashboard");
+}
+
+export async function getResearcherDashboard() {
+  return apiGet<Record<string, unknown>>("/research-projects/my-dashboard");
 }
 
 // Modules

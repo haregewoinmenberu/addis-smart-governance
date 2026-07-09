@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { useAuth } from "@/contexts/AuthContext";
-import { getDashboard } from "@/lib/api";
+import { getDashboard, getResearchProjectDashboard } from "@/lib/api";
 import {
   Database, Activity, Clock, Copy, ShieldAlert, CheckCircle2,
   Building2, Sparkles, Wallet, TrendingUp, Download, Plus, ArrowUpRight,
@@ -51,6 +51,17 @@ function Dashboard() {
     queryKey: ["dashboard"],
     queryFn: getDashboard,
   });
+  
+  // Fetch research dashboard data if user has research permissions
+  const { data: researchData } = useQuery({
+    queryKey: ["research-dashboard"],
+    queryFn: getResearchProjectDashboard,
+    enabled: !!user && (
+      user.permissions?.some((p: string) => 
+        p.includes('research') || p.includes('view-research')
+      )
+    ),
+  });
 
   // Show institution dashboard for institutional users
   if (user?.user_type === 'INSTITUTIONAL') {
@@ -73,6 +84,11 @@ function Dashboard() {
   const insights = data?.insights ?? [];
   const approvals = data?.approvals ?? [];
   const readiness = data?.readiness ?? [];
+  
+  // Check if user has research permissions
+  const hasResearchAccess = user?.permissions?.some((p: string) => 
+    p.includes('research') || p.includes('view-research')
+  );
 
   return (
     <AppShell>
@@ -88,6 +104,176 @@ function Dashboard() {
           </>
         }
       />
+      
+      {/* Research Lifecycle Section - Show if user has research access */}
+      {hasResearchAccess && researchData && (
+        <>
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight">Research Lifecycle Management</h2>
+                <p className="text-sm text-muted-foreground">Innovation & technology research pipeline</p>
+              </div>
+              <Badge variant="outline" className="gap-1.5">
+                <Sparkles className="h-3 w-3" />
+                {researchData.user_role?.replace('_', ' ').toUpperCase()}
+              </Badge>
+            </div>
+            
+            {/* Research Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+              <Card className="p-4 rounded-xl border-border/60">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Projects</p>
+                    <p className="text-2xl font-bold mt-1">{researchData.total_projects || 0}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {researchData.active_projects || 0} active
+                    </p>
+                  </div>
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Database className="h-5 w-5 text-primary" />
+                  </div>
+                </div>
+              </Card>
+              
+              <Card className="p-4 rounded-xl border-border/60">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Research Ideas</p>
+                    <p className="text-2xl font-bold mt-1">{researchData.total_ideas || 0}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {researchData.pending_screenings || 0} pending review
+                    </p>
+                  </div>
+                  <div className="h-10 w-10 rounded-lg bg-info/10 flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-info" />
+                  </div>
+                </div>
+              </Card>
+              
+              <Card className="p-4 rounded-xl border-border/60">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Budget</p>
+                    <p className="text-2xl font-bold mt-1">
+                      ${((researchData.total_budget || 0) / 1000000).toFixed(1)}M
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {Number(researchData.avg_progress ?? 0).toFixed(0)}% avg progress
+                    </p>
+                  </div>
+                  <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
+                    <Wallet className="h-5 w-5 text-success" />
+                  </div>
+                </div>
+              </Card>
+              
+              <Card className="p-4 rounded-xl border-border/60">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tech Transfers</p>
+                    <p className="text-2xl font-bold mt-1">{researchData.technology_transfers || 0}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {researchData.completed_evaluations || 0} evaluations
+                    </p>
+                  </div>
+                  <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                    <CheckCircle2 className="h-5 w-5 text-warning" />
+                  </div>
+                </div>
+              </Card>
+            </div>
+            
+            {/* Research Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              <Card className="p-5 rounded-2xl border-border/60">
+                <h3 className="font-semibold tracking-tight mb-4">Projects by Research Stage</h3>
+                <div className="h-64">
+                  <ResponsiveContainer>
+                    <BarChart data={researchData.by_stage || []} margin={{ left: -10, right: 8, top: 8 }}>
+                      <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
+                      <XAxis 
+                        dataKey="label" 
+                        stroke="var(--color-muted-foreground)" 
+                        fontSize={10} 
+                        tickLine={false} 
+                        axisLine={false}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                      />
+                      <YAxis stroke="var(--color-muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
+                      <Tooltip contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12 }} />
+                      <Bar dataKey="count" fill="var(--color-primary)" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+              
+              {researchData.trl_distribution && (
+                <Card className="p-5 rounded-2xl border-border/60">
+                  <h3 className="font-semibold tracking-tight mb-4">TRL Distribution</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Pie 
+                          data={researchData.trl_distribution} 
+                          dataKey="count" 
+                          nameKey="label" 
+                          innerRadius={50} 
+                          outerRadius={80}
+                          paddingAngle={2}
+                        >
+                          {(researchData.trl_distribution || []).map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D', '#C49FFF'][index % 9]} />
+                          ))}
+                        </Pie>
+                        <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+                        <Tooltip contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 12 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Card>
+              )}
+            </div>
+            
+            {/* Recent Research Activities */}
+            {researchData.recent_projects && researchData.recent_projects.length > 0 && (
+              <Card className="p-5 rounded-2xl border-border/60 mb-6">
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="font-semibold tracking-tight">Recent Research Projects</h3>
+                  <Button variant="ghost" size="sm" className="gap-1 text-xs">
+                    View all <ArrowUpRight className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {researchData.recent_projects.slice(0, 5).map((project: any) => (
+                    <div key={project.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{project.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Lead: {project.project_lead?.name || 'Unassigned'} • Budget: ${(project.estimated_budget / 1000000).toFixed(1)}M
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {project.progress_percentage}%
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {project.current_stage.replace(/_/g, ' ')}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+          
+          <div className="border-t border-border/60 my-6"></div>
+        </>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         {stats.map((stat, index) => (

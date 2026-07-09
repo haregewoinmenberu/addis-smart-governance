@@ -40,13 +40,27 @@ import { Route as UsersCreateRouteImport } from './routes/users.create'
 import { Route as SubCitiesCreateRouteImport } from './routes/sub-cities.create'
 import { Route as SubCitiesIdRouteImport } from './routes/sub-cities.$id'
 import { Route as ServicesServiceSlugRouteImport } from './routes/services.$serviceSlug'
+import { Route as ResearchTransfersRouteImport } from './routes/research.transfers'
+import { Route as ResearchScreeningsRouteImport } from './routes/research.screenings'
+import { Route as ResearchReportsRouteImport } from './routes/research.reports'
+import { Route as ResearchProjectsRouteImport } from './routes/research.projects'
+import { Route as ResearchIdeasRouteImport } from './routes/research.ideas'
+import { Route as ResearchEvaluationsRouteImport } from './routes/research.evaluations'
 import { Route as RequestsCreateRouteImport } from './routes/requests.create'
 import { Route as RegistryCreateRouteImport } from './routes/registry.create'
 import { Route as SubCitiesIdIndexRouteImport } from './routes/sub-cities.$id.index'
 import { Route as UsersIdEditRouteImport } from './routes/users.$id.edit'
 import { Route as SubCitiesIdEditRouteImport } from './routes/sub-cities.$id.edit'
+import { Route as ResearchProjectsIdRouteImport } from './routes/research.projects.$id'
+import { Route as ResearchIdeasCreateRouteImport } from './routes/research.ideas.create'
+import { Route as ResearchIdeasIdRouteImport } from './routes/research.ideas.$id'
 import { Route as RequestsIdEditRouteImport } from './routes/requests.$id.edit'
 import { Route as RegistryIdEditRouteImport } from './routes/registry.$id.edit'
+import { Route as ResearchTransfersCreateProjectIdRouteImport } from './routes/research.transfers.create.$projectId'
+import { Route as ResearchScreeningsCreateIdeaIdRouteImport } from './routes/research.screenings.create.$ideaId'
+import { Route as ResearchProjectsCreateIdeaIdRouteImport } from './routes/research.projects.create.$ideaId'
+import { Route as ResearchIdeasIdEditRouteImport } from './routes/research.ideas.$id.edit'
+import { Route as ResearchEvaluationsCreateProjectIdRouteImport } from './routes/research.evaluations.create.$projectId'
 
 const WorkflowsRoute = WorkflowsRouteImport.update({
   id: '/workflows',
@@ -203,6 +217,36 @@ const ServicesServiceSlugRoute = ServicesServiceSlugRouteImport.update({
   path: '/services/$serviceSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResearchTransfersRoute = ResearchTransfersRouteImport.update({
+  id: '/research/transfers',
+  path: '/research/transfers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchScreeningsRoute = ResearchScreeningsRouteImport.update({
+  id: '/research/screenings',
+  path: '/research/screenings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchReportsRoute = ResearchReportsRouteImport.update({
+  id: '/research/reports',
+  path: '/research/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchProjectsRoute = ResearchProjectsRouteImport.update({
+  id: '/research/projects',
+  path: '/research/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchIdeasRoute = ResearchIdeasRouteImport.update({
+  id: '/research/ideas',
+  path: '/research/ideas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchEvaluationsRoute = ResearchEvaluationsRouteImport.update({
+  id: '/research/evaluations',
+  path: '/research/evaluations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RequestsCreateRoute = RequestsCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -228,6 +272,21 @@ const SubCitiesIdEditRoute = SubCitiesIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => SubCitiesIdRoute,
 } as any)
+const ResearchProjectsIdRoute = ResearchProjectsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ResearchProjectsRoute,
+} as any)
+const ResearchIdeasCreateRoute = ResearchIdeasCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => ResearchIdeasRoute,
+} as any)
+const ResearchIdeasIdRoute = ResearchIdeasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ResearchIdeasRoute,
+} as any)
 const RequestsIdEditRoute = RequestsIdEditRouteImport.update({
   id: '/$id/edit',
   path: '/$id/edit',
@@ -238,6 +297,35 @@ const RegistryIdEditRoute = RegistryIdEditRouteImport.update({
   path: '/$id/edit',
   getParentRoute: () => RegistryRoute,
 } as any)
+const ResearchTransfersCreateProjectIdRoute =
+  ResearchTransfersCreateProjectIdRouteImport.update({
+    id: '/create/$projectId',
+    path: '/create/$projectId',
+    getParentRoute: () => ResearchTransfersRoute,
+  } as any)
+const ResearchScreeningsCreateIdeaIdRoute =
+  ResearchScreeningsCreateIdeaIdRouteImport.update({
+    id: '/create/$ideaId',
+    path: '/create/$ideaId',
+    getParentRoute: () => ResearchScreeningsRoute,
+  } as any)
+const ResearchProjectsCreateIdeaIdRoute =
+  ResearchProjectsCreateIdeaIdRouteImport.update({
+    id: '/create/$ideaId',
+    path: '/create/$ideaId',
+    getParentRoute: () => ResearchProjectsRoute,
+  } as any)
+const ResearchIdeasIdEditRoute = ResearchIdeasIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => ResearchIdeasIdRoute,
+} as any)
+const ResearchEvaluationsCreateProjectIdRoute =
+  ResearchEvaluationsCreateProjectIdRouteImport.update({
+    id: '/create/$projectId',
+    path: '/create/$projectId',
+    getParentRoute: () => ResearchEvaluationsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -261,6 +349,12 @@ export interface FileRoutesByFullPath {
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
+  '/research/ideas': typeof ResearchIdeasRouteWithChildren
+  '/research/projects': typeof ResearchProjectsRouteWithChildren
+  '/research/reports': typeof ResearchReportsRoute
+  '/research/screenings': typeof ResearchScreeningsRouteWithChildren
+  '/research/transfers': typeof ResearchTransfersRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
   '/sub-cities/create': typeof SubCitiesCreateRoute
@@ -275,9 +369,17 @@ export interface FileRoutesByFullPath {
   '/vendors/': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
+  '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
+  '/research/ideas/create': typeof ResearchIdeasCreateRoute
+  '/research/projects/$id': typeof ResearchProjectsIdRoute
   '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
   '/users/$id/edit': typeof UsersIdEditRoute
   '/sub-cities/$id/': typeof SubCitiesIdIndexRoute
+  '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
+  '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
+  '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
+  '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
+  '/research/transfers/create/$projectId': typeof ResearchTransfersCreateProjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -295,6 +397,12 @@ export interface FileRoutesByTo {
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
+  '/research/ideas': typeof ResearchIdeasRouteWithChildren
+  '/research/projects': typeof ResearchProjectsRouteWithChildren
+  '/research/reports': typeof ResearchReportsRoute
+  '/research/screenings': typeof ResearchScreeningsRouteWithChildren
+  '/research/transfers': typeof ResearchTransfersRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
@@ -308,9 +416,17 @@ export interface FileRoutesByTo {
   '/vendors': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
+  '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
+  '/research/ideas/create': typeof ResearchIdeasCreateRoute
+  '/research/projects/$id': typeof ResearchProjectsIdRoute
   '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
   '/users/$id/edit': typeof UsersIdEditRoute
   '/sub-cities/$id': typeof SubCitiesIdIndexRoute
+  '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
+  '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
+  '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
+  '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
+  '/research/transfers/create/$projectId': typeof ResearchTransfersCreateProjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -335,6 +451,12 @@ export interface FileRoutesById {
   '/workflows': typeof WorkflowsRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
+  '/research/ideas': typeof ResearchIdeasRouteWithChildren
+  '/research/projects': typeof ResearchProjectsRouteWithChildren
+  '/research/reports': typeof ResearchReportsRoute
+  '/research/screenings': typeof ResearchScreeningsRouteWithChildren
+  '/research/transfers': typeof ResearchTransfersRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
   '/sub-cities/create': typeof SubCitiesCreateRoute
@@ -349,9 +471,17 @@ export interface FileRoutesById {
   '/vendors/': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
+  '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
+  '/research/ideas/create': typeof ResearchIdeasCreateRoute
+  '/research/projects/$id': typeof ResearchProjectsIdRoute
   '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
   '/users/$id/edit': typeof UsersIdEditRoute
   '/sub-cities/$id/': typeof SubCitiesIdIndexRoute
+  '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
+  '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
+  '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
+  '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
+  '/research/transfers/create/$projectId': typeof ResearchTransfersCreateProjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -377,6 +507,12 @@ export interface FileRouteTypes {
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
+    | '/research/evaluations'
+    | '/research/ideas'
+    | '/research/projects'
+    | '/research/reports'
+    | '/research/screenings'
+    | '/research/transfers'
     | '/services/$serviceSlug'
     | '/sub-cities/$id'
     | '/sub-cities/create'
@@ -391,9 +527,17 @@ export interface FileRouteTypes {
     | '/vendors/'
     | '/registry/$id/edit'
     | '/requests/$id/edit'
+    | '/research/ideas/$id'
+    | '/research/ideas/create'
+    | '/research/projects/$id'
     | '/sub-cities/$id/edit'
     | '/users/$id/edit'
     | '/sub-cities/$id/'
+    | '/research/evaluations/create/$projectId'
+    | '/research/ideas/$id/edit'
+    | '/research/projects/create/$ideaId'
+    | '/research/screenings/create/$ideaId'
+    | '/research/transfers/create/$projectId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -411,6 +555,12 @@ export interface FileRouteTypes {
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
+    | '/research/evaluations'
+    | '/research/ideas'
+    | '/research/projects'
+    | '/research/reports'
+    | '/research/screenings'
+    | '/research/transfers'
     | '/services/$serviceSlug'
     | '/sub-cities/create'
     | '/users/create'
@@ -424,9 +574,17 @@ export interface FileRouteTypes {
     | '/vendors'
     | '/registry/$id/edit'
     | '/requests/$id/edit'
+    | '/research/ideas/$id'
+    | '/research/ideas/create'
+    | '/research/projects/$id'
     | '/sub-cities/$id/edit'
     | '/users/$id/edit'
     | '/sub-cities/$id'
+    | '/research/evaluations/create/$projectId'
+    | '/research/ideas/$id/edit'
+    | '/research/projects/create/$ideaId'
+    | '/research/screenings/create/$ideaId'
+    | '/research/transfers/create/$projectId'
   id:
     | '__root__'
     | '/'
@@ -450,6 +608,12 @@ export interface FileRouteTypes {
     | '/workflows'
     | '/registry/create'
     | '/requests/create'
+    | '/research/evaluations'
+    | '/research/ideas'
+    | '/research/projects'
+    | '/research/reports'
+    | '/research/screenings'
+    | '/research/transfers'
     | '/services/$serviceSlug'
     | '/sub-cities/$id'
     | '/sub-cities/create'
@@ -464,9 +628,17 @@ export interface FileRouteTypes {
     | '/vendors/'
     | '/registry/$id/edit'
     | '/requests/$id/edit'
+    | '/research/ideas/$id'
+    | '/research/ideas/create'
+    | '/research/projects/$id'
     | '/sub-cities/$id/edit'
     | '/users/$id/edit'
     | '/sub-cities/$id/'
+    | '/research/evaluations/create/$projectId'
+    | '/research/ideas/$id/edit'
+    | '/research/projects/create/$ideaId'
+    | '/research/screenings/create/$ideaId'
+    | '/research/transfers/create/$projectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -489,6 +661,12 @@ export interface RootRouteChildren {
   UsersRoute: typeof UsersRouteWithChildren
   VendorsRoute: typeof VendorsRouteWithChildren
   WorkflowsRoute: typeof WorkflowsRoute
+  ResearchEvaluationsRoute: typeof ResearchEvaluationsRouteWithChildren
+  ResearchIdeasRoute: typeof ResearchIdeasRouteWithChildren
+  ResearchProjectsRoute: typeof ResearchProjectsRouteWithChildren
+  ResearchReportsRoute: typeof ResearchReportsRoute
+  ResearchScreeningsRoute: typeof ResearchScreeningsRouteWithChildren
+  ResearchTransfersRoute: typeof ResearchTransfersRouteWithChildren
   ServicesServiceSlugRoute: typeof ServicesServiceSlugRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
 }
@@ -712,6 +890,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesServiceSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/research/transfers': {
+      id: '/research/transfers'
+      path: '/research/transfers'
+      fullPath: '/research/transfers'
+      preLoaderRoute: typeof ResearchTransfersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/screenings': {
+      id: '/research/screenings'
+      path: '/research/screenings'
+      fullPath: '/research/screenings'
+      preLoaderRoute: typeof ResearchScreeningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/reports': {
+      id: '/research/reports'
+      path: '/research/reports'
+      fullPath: '/research/reports'
+      preLoaderRoute: typeof ResearchReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/projects': {
+      id: '/research/projects'
+      path: '/research/projects'
+      fullPath: '/research/projects'
+      preLoaderRoute: typeof ResearchProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/ideas': {
+      id: '/research/ideas'
+      path: '/research/ideas'
+      fullPath: '/research/ideas'
+      preLoaderRoute: typeof ResearchIdeasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/evaluations': {
+      id: '/research/evaluations'
+      path: '/research/evaluations'
+      fullPath: '/research/evaluations'
+      preLoaderRoute: typeof ResearchEvaluationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/requests/create': {
       id: '/requests/create'
       path: '/create'
@@ -747,6 +967,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SubCitiesIdEditRouteImport
       parentRoute: typeof SubCitiesIdRoute
     }
+    '/research/projects/$id': {
+      id: '/research/projects/$id'
+      path: '/$id'
+      fullPath: '/research/projects/$id'
+      preLoaderRoute: typeof ResearchProjectsIdRouteImport
+      parentRoute: typeof ResearchProjectsRoute
+    }
+    '/research/ideas/create': {
+      id: '/research/ideas/create'
+      path: '/create'
+      fullPath: '/research/ideas/create'
+      preLoaderRoute: typeof ResearchIdeasCreateRouteImport
+      parentRoute: typeof ResearchIdeasRoute
+    }
+    '/research/ideas/$id': {
+      id: '/research/ideas/$id'
+      path: '/$id'
+      fullPath: '/research/ideas/$id'
+      preLoaderRoute: typeof ResearchIdeasIdRouteImport
+      parentRoute: typeof ResearchIdeasRoute
+    }
     '/requests/$id/edit': {
       id: '/requests/$id/edit'
       path: '/$id/edit'
@@ -760,6 +1001,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/registry/$id/edit'
       preLoaderRoute: typeof RegistryIdEditRouteImport
       parentRoute: typeof RegistryRoute
+    }
+    '/research/transfers/create/$projectId': {
+      id: '/research/transfers/create/$projectId'
+      path: '/create/$projectId'
+      fullPath: '/research/transfers/create/$projectId'
+      preLoaderRoute: typeof ResearchTransfersCreateProjectIdRouteImport
+      parentRoute: typeof ResearchTransfersRoute
+    }
+    '/research/screenings/create/$ideaId': {
+      id: '/research/screenings/create/$ideaId'
+      path: '/create/$ideaId'
+      fullPath: '/research/screenings/create/$ideaId'
+      preLoaderRoute: typeof ResearchScreeningsCreateIdeaIdRouteImport
+      parentRoute: typeof ResearchScreeningsRoute
+    }
+    '/research/projects/create/$ideaId': {
+      id: '/research/projects/create/$ideaId'
+      path: '/create/$ideaId'
+      fullPath: '/research/projects/create/$ideaId'
+      preLoaderRoute: typeof ResearchProjectsCreateIdeaIdRouteImport
+      parentRoute: typeof ResearchProjectsRoute
+    }
+    '/research/ideas/$id/edit': {
+      id: '/research/ideas/$id/edit'
+      path: '/edit'
+      fullPath: '/research/ideas/$id/edit'
+      preLoaderRoute: typeof ResearchIdeasIdEditRouteImport
+      parentRoute: typeof ResearchIdeasIdRoute
+    }
+    '/research/evaluations/create/$projectId': {
+      id: '/research/evaluations/create/$projectId'
+      path: '/create/$projectId'
+      fullPath: '/research/evaluations/create/$projectId'
+      preLoaderRoute: typeof ResearchEvaluationsCreateProjectIdRouteImport
+      parentRoute: typeof ResearchEvaluationsRoute
     }
   }
 }
@@ -865,6 +1141,79 @@ const VendorsRouteChildren: VendorsRouteChildren = {
 const VendorsRouteWithChildren =
   VendorsRoute._addFileChildren(VendorsRouteChildren)
 
+interface ResearchEvaluationsRouteChildren {
+  ResearchEvaluationsCreateProjectIdRoute: typeof ResearchEvaluationsCreateProjectIdRoute
+}
+
+const ResearchEvaluationsRouteChildren: ResearchEvaluationsRouteChildren = {
+  ResearchEvaluationsCreateProjectIdRoute:
+    ResearchEvaluationsCreateProjectIdRoute,
+}
+
+const ResearchEvaluationsRouteWithChildren =
+  ResearchEvaluationsRoute._addFileChildren(ResearchEvaluationsRouteChildren)
+
+interface ResearchIdeasIdRouteChildren {
+  ResearchIdeasIdEditRoute: typeof ResearchIdeasIdEditRoute
+}
+
+const ResearchIdeasIdRouteChildren: ResearchIdeasIdRouteChildren = {
+  ResearchIdeasIdEditRoute: ResearchIdeasIdEditRoute,
+}
+
+const ResearchIdeasIdRouteWithChildren = ResearchIdeasIdRoute._addFileChildren(
+  ResearchIdeasIdRouteChildren,
+)
+
+interface ResearchIdeasRouteChildren {
+  ResearchIdeasIdRoute: typeof ResearchIdeasIdRouteWithChildren
+  ResearchIdeasCreateRoute: typeof ResearchIdeasCreateRoute
+}
+
+const ResearchIdeasRouteChildren: ResearchIdeasRouteChildren = {
+  ResearchIdeasIdRoute: ResearchIdeasIdRouteWithChildren,
+  ResearchIdeasCreateRoute: ResearchIdeasCreateRoute,
+}
+
+const ResearchIdeasRouteWithChildren = ResearchIdeasRoute._addFileChildren(
+  ResearchIdeasRouteChildren,
+)
+
+interface ResearchProjectsRouteChildren {
+  ResearchProjectsIdRoute: typeof ResearchProjectsIdRoute
+  ResearchProjectsCreateIdeaIdRoute: typeof ResearchProjectsCreateIdeaIdRoute
+}
+
+const ResearchProjectsRouteChildren: ResearchProjectsRouteChildren = {
+  ResearchProjectsIdRoute: ResearchProjectsIdRoute,
+  ResearchProjectsCreateIdeaIdRoute: ResearchProjectsCreateIdeaIdRoute,
+}
+
+const ResearchProjectsRouteWithChildren =
+  ResearchProjectsRoute._addFileChildren(ResearchProjectsRouteChildren)
+
+interface ResearchScreeningsRouteChildren {
+  ResearchScreeningsCreateIdeaIdRoute: typeof ResearchScreeningsCreateIdeaIdRoute
+}
+
+const ResearchScreeningsRouteChildren: ResearchScreeningsRouteChildren = {
+  ResearchScreeningsCreateIdeaIdRoute: ResearchScreeningsCreateIdeaIdRoute,
+}
+
+const ResearchScreeningsRouteWithChildren =
+  ResearchScreeningsRoute._addFileChildren(ResearchScreeningsRouteChildren)
+
+interface ResearchTransfersRouteChildren {
+  ResearchTransfersCreateProjectIdRoute: typeof ResearchTransfersCreateProjectIdRoute
+}
+
+const ResearchTransfersRouteChildren: ResearchTransfersRouteChildren = {
+  ResearchTransfersCreateProjectIdRoute: ResearchTransfersCreateProjectIdRoute,
+}
+
+const ResearchTransfersRouteWithChildren =
+  ResearchTransfersRoute._addFileChildren(ResearchTransfersRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
@@ -885,6 +1234,12 @@ const rootRouteChildren: RootRouteChildren = {
   UsersRoute: UsersRouteWithChildren,
   VendorsRoute: VendorsRouteWithChildren,
   WorkflowsRoute: WorkflowsRoute,
+  ResearchEvaluationsRoute: ResearchEvaluationsRouteWithChildren,
+  ResearchIdeasRoute: ResearchIdeasRouteWithChildren,
+  ResearchProjectsRoute: ResearchProjectsRouteWithChildren,
+  ResearchReportsRoute: ResearchReportsRoute,
+  ResearchScreeningsRoute: ResearchScreeningsRouteWithChildren,
+  ResearchTransfersRoute: ResearchTransfersRouteWithChildren,
   ServicesServiceSlugRoute: ServicesServiceSlugRoute,
   ProfileIndexRoute: ProfileIndexRoute,
 }

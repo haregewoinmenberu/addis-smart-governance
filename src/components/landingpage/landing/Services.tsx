@@ -16,7 +16,7 @@ const services: Service[] = [
     title: "Research",
     slug: "research",
     bullets: [
-      "AI-driven research submission system",
+      "research submission ",
       "Policy and technology research evaluation",
       "National innovation tracking dashboard",
     ],

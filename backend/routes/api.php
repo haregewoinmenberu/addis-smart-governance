@@ -1,15 +1,10 @@
 <?php
-
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AuditController;
-use App\Http\Controllers\Api\CybersecurityIssueController;
-use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\CybersecurityIssueController; 
 use App\Http\Controllers\Api\DuplicationCaseController;
 use App\Http\Controllers\Api\FeasibilityStudyController;
 use App\Http\Controllers\Api\InstitutionController;
-use App\Http\Controllers\Api\ModuleController;
-use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\ModuleController; 
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\RequestItemController;
 use App\Http\Controllers\Api\SurveyController;
@@ -24,10 +19,33 @@ use App\Http\Controllers\Api\ServiceFormSubmissionController;
 use App\Http\Controllers\Api\InstitutionDocumentController;
 use App\Http\Controllers\Api\InstitutionTeamController;
 
-// Public routes
-Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthController::class, 'login']);
-});
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\ResearchIdeaController;
+use App\Http\Controllers\Api\ResearchScreeningController;
+use App\Http\Controllers\Api\ResearchProjectController;
+use App\Http\Controllers\Api\ResearchEvaluationController;
+use App\Http\Controllers\Api\TechnologyTransferController;
+use App\Http\Controllers\Api\ResearchMilestoneController;
+use App\Http\Controllers\Api\ResearchTaskController;
+use App\Http\Controllers\Api\ResearchTeamController;
+use App\Http\Controllers\Api\ProposalReviewController;
+use App\Http\Controllers\Api\TechnologyRequestController;
+use App\Http\Controllers\Api\TechnologyEvaluationController;
+use App\Http\Controllers\Api\TechnologyRegistryController;
+use App\Http\Controllers\Api\TechnologyIncidentController;
+use App\Http\Controllers\Api\LicenseApplicationController;
+use App\Http\Controllers\Api\LicenseController;
+use App\Http\Controllers\Api\ProfessionController;
+use App\Http\Controllers\Api\ExaminationController;
+use App\Http\Controllers\Api\ComplaintController;
+use App\Http\Controllers\Api\DisciplinaryCaseController;
+
+// Authentication Routes (No Auth Required)
+Route::post('/auth/login', [AuthController::class, 'login']);
+
 
 // Institution Registration - Public endpoint
 Route::prefix('institutions')->group(function () {
@@ -55,7 +73,7 @@ Route::get('health', function () {
 
 // Protected routes
 Route::middleware(['auth:api', 'log.activity'])->group(function () {
-    
+        
     // Auth routes
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
@@ -71,7 +89,6 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     // Dashboard - All authenticated users
     Route::get('dashboard', [DashboardController::class, 'index'])
         ->middleware('permission:view_dashboard');
-
     // Modules - All authenticated users
     Route::get('modules/{key}', [ModuleController::class, 'show']);
 
@@ -303,34 +320,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:view_surveys');
         Route::post('/{id}/respond', [SurveyController::class, 'respond'])
             ->middleware('permission:participate_surveys');
-    });
-
-    // Notifications
-    Route::prefix('notifications')->group(function () {
-        Route::get('/', [NotificationController::class, 'index'])
-            ->middleware('permission:view_notifications');
-        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])
-            ->middleware('permission:view_notifications');
-        Route::get('/recent', [NotificationController::class, 'recent'])
-            ->middleware('permission:view_notifications');
-        Route::get('/statistics', [NotificationController::class, 'statistics'])
-            ->middleware('permission:view_notifications');
-        Route::get('/{id}', [NotificationController::class, 'show'])
-            ->middleware('permission:view_notifications');
-        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])
-            ->middleware('permission:view_notifications');
-        Route::post('/{id}/unread', [NotificationController::class, 'markAsUnread'])
-            ->middleware('permission:view_notifications');
-        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])
-            ->middleware('permission:view_notifications');
-        Route::post('/{id}/delete', [NotificationController::class, 'destroy'])
-            ->middleware('permission:view_notifications');
-        Route::post('/read/delete-all', [NotificationController::class, 'deleteAllRead'])
-            ->middleware('permission:view_notifications');
-        Route::post('/all/clear', [NotificationController::class, 'deleteAll'])
-            ->middleware('permission:view_notifications');
-    });
-
+    }); 
     // Service Form Submissions - Protected routes
     Route::prefix('service-forms')->group(function () {
         Route::get('/my-submissions', [ServiceFormSubmissionController::class, 'listUserSubmissions']);
@@ -374,4 +364,171 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     
     // Team invitation acceptance
     Route::post('/team/accept-invitation', [InstitutionTeamController::class, 'acceptInvitation']);
+});
+ 
+ // Notifications
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])
+            ->middleware('permission:view_notifications');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])
+            ->middleware('permission:view_notifications');
+        Route::get('/recent', [NotificationController::class, 'recent'])
+            ->middleware('permission:view_notifications');
+        Route::get('/statistics', [NotificationController::class, 'statistics'])
+            ->middleware('permission:view_notifications');
+        Route::get('/{id}', [NotificationController::class, 'show'])
+            ->middleware('permission:view_notifications');
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])
+            ->middleware('permission:view_notifications');
+        Route::post('/{id}/unread', [NotificationController::class, 'markAsUnread'])
+            ->middleware('permission:view_notifications');
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])
+            ->middleware('permission:view_notifications');
+        Route::post('/{id}/delete', [NotificationController::class, 'destroy'])
+            ->middleware('permission:view_notifications');
+        Route::post('/read/delete-all', [NotificationController::class, 'deleteAllRead'])
+            ->middleware('permission:view_notifications');
+        Route::post('/all/clear', [NotificationController::class, 'deleteAll'])
+            ->middleware('permission:view_notifications');
+    });
+
+
+    // ====================================================
+    // PROFESSIONAL LICENSING MANAGEMENT ROUTES
+    // ====================================================
+
+    // Professions & Specializations - Public can view
+    Route::prefix('professions')->group(function () {
+        Route::get('/', [ProfessionController::class, 'index'])
+            ->middleware('permission:view_professions');
+        Route::post('/', [ProfessionController::class, 'store'])
+            ->middleware('permission:manage_professions');
+        Route::get('/{id}', [ProfessionController::class, 'show'])
+            ->middleware('permission:view_professions');
+        Route::post('/{id}/update', [ProfessionController::class, 'update'])
+            ->middleware('permission:manage_professions');
+        Route::get('/{id}/specializations', [ProfessionController::class, 'specializations'])
+            ->middleware('permission:view_professions');
+        Route::post('/{id}/specializations', [ProfessionController::class, 'addSpecialization'])
+            ->middleware('permission:manage_specializations');
+    });
+
+    // License Applications
+    Route::prefix('license-applications')->group(function () {
+        Route::get('/', [LicenseApplicationController::class, 'index'])
+            ->middleware('permission:view_license_applications');
+        Route::post('/', [LicenseApplicationController::class, 'store'])
+            ->middleware('permission:create_license_application');
+        Route::get('/statistics', [LicenseApplicationController::class, 'statistics'])
+            ->middleware('permission:view_license_applications');
+        Route::get('/{id}', [LicenseApplicationController::class, 'show'])
+            ->middleware('permission:view_license_applications');
+        Route::post('/{id}/update', [LicenseApplicationController::class, 'update'])
+            ->middleware('permission:update_license_application');
+        Route::post('/{id}/submit', [LicenseApplicationController::class, 'submit'])
+            ->middleware('permission:submit_license_application');
+        Route::post('/{id}/start-review', [LicenseApplicationController::class, 'startReview'])
+            ->middleware('permission:review_license_application');
+        Route::post('/{id}/approve', [LicenseApplicationController::class, 'approve'])
+            ->middleware('permission:approve_license_application');
+        Route::post('/{id}/reject', [LicenseApplicationController::class, 'reject'])
+            ->middleware('permission:reject_license_application');
+        Route::post('/{id}/return-for-correction', [LicenseApplicationController::class, 'returnForCorrection'])
+            ->middleware('permission:review_license_application');
+        Route::post('/{id}/delete', [LicenseApplicationController::class, 'destroy'])
+            ->middleware('permission:delete_license_application');
+    });
+
+    // Licenses
+    Route::prefix('licenses')->group(function () {
+        Route::get('/', [LicenseController::class, 'index'])
+            ->middleware('permission:view_licenses');
+        Route::post('/issue', [LicenseController::class, 'issue'])
+            ->middleware('permission:issue_license');
+        Route::post('/verify', [LicenseController::class, 'verify'])
+            ->middleware('permission:verify_license');
+        Route::post('/verify-qr', [LicenseController::class, 'verifyQR'])
+            ->middleware('permission:verify_license');
+        Route::get('/statistics', [LicenseController::class, 'statistics'])
+            ->middleware('permission:view_licenses');
+        Route::get('/{id}', [LicenseController::class, 'show'])
+            ->middleware('permission:view_licenses');
+        Route::post('/{id}/suspend', [LicenseController::class, 'suspend'])
+            ->middleware('permission:suspend_license');
+        Route::post('/{id}/reactivate', [LicenseController::class, 'reactivate'])
+            ->middleware('permission:reactivate_license');
+        Route::post('/{id}/revoke', [LicenseController::class, 'revoke'])
+            ->middleware('permission:revoke_license');
+        Route::get('/{id}/certificate/download', [LicenseController::class, 'downloadCertificate'])
+            ->middleware('permission:download_license_certificate');
+    });
+
+    // Examinations
+    Route::prefix('examinations')->group(function () {
+        Route::get('/', [ExaminationController::class, 'index'])
+            ->middleware('permission:view_examinations');
+        Route::post('/', [ExaminationController::class, 'store'])
+            ->middleware('permission:create_examination');
+        Route::get('/{id}', [ExaminationController::class, 'show'])
+            ->middleware('permission:view_examinations');
+        Route::post('/{id}/register', [ExaminationController::class, 'register'])
+            ->middleware('permission:register_for_exam');
+        Route::get('/my-attempts', [ExaminationController::class, 'myAttempts'])
+            ->middleware('permission:view_examinations');
+    });
+
+    // Exam Attempts
+    Route::prefix('exam-attempts')->group(function () {
+        Route::post('/{id}/start', [ExaminationController::class, 'startExam'])
+            ->middleware('permission:register_for_exam');
+        Route::post('/{id}/submit', [ExaminationController::class, 'submitExam'])
+            ->middleware('permission:register_for_exam');
+        Route::post('/{id}/evaluate', [ExaminationController::class, 'evaluate'])
+            ->middleware('permission:evaluate_exam');
+        Route::post('/{id}/appeal', [ExaminationController::class, 'fileAppeal'])
+            ->middleware('permission:file_exam_appeal');
+    });
+
+    // Complaints
+    Route::prefix('complaints')->group(function () {
+        Route::get('/', [ComplaintController::class, 'index'])
+            ->middleware('permission:view_complaints');
+        Route::post('/', [ComplaintController::class, 'store'])
+            ->middleware('permission:file_complaint');
+        Route::get('/statistics', [ComplaintController::class, 'statistics'])
+            ->middleware('permission:view_complaints');
+        Route::get('/{id}', [ComplaintController::class, 'show'])
+            ->middleware('permission:view_complaints');
+        Route::post('/{id}/assign-investigator', [ComplaintController::class, 'assignInvestigator'])
+            ->middleware('permission:assign_complaint_investigator');
+        Route::post('/{id}/complete-investigation', [ComplaintController::class, 'completeInvestigation'])
+            ->middleware('permission:investigate_complaint');
+        Route::post('/{id}/dismiss', [ComplaintController::class, 'dismiss'])
+            ->middleware('permission:dismiss_complaint');
+    });
+
+    // Disciplinary Cases
+    Route::prefix('disciplinary-cases')->group(function () {
+        Route::get('/', [DisciplinaryCaseController::class, 'index'])
+            ->middleware('permission:view_disciplinary_cases');
+        Route::get('/statistics', [DisciplinaryCaseController::class, 'statistics'])
+            ->middleware('permission:view_disciplinary_cases');
+        Route::get('/{id}', [DisciplinaryCaseController::class, 'show'])
+            ->middleware('permission:view_disciplinary_cases');
+        Route::post('/{id}/schedule-hearing', [DisciplinaryCaseController::class, 'scheduleHearing'])
+            ->middleware('permission:schedule_hearing');
+        Route::post('/{id}/impose-action', [DisciplinaryCaseController::class, 'imposeDisciplinaryAction'])
+            ->middleware('permission:impose_disciplinary_action');
+    });
+
+    // Hearings
+    Route::prefix('hearings')->group(function () {
+        Route::post('/{id}/record-decision', [DisciplinaryCaseController::class, 'recordHearingDecision'])
+            ->middleware('permission:record_hearing_decision');
+    }); 
+    
+// Public License Verification - No authentication required
+Route::prefix('public/licenses')->group(function () {
+    Route::post('/verify', [LicenseController::class, 'verify']);
+    Route::post('/verify-qr', [LicenseController::class, 'verifyQR']);
 });

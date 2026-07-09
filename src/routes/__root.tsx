@@ -35,16 +35,18 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error }: { error: Error; reset: () => void }) {
   console.error(error);
-  
-  // Only redirect to login for 401 Unauthorized errors
-  if (typeof window !== 'undefined' && error instanceof Error) {
-    if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-      window.location.replace('/login');
-      return null;
-    }
+
+  // Only redirect to login for genuine 401 (unauthenticated) errors — keyed off
+  // the HTTP status, NOT the message text. A 403 (authenticated but forbidden,
+  // e.g. missing a permission) must NOT redirect: the token is still valid, so
+  // login would just bounce back here and loop forever.
+  const status = (error as { status?: number }).status;
+  if (typeof window !== 'undefined' && status === 401) {
+    window.location.replace('/login');
+    return null;
   }
 
-  // For other errors, show error page
+  // For other errors (including 403 forbidden), show the error page
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">

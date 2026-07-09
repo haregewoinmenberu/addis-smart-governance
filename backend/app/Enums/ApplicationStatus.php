@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Enums;
+
+enum ApplicationStatus: string
+{
+    case DRAFT = 'draft';
+    case SUBMITTED = 'submitted';
+    case UNDER_REVIEW = 'under_review';
+    case APPROVED = 'approved';
+    case REJECTED = 'rejected';
+    case RETURNED = 'returned_for_correction';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::DRAFT => 'Draft',
+            self::SUBMITTED => 'Submitted',
+            self::UNDER_REVIEW => 'Under Review',
+            self::APPROVED => 'Approved',
+            self::REJECTED => 'Rejected',
+            self::RETURNED => 'Returned for Correction',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::DRAFT => 'gray',
+            self::SUBMITTED => 'blue',
+            self::UNDER_REVIEW => 'yellow',
+            self::APPROVED => 'green',
+            self::REJECTED => 'red',
+            self::RETURNED => 'orange',
+        };
+    }
+
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+}

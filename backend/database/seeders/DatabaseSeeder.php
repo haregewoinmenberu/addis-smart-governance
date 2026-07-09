@@ -30,8 +30,12 @@ class DatabaseSeeder extends Seeder
         // Seed roles and permissions first
         $this->call([
             RolesAndPermissionsSeeder::class,
-            WorkflowDefinitionSeeder::class,
+            WorkflowDefinitionsSeeder::class,
             SubCitiesSeeder::class,
+            ResearchDemoDataSeeder::class,
+            ResearchPermissionSeeder::class,
+            TechnologyTransferDemoSeeder::class,
+            TechnologyTransferPermissionSeeder::class
         ]);
 
         // Create a default admin user with role assigned

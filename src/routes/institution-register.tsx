@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import { Building2, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 
@@ -27,71 +26,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  INSTITUTION_TYPES,
+  institutionRegistrationSchema,
+  type InstitutionRegistrationData,
+} from "@/lib/institution-schema";
 import { apiPost } from "@/lib/api";
 
 export const Route = createFileRoute("/institution-register")({
   component: InstitutionRegister,
 });
 
-const institutionTypes = {
-  BUREAU: "Bureau",
-  AUTHORITY: "Authority",
-  COMMISSION: "Commission",
-  AGENCY: "Agency",
-  OFFICE: "Office",
-  SUB_CITY: "Sub-City",
-  WOREDA: "Woreda",
-  PUBLIC_ENTERPRISE: "Public Enterprise",
-  UNIVERSITY: "University",
-  COLLEGE: "College",
-  TVET: "TVET Institution",
-  SCHOOL: "School",
-  HOSPITAL: "Hospital",
-  HEALTH_CENTER: "Health Center",
-  HEALTH_OFFICE: "Health Office",
-  RESEARCH_INSTITUTE: "Research Institute",
-  COURT: "Court",
-  SECURITY: "Security Institution",
-  UTILITY: "Utility Institution",
-  NGO: "NGO / Development Partner",
-  COOPERATIVE: "Cooperative",
-  ASSOCIATION: "Association",
-  MANUFACTURING: "Manufacturing Industry",
-  FINANCIAL_INSTITUTION: "Financial Institution",
-  PRIVATE_COMPANY: "Private Company",
-  STARTUP: "Startup / Innovation Center",
-  RELIGIOUS_INSTITUTION: "Religious Institution",
-  OTHER_GOVERNMENT: "Other Government Institution",
-  OTHER: "Other",
-};
-
-const schema = z.object({
-  // Institution details
-  institution_name: z.string().min(2, "Institution name is required"),
-  institution_amharic_name: z.string().optional(),
-  institution_type: z.string().min(1, "Institution type is required"),
-  registration_number: z.string().optional(),
-  tin_number: z.string().optional(),
-  email: z.string().email("Valid email is required"),
-  phone: z.string().min(10, "Valid phone number is required"),
-  alternative_phone: z.string().optional(),
-  address: z.string().optional(),
-  website: z.string().url("Valid URL is required").optional().or(z.literal("")),
-  description: z.string().optional(),
-
-  // Primary contact details
-  contact_name: z.string().min(2, "Contact person name is required"),
-  contact_email: z.string().email("Valid email is required"),
-  contact_phone: z.string().min(10, "Valid phone number is required"),
-  contact_position: z.string().min(2, "Position is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  password_confirmation: z.string(),
-}).refine((data) => data.password === data.password_confirmation, {
-  message: "Passwords don't match",
-  path: ["password_confirmation"],
-});
-
-type FormData = z.infer<typeof schema>;
+type FormData = InstitutionRegistrationData;
 
 function InstitutionRegister() {
   const navigate = useNavigate();
@@ -99,7 +45,7 @@ function InstitutionRegister() {
   const [success, setSuccess] = useState(false);
 
   const form = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(institutionRegistrationSchema),
     defaultValues: {
       institution_name: "",
       institution_amharic_name: "",
@@ -125,18 +71,18 @@ function InstitutionRegister() {
     setLoading(true);
     try {
       const response = await apiPost("/institutions/register", values);
-      
+
       toast.success("Registration successful!", {
-        description: "Your institution account is pending verification. You'll receive an email once approved.",
+        description:
+          "Your institution account is pending verification. You'll receive an email once approved.",
       });
-      
+
       setSuccess(true);
-      
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate({ to: "/login" });
       }, 3000);
-      
     } catch (error: any) {
       const message = error?.response?.data?.message || error.message || "Registration failed";
       toast.error("Registration failed", { description: message });
@@ -156,8 +102,8 @@ function InstitutionRegister() {
             </div>
             <h1 className="mb-3 text-2xl font-bold">Registration Successful!</h1>
             <p className="text-muted-foreground">
-              Your institution account has been created and is pending verification.
-              You'll receive an email notification once your account is approved.
+              Your institution account has been created and is pending verification. You'll receive
+              an email notification once your account is approved.
             </p>
             <div className="mt-8">
               <Link
@@ -233,20 +179,6 @@ function InstitutionRegister() {
 
                     <FormField
                       control={form.control}
-                      name="institution_amharic_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Amharic Name (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="የትምህርት ቢሮ" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
                       name="institution_type"
                       render={({ field }) => (
                         <FormItem>
@@ -258,27 +190,13 @@ function InstitutionRegister() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent className="max-h-[300px]">
-                              {Object.entries(institutionTypes).map(([key, label]) => (
+                              {Object.entries(INSTITUTION_TYPES).map(([key, label]) => (
                                 <SelectItem key={key} value={key}>
                                   {label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="registration_number"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Registration Number (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="REG-123456" {...field} />
-                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -320,20 +238,6 @@ function InstitutionRegister() {
                           <FormLabel>Phone Number *</FormLabel>
                           <FormControl>
                             <Input placeholder="+251 11 XXX XXXX" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="alternative_phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Alternative Phone (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="+251 91 XXX XXXX" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -438,7 +342,11 @@ function InstitutionRegister() {
                         <FormItem>
                           <FormLabel>Email *</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="abebe.k@institution.gov.et" {...field} />
+                            <Input
+                              type="email"
+                              placeholder="abebe.k@institution.gov.et"
+                              {...field}
+                            />
                           </FormControl>
                           <FormDescription className="text-xs">
                             This will be your login email
@@ -506,7 +414,9 @@ function InstitutionRegister() {
                     className="h-11 rounded-xl bg-gradient-primary text-primary-foreground shadow-elegant"
                   >
                     {loading ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...</>
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...
+                      </>
                     ) : (
                       <>Register Institution</>
                     )}

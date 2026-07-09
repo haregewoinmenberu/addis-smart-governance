@@ -14,9 +14,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [hasFetchedOnMount, setHasFetchedOnMount] = useState(false);
+
+  // Wrapper for setUser that also updates isAuthenticated
+  const setUser = useCallback((newUser: User | null) => {
+    console.log("AuthContext: setUser called with:", newUser ? newUser.email : "null");
+    setUserState(newUser);
+    setIsAuthenticated(!!newUser);
+  }, []);
 
   const fetchUser = useCallback(async () => {
     const token = getAuthToken();
@@ -26,10 +35,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) {
       console.log("AuthContext: No token found");
       setIsLoading(false);
-      setUser(null);
+      setUserState(null);
       setIsAuthenticated(false);
       return;
     }
+
+    // Prevent multiple simultaneous fetches
+    if (isFetching) {
+      console.log("AuthContext: Already fetching, skipping");
+      return;
+    }
+
+    setIsFetching(true);
 
     try {
       console.log("AuthContext: Making request to /auth/me");
@@ -46,19 +63,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("AuthContext: User fetched successfully");
-        setUser(data.user);
+        console.log("AuthContext: User fetched successfully", data.user?.email);
+        setUserState(data.user);
         setIsAuthenticated(true);
       } else if (response.status === 401) {
         // Token is invalid, clear it
         console.log("AuthContext: Token expired or invalid (401)");
         clearAuthToken();
-        setUser(null);
+        setUserState(null);
         setIsAuthenticated(false);
-        // Don't redirect here - let the route guards handle it
       } else {
         // For other errors (500, 503, etc.), keep the token
         console.error("AuthContext: Failed to fetch user, status:", response.status);
+        const errorText = await response.text();
+        console.error("AuthContext: Error response:", errorText);
         // Keep authenticated state if we have a token
         setIsAuthenticated(!!token);
       }
@@ -68,21 +86,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(!!token);
     } finally {
       setIsLoading(false);
+      setIsFetching(false);
     }
-  }, []);
+  }, [isFetching]);
 
   const logout = useCallback(() => {
     clearAuthToken();
-    setUser(null);
+    setUserState(null);
     setIsAuthenticated(false);
     if (typeof window !== "undefined") {
       window.location.href = "/";
     }
   }, []);
 
+  // Only fetch user once on mount
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    if (!hasFetchedOnMount) {
+      setHasFetchedOnMount(true);
+      fetchUser();
+    }
+  }, [hasFetchedOnMount, fetchUser]);
 
   const value = {
     user,
