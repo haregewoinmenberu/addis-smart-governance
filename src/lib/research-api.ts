@@ -1,10 +1,11 @@
 import type { ResearchIdeaFormData, ResearchScreeningFormData, ResearchProjectFormData } from "./research-schema";
+import { getAuthToken } from "./api";
 
 const API_BASE_URL = '/api';
 
 class ResearchAPI {
   private getHeaders() {
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,

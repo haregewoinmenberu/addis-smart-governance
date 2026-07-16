@@ -23,7 +23,6 @@ return new class extends Migration
             $table->string('priority')->default('medium');
             $table->string('status')->default('draft');
             $table->foreignId('submitted_by')->constrained('users')->onDelete('cascade');
-            $table->foreignId('sub_city_id')->nullable()->constrained('sub_cities')->onDelete('set null');
             $table->timestamp('submitted_at')->nullable();
             $table->timestamps();
             $table->softDeletes();

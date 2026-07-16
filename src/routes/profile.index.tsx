@@ -433,39 +433,43 @@ function Page() {
                 Recent Activity
               </h3>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-                  <tr>
-                    <th className="text-left font-medium px-4 py-3">Action</th>
-                    <th className="text-left font-medium px-4 py-3">Module</th>
-                    <th className="text-left font-medium px-4 py-3">IP Address</th>
-                    <th className="text-left font-medium px-4 py-3">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activities.length === 0 ? (
+            <div className="border border-border/40 rounded-xl overflow-hidden bg-white shadow-sm m-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-[#f8fafc] border-b border-border/40 text-[11px] uppercase tracking-wider font-semibold text-[#718096]">
                     <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                        No activity logs found
-                      </td>
+                      <th className="text-left py-3.5 px-6 font-semibold">Action</th>
+                      <th className="text-left py-3.5 px-6 font-semibold">Module</th>
+                      <th className="text-left py-3.5 px-6 font-semibold">IP Address</th>
+                      <th className="text-left py-3.5 px-6 font-semibold">Date</th>
                     </tr>
-                  ) : (
-                    activities.map((log: any) => (
-                      <tr key={log.id} className="border-t border-border/60 hover:bg-muted/30">
-                        <td className="px-4 py-3">
-                          <Badge variant="secondary">{log.action}</Badge>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">{log.module}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{log.ip_address || "—"}</td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {format(new Date(log.created_at), "MMM d, yyyy HH:mm")}
+                  </thead>
+                  <tbody>
+                    {activities.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
+                          No activity logs found
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      activities.map((log: any, rowIndex: number) => (
+                        <tr key={log.id} className={`border-b border-border/40 hover:bg-slate-50/50 transition-colors ${
+                          rowIndex % 2 === 0 ? "bg-white" : "bg-[#f8fafc]/30"
+                        }`}>
+                          <td className="px-6 py-4 text-sm text-[#4a5568]">
+                            <Badge variant="secondary" className="animate-none">{log.action}</Badge>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-[#4a5568]">{log.module}</td>
+                          <td className="px-6 py-4 text-sm text-[#4a5568]">{log.ip_address || "—"}</td>
+                          <td className="px-6 py-4 text-sm text-muted-foreground">
+                            {format(new Date(log.created_at), "MMM d, yyyy HH:mm")}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </Card>
         </TabsContent>

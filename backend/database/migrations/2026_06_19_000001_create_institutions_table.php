@@ -53,7 +53,6 @@ return new class extends Migration
             $table->string('alternative_phone')->nullable();
             $table->text('address')->nullable();
             $table->string('city')->default('Addis Ababa');
-            $table->foreignId('sub_city_id')->nullable()->constrained('sub_cities')->onDelete('set null');
             $table->string('woreda')->nullable();
             $table->string('website')->nullable();
             $table->text('description')->nullable();

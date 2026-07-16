@@ -4,12 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 
 class ServiceFormSubmission extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory;
 
     protected $table = 'service_form_submissions';
 
@@ -38,15 +36,6 @@ class ServiceFormSubmission extends Model
         'submission_timestamp',
         'reviewed_at',
     ];
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logOnly(['status', 'review_notes', 'reviewed_by'])
-            ->useLogName('service_form_submissions')
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
 
     public function institution()
     {

@@ -1,6 +1,8 @@
 // Role-Based Access Control Types
 
-export type RoleName = 'itdb_administrator' | 'sub_city_administrator' | 'auditor';
+export type RoleName =
+  | 'itdb_administrator'
+  | 'itdb_auditor';
 
 export type PermissionName =
   // User Management
@@ -55,8 +57,15 @@ export type PermissionName =
   // Dashboard
   | 'view_dashboard'
   | 'view_executive_dashboard'
+  | 'view_auditor_dashboard'
+  | 'view_institution_dashboard'
+  | 'view_research_dashboard'
+  | 'view_licensing_dashboard'
+  | 'view_technology_transfer_dashboard'
+  | 'view_subcity_dashboard'
   // Notifications
   | 'view_notifications'
+  | 'send_notifications'
   | 'manage_notifications'
   // Surveys
   | 'view_surveys'
@@ -64,10 +73,59 @@ export type PermissionName =
   | 'create_surveys'
   // Duplication
   | 'view_duplication'
+  | 'view_duplications'
   | 'perform_duplication_analysis'
   // Feasibility
   | 'view_feasibility'
-  | 'conduct_feasibility';
+  | 'view_feasibility_studies'
+  | 'conduct_feasibility'
+  // Research
+  | 'view-research-ideas'
+  | 'create-research-ideas'
+  | 'edit-research-ideas'
+  | 'delete-research-ideas'
+  | 'submit-research-ideas'
+  | 'view-research-screenings'
+  | 'create-research-screenings'
+  | 'edit-research-screenings'
+  | 'approve-research-screenings'
+  | 'view-research-projects'
+  | 'create-research-projects'
+  | 'edit-research-projects'
+  | 'delete-research-projects'
+  | 'manage-research-projects'
+  | 'transition-research-stages'
+  | 'rollback-research-stages'
+  | 'view-proposals'
+  | 'create-proposals'
+  | 'edit-proposals'
+  | 'review-proposals'
+  | 'approve-proposals'
+  | 'manage-milestones'
+  | 'manage-tasks'
+  | 'manage-experiments'
+  | 'manage-prototypes'
+  | 'submit-progress-reports'
+  | 'evaluate-research'
+  | 'assess-trl'
+  | 'manage-technology-transfer'
+  | 'approve-technology-transfer'
+  | 'view-research-reports'
+  | 'view-research-analytics'
+  // General
+  | 'view_research'
+  | 'create_research'
+  | 'manage_research'
+  | 'approve_research'
+  | 'conduct_research'
+  | 'assess_technology'
+  | 'view_all_research'
+  | 'manage_command_center'
+  | 'classify_requests'
+  | 'route_requests'
+  | 'view_institutions'
+  | 'verify_institutions'
+  | 'view_technology_transfer';
 
 export interface Role {
   id: number;

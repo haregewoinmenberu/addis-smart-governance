@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { getAuthToken } from "@/lib/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { RequireAuth } from "@/components/auth/RequireAuth";
@@ -32,7 +33,7 @@ function CreateProjectPage() {
     queryFn: async () => {
       const response = await fetch(`/api/research-ideas/${ideaId}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       });
       return response.json();
@@ -52,7 +53,7 @@ function CreateProjectPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify({ ...data, research_idea_id: ideaId }),
       });

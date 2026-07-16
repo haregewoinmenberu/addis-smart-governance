@@ -26,36 +26,21 @@ class DefaultUsersSeeder extends Seeder
         );
         $itdbAdmin->syncRoles(['itdb_administrator']);
 
-        // Create Sample Sub-City Administrator (without sub_city_id for now)
-        $subCityAdmin = User::firstOrCreate(
-            ['email' => 'subcity@addis.gov.et'],
-            [
-                'name' => 'Bole Sub-City Admin',
-                'password' => Hash::make('password123'),
-                'phone' => '+251911000001',
-                'department' => 'IT Department',
-                'is_active' => true,
-                // sub_city_id will be set after sub-cities are created
-            ]
-        );
-        $subCityAdmin->syncRoles(['sub_city_administrator']);
-
         // Create Sample Auditor
         $auditor = User::firstOrCreate(
             ['email' => 'auditor@itdb.gov.et'],
             [
                 'name' => 'Senior Auditor',
                 'password' => Hash::make('password123'),
-                'phone' => '+251911000002',
+                'phone' => '+251911000001',
                 'department' => 'Audit & Compliance',
                 'is_active' => true,
             ]
         );
-        $auditor->syncRoles(['auditor']);
+        $auditor->syncRoles(['itdb_auditor']);
 
         $this->command->info('Default users created successfully!');
         $this->command->info('ITDB Admin: admin@itdb.gov.et / password123');
-        $this->command->info('Sub-City Admin: subcity@addis.gov.et / password123');
         $this->command->info('Auditor: auditor@itdb.gov.et / password123');
     }
 }

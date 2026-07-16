@@ -24,8 +24,14 @@ class ResearchIdea extends Model
         'priority',
         'status',
         'submitted_by',
-        'sub_city_id',
         'submitted_at',
+        'assigned_to_smart_city',
+        'smart_city_assigned_at',
+        'smart_city_notes',
+        'assigned_to_director',
+        'director_assigned_at',
+        'director_notes',
+        'assignment_status',
     ];
 
     protected $casts = [
@@ -33,6 +39,8 @@ class ResearchIdea extends Model
         'priority' => Priority::class,
         'research_category' => ResearchCategory::class,
         'submitted_at' => 'datetime',
+        'smart_city_assigned_at' => 'datetime',
+        'director_assigned_at' => 'datetime',
     ];
 
     public function submitter()
@@ -40,9 +48,14 @@ class ResearchIdea extends Model
         return $this->belongsTo(User::class, 'submitted_by');
     }
 
-    public function subCity()
+    public function assignedToSmartCity()
     {
-        return $this->belongsTo(SubCity::class);
+        return $this->belongsTo(User::class, 'assigned_to_smart_city');
+    }
+
+    public function assignedToDirector()
+    {
+        return $this->belongsTo(User::class, 'assigned_to_director');
     }
 
     public function attachments()

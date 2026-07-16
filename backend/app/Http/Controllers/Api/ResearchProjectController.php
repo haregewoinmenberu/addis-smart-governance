@@ -21,7 +21,7 @@ class ResearchProjectController extends Controller
 
     public function index(Request $request)
     {
-        $query = ResearchProject::with(['researchIdea', 'projectLead', 'subCity']);
+        $query = ResearchProject::with(['researchIdea', 'projectLead']);
 
         if ($request->stage) {
             $query->where('current_stage', $request->stage);
@@ -73,7 +73,6 @@ class ResearchProjectController extends Controller
         return response()->json($researchProject->load([
             'researchIdea',
             'projectLead',
-            'subCity',
             'currentProposalVersion',
             'milestones',
             'tasks',

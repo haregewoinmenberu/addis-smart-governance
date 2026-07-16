@@ -28,7 +28,7 @@ export function Topbar() {
   const { data: notificationsData, refetch: refetchNotifications } = useQuery({
     queryKey: ["notifications", "recent"],
     queryFn: () => getRecentNotifications(5),
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const handleLogout = () => {

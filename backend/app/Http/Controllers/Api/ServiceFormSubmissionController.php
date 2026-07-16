@@ -17,7 +17,8 @@ class ServiceFormSubmissionController extends Controller
     {
         try {
             $serviceType = $request->input('serviceType');
-            $formData = $request->input('formData', []);
+            $formDataJson = $request->input('formData');
+            $formData = is_string($formDataJson) ? json_decode($formDataJson, true) : $formDataJson;
 
             // Validate service type
             $validServiceTypes = ['research', 'transformation', 'licensing', 'lms'];
@@ -32,24 +33,86 @@ class ServiceFormSubmissionController extends Controller
             // Validate based on service type
             $this->validateFormData($serviceType, $formData);
 
+            // Handle file uploads
+            $fileAttachments = [];
+            
+            // Single file upload for research (supportingLetter)
+            if ($serviceType === 'research' && $request->hasFile('supportingLetter')) {
+                $file = $request->file('supportingLetter');
+                $path = $file->store('service-forms/research', 'public');
+                $fileAttachments['supportingLetter'] = [
+                    'original_name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ];
+            }
+            
+            // Single file upload for transformation (officialLetter)
+            if ($serviceType === 'transformation' && $request->hasFile('officialLetter')) {
+                $file = $request->file('officialLetter');
+                $path = $file->store('service-forms/transformation', 'public');
+                $fileAttachments['officialLetter'] = [
+                    'original_name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ];
+            }
+            
+            // Multiple file upload for licensing (documents)
+            if ($serviceType === 'licensing') {
+                $fileAttachments['documents'] = [];
+                $documentIndex = 0;
+                
+                while ($request->hasFile("documents[{$documentIndex}]")) {
+                    $file = $request->file("documents[{$documentIndex}]");
+                    $path = $file->store('service-forms/licensing', 'public');
+                    $fileAttachments['documents'][] = [
+                        'original_name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ];
+                    $documentIndex++;
+                }
+            }
+
+            // Merge file attachments with form data
+            if (!empty($fileAttachments)) {
+                $formData['attachments'] = $fileAttachments;
+            }
+
+            // Generate reference number with service type prefix
+            $referencePrefix = match($serviceType) {
+                'research' => 'RSH',
+                'transformation' => 'TTR',
+                'licensing' => 'LIC',
+                'lms' => 'LMS',
+                default => 'SRV'
+            };
+            
+            $referenceNumber = $referencePrefix . '-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+
             // Create submission record
             $submission = ServiceFormSubmission::create([
                 'service_type' => $serviceType,
-                'reference_number' => 'STRP-' . strtoupper(Str::random(6)),
+                'reference_number' => $referenceNumber,
                 'form_data' => $formData,
                 'submitted_by' => auth()->user()?->id,
                 'submitted_email' => $formData['email'] ?? null,
-                'submitted_name' => $formData['fullName'] ?? null,
+                'submitted_name' => $formData['fullName'] ?? $formData['agencyName'] ?? null,
                 'status' => 'pending',
                 'submission_timestamp' => now(),
             ]);
 
-            // Log the submission for audit trail
-            activity()
-                ->causedBy(auth()->user())
-                ->performedOn($submission)
-                ->withProperties(['service_type' => $serviceType])
-                ->log('Service form submitted');
+            // Log the submission for audit trail (simplified without Spatie package)
+            \Log::info('Service form submitted', [
+                'service_type' => $serviceType,
+                'reference_number' => $referenceNumber,
+                'submitted_by' => auth()->user()?->id,
+                'submitted_email' => $formData['email'] ?? null,
+            ]);
 
             // Send confirmation email
             // TODO: Implement email notification
@@ -60,7 +123,7 @@ class ServiceFormSubmissionController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => ucfirst($serviceType) . ' proposal submitted successfully',
+                'message' => ucfirst($serviceType) . ' form submitted successfully',
                 'data' => [
                     'reference_number' => $submission->reference_number,
                     'status' => $submission->status,
@@ -78,6 +141,7 @@ class ServiceFormSubmissionController extends Controller
             \Log::error('Service form submission error: ' . $e->getMessage(), [
                 'exception' => $e,
                 'service_type' => $request->input('serviceType'),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
@@ -114,12 +178,30 @@ class ServiceFormSubmissionController extends Controller
     }
 
     /**
-     * List user's submissions
+     * List ALL submissions (admin/command center view)
      */
-    public function listUserSubmissions(Request $request)
+    public function index(Request $request)
     {
-        $query = ServiceFormSubmission::where('submitted_email', $request->user()->email)
-            ->orWhere('submitted_by', $request->user()->id);
+        $query = ServiceFormSubmission::query()
+            ->with(['submittedBy', 'reviewedBy', 'institution']);
+
+        if ($request->has('service_type') && $request->service_type) {
+            $query->byServiceType($request->service_type);
+        }
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('reference_number', 'like', "%{$search}%")
+                  ->orWhere('submitted_name', 'like', "%{$search}%")
+                  ->orWhere('submitted_email', 'like', "%{$search}%");
+            });
+        }
+        if ($request->has('assigned_to') && $request->assigned_to) {
+            $query->where('reviewed_by', $request->assigned_to);
+        }
 
         $submissions = $query->latest()->paginate(20);
 
@@ -128,10 +210,518 @@ class ServiceFormSubmissionController extends Controller
             'data' => $submissions->items(),
             'pagination' => [
                 'total' => $submissions->total(),
-                'current_page' => $submissions->current_page(),
-                'last_page' => $submissions->last_page(),
-                'per_page' => $submissions->per_page(),
+                'current_page' => $submissions->currentPage(),
+                'last_page' => $submissions->lastPage(),
+                'per_page' => $submissions->perPage(),
             ]
+        ]);
+    }
+
+    /**
+     * Assign a submission to a user for review/handling
+     */
+    public function assign(Request $request, $id)
+    {
+        $validator = validator($request->all(), [
+            'assigned_to' => 'required|integer|exists:users,id',
+            'notes'       => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $submission = ServiceFormSubmission::findOrFail($id);
+        $submission->update([
+            'reviewed_by' => $request->assigned_to,
+            'review_notes' => $request->notes
+                ? ($submission->review_notes ? $submission->review_notes . "\n" . $request->notes : $request->notes)
+                : $submission->review_notes,
+        ]);
+
+        \Log::info('Submission assigned', [
+            'submission_id' => $id,
+            'assigned_to'   => $request->assigned_to,
+            'assigned_by'   => $request->user()?->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Submission assigned successfully',
+            'data'    => $submission->fresh()->load(['submittedBy', 'reviewedBy']),
+        ]);
+    }
+
+    /**
+     * Review/update status of a submission
+     */
+    public function review(Request $request, $id)
+    {
+        $validator = validator($request->all(), [
+            'status'       => 'required|string|in:pending,under_review,approved,rejected',
+            'review_notes' => 'nullable|string|max:2000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $submission = ServiceFormSubmission::findOrFail($id);
+        $submission->update([
+            'status'       => $request->status,
+            'review_notes' => $request->review_notes,
+            'reviewed_by'  => $request->user()?->id,
+            'reviewed_at'  => now(),
+        ]);
+
+        \Log::info('Submission reviewed', [
+            'submission_id' => $id,
+            'status'        => $request->status,
+            'reviewed_by'   => $request->user()?->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Submission status updated',
+            'data'    => $submission->fresh()->load(['submittedBy', 'reviewedBy']),
+        ]);
+    }
+
+    /**
+     * List user's submissions
+     */
+    public function listUserSubmissions(Request $request)
+    {
+        $user = $request->user();
+        
+        $query = ServiceFormSubmission::query()
+            ->where(function($q) use ($user) {
+                $q->where('submitted_email', $user->email)
+                  ->orWhere('submitted_by', $user->id);
+                  
+                // If user has institution_id, also fetch institution submissions
+                if ($user->institution_id) {
+                    $q->orWhere('institution_id', $user->institution_id);
+                }
+            })
+            ->with(['submittedBy', 'reviewedBy']);
+
+        // Filter by service type if provided
+        if ($request->has('service_type')) {
+            $query->byServiceType($request->service_type);
+        }
+
+        // Filter by status if provided
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $submissions = $query->latest()->paginate(20);
+
+        return response()->json([
+            'success' => true,
+            'data' => $submissions->items(),
+            'pagination' => [
+                'total' => $submissions->total(),
+                'current_page' => $submissions->currentPage(),
+                'last_page' => $submissions->lastPage(),
+                'per_page' => $submissions->perPage(),
+            ]
+        ]);
+    }
+
+    /**
+     * Get a single submission detail (for authenticated user)
+     */
+    public function show(Request $request, $id)
+    {
+        $user = $request->user();
+        
+        $submission = ServiceFormSubmission::with(['submittedBy', 'reviewedBy'])
+            ->where('id', $id)
+            ->where(function($q) use ($user) {
+                $q->where('submitted_by', $user->id)
+                  ->orWhere('submitted_email', $user->email);
+                  
+                if ($user->institution_id) {
+                    $q->orWhere('institution_id', $user->institution_id);
+                }
+            })
+            ->first();
+
+        if (!$submission) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Submission not found or access denied',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $submission
+        ]);
+    }
+
+    /**
+     * Create a new submission (authenticated)
+     */
+    public function store(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $serviceType = $request->input('serviceType');
+            $formDataJson = $request->input('formData');
+            $formData = is_string($formDataJson) ? json_decode($formDataJson, true) : $formDataJson;
+
+            // Validate service type
+            $validServiceTypes = ['research', 'transformation', 'licensing'];
+            if (!in_array($serviceType, $validServiceTypes)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid service type',
+                    'errors' => ['serviceType' => ['The service type must be one of: ' . implode(', ', $validServiceTypes)]]
+                ], 422);
+            }
+
+            // Validate based on service type
+            $this->validateFormData($serviceType, $formData);
+
+            // Handle file uploads
+            $fileAttachments = [];
+            
+            if ($serviceType === 'research' && $request->hasFile('supportingLetter')) {
+                $file = $request->file('supportingLetter');
+                $path = $file->store('service-forms/research', 'public');
+                $fileAttachments['supportingLetter'] = [
+                    'original_name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ];
+            }
+            
+            if ($serviceType === 'transformation' && $request->hasFile('officialLetter')) {
+                $file = $request->file('officialLetter');
+                $path = $file->store('service-forms/transformation', 'public');
+                $fileAttachments['officialLetter'] = [
+                    'original_name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ];
+            }
+            
+            if ($serviceType === 'licensing') {
+                $fileAttachments['documents'] = [];
+                $documentIndex = 0;
+                
+                while ($request->hasFile("documents[{$documentIndex}]")) {
+                    $file = $request->file("documents[{$documentIndex}]");
+                    $path = $file->store('service-forms/licensing', 'public');
+                    $fileAttachments['documents'][] = [
+                        'original_name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ];
+                    $documentIndex++;
+                }
+            }
+
+            if (!empty($fileAttachments)) {
+                $formData['attachments'] = $fileAttachments;
+            }
+
+            // Generate reference number
+            $referencePrefix = match($serviceType) {
+                'research' => 'RSH',
+                'transformation' => 'TTR',
+                'licensing' => 'LIC',
+                default => 'SRV'
+            };
+            
+            $referenceNumber = $referencePrefix . '-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+
+            // Create submission record
+            $submission = ServiceFormSubmission::create([
+                'institution_id' => $user->institution_id,
+                'service_type' => $serviceType,
+                'reference_number' => $referenceNumber,
+                'form_data' => $formData,
+                'submitted_by' => $user->id,
+                'submitted_email' => $user->email,
+                'submitted_name' => $user->name,
+                'status' => 'pending',
+                'submission_timestamp' => now(),
+            ]);
+
+            \Log::info('Authenticated service form submitted', [
+                'service_type' => $serviceType,
+                'reference_number' => $referenceNumber,
+                'submitted_by' => $user->id,
+                'institution_id' => $user->institution_id,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => ucfirst($serviceType) . ' request submitted successfully',
+                'data' => $submission
+            ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Authenticated service form submission error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'service_type' => $request->input('serviceType'),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while submitting your request. Please try again.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Update an existing submission (only if pending)
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $user = $request->user();
+            
+            $submission = ServiceFormSubmission::where('id', $id)
+                ->where(function($q) use ($user) {
+                    $q->where('submitted_by', $user->id);
+                    if ($user->institution_id) {
+                        $q->orWhere('institution_id', $user->institution_id);
+                    }
+                })
+                ->first();
+
+            if (!$submission) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Submission not found or access denied',
+                ], 404);
+            }
+
+            // Only allow updates for pending submissions
+            if ($submission->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot update a submission that has already been reviewed',
+                ], 403);
+            }
+
+            $formDataJson = $request->input('formData');
+            $formData = is_string($formDataJson) ? json_decode($formDataJson, true) : $formDataJson;
+
+            // Validate based on service type
+            $this->validateFormData($submission->service_type, $formData);
+
+            // Handle file uploads — preserve any existing attachments and merge new ones
+            $existingAttachments = $submission->form_data['attachments'] ?? [];
+            $fileAttachments = $existingAttachments;
+
+            if ($submission->service_type === 'research' && $request->hasFile('supportingLetter')) {
+                $file = $request->file('supportingLetter');
+                $path = $file->store('service-forms/research', 'public');
+                $fileAttachments['supportingLetter'] = [
+                    'original_name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ];
+            }
+
+            if ($submission->service_type === 'transformation' && $request->hasFile('officialLetter')) {
+                $file = $request->file('officialLetter');
+                $path = $file->store('service-forms/transformation', 'public');
+                $fileAttachments['officialLetter'] = [
+                    'original_name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                ];
+            }
+
+            if ($submission->service_type === 'licensing') {
+                $fileAttachments['documents'] = $existingAttachments['documents'] ?? [];
+                $documentIndex = 0;
+
+                while ($request->hasFile("documents[{$documentIndex}]")) {
+                    $file = $request->file("documents[{$documentIndex}]");
+                    $path = $file->store('service-forms/licensing', 'public');
+                    $fileAttachments['documents'][] = [
+                        'original_name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                    ];
+                    $documentIndex++;
+                }
+            }
+
+            if (!empty($fileAttachments)) {
+                $formData['attachments'] = $fileAttachments;
+            }
+
+            $submission->update([
+                'form_data' => $formData,
+            ]);
+
+            \Log::info('Service form updated', [
+                'submission_id' => $submission->id,
+                'reference_number' => $submission->reference_number,
+                'updated_by' => $user->id,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Submission updated successfully',
+                'data' => $submission->fresh()
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Service form update error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while updating your request.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Track an external submission by reference number
+     * Allows users to add submissions they created elsewhere to their dashboard
+     */
+    public function trackByReference(Request $request)
+    {
+        $validator = validator($request->all(), [
+            'reference_number' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reference number is required',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+        $referenceNumber = $request->input('reference_number');
+
+        // Find the submission
+        $submission = ServiceFormSubmission::where('reference_number', $referenceNumber)->first();
+
+        if (!$submission) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Submission not found with this reference number',
+            ], 404);
+        }
+
+        // Check if already tracking
+        $alreadyTracking = ServiceFormSubmission::where('reference_number', $referenceNumber)
+            ->where(function($q) use ($user) {
+                $q->where('submitted_by', $user->id)
+                  ->orWhere('submitted_email', $user->email);
+                if ($user->institution_id) {
+                    $q->orWhere('institution_id', $user->institution_id);
+                }
+            })
+            ->exists();
+
+        if ($alreadyTracking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are already tracking this submission',
+            ], 400);
+        }
+
+        // Link this user to the submission for tracking
+        $submission->update([
+            'submitted_by' => $submission->submitted_by ?? $user->id,
+            'submitted_email' => $submission->submitted_email ?? $user->email,
+            'institution_id' => $submission->institution_id ?? $user->institution_id,
+        ]);
+
+        \Log::info('User tracking external submission', [
+            'user_id' => $user->id,
+            'reference_number' => $referenceNumber,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Submission added to your tracking list',
+            'data' => $submission
+        ]);
+    }
+
+    /**
+     * Delete a submission (only if pending)
+     */
+    public function destroy(Request $request, $id)
+    {
+        $user = $request->user();
+        
+        $submission = ServiceFormSubmission::where('id', $id)
+            ->where(function($q) use ($user) {
+                $q->where('submitted_by', $user->id);
+                if ($user->institution_id) {
+                    $q->orWhere('institution_id', $user->institution_id);
+                }
+            })
+            ->first();
+
+        if (!$submission) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Submission not found or access denied',
+            ], 404);
+        }
+
+        // Only allow deletion for pending submissions
+        if ($submission->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete a submission that has already been reviewed',
+            ], 403);
+        }
+
+        $referenceNumber = $submission->reference_number;
+        $submission->delete();
+
+        \Log::info('Service form deleted', [
+            'reference_number' => $referenceNumber,
+            'deleted_by' => $user->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Submission deleted successfully'
         ]);
     }
 
@@ -161,20 +751,22 @@ class ServiceFormSubmissionController extends Controller
      */
     private function validateResearchForm(array $formData)
     {
-        $rules = [
+        $validator = validator($formData, [
             'fullName' => 'required|string|max:255',
             'institution' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'required|string|max:20',
             'researchTitle' => 'required|string|max:255',
-            'category' => 'required|string|in:AI & Data,Cybersecurity,Infrastructure,Policy,Other',
-            'abstract' => 'required|string|max:2000',
-            'estimatedBudget' => 'required|string',
+            'category' => 'required|string|in:AI & Data,Smart City,Cybersecurity,Public Sector Innovation,Other',
+            'abstract' => 'required|string|min:20|max:2000',
+            'estimatedBudget' => 'nullable|string',
             'durationMonths' => 'required|integer|min:1|max:60',
             'agree' => 'required|boolean|accepted',
-        ];
+        ]);
 
-        $this->validate(request()->merge(['formData' => $formData])->all(), ['formData.*' => 'required']);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
     }
 
     /**
@@ -182,18 +774,22 @@ class ServiceFormSubmissionController extends Controller
      */
     private function validateTransformationForm(array $formData)
     {
-        // Add transformation-specific validation rules
-        $rules = [
-            'organizationName' => 'required|string|max:255',
+        $validator = validator($formData, [
+            'agencyName' => 'required|string|max:255',
             'contactPerson' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'required|string|max:20',
-            'systemsToModernize' => 'required|string',
-            'timeline' => 'required|string',
-            'budget' => 'required|string',
-            'priorities' => 'required|string',
+            'agencyType' => 'required|string|in:Bureau,Sub-city,Public Enterprise,Other',
+            'currentMaturity' => 'required|string|in:Initial,Developing,Established,Advanced',
+            'scope' => 'required|string|min:20',
+            'expectedStart' => 'required|string',
             'agree' => 'required|boolean|accepted',
-        ];
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
     }
 
     /**
@@ -201,16 +797,22 @@ class ServiceFormSubmissionController extends Controller
      */
     private function validateLicensingForm(array $formData)
     {
-        $rules = [
+        $validator = validator($formData, [
+            'applicantType' => 'required|string|in:Individual Professional,Firm,Vendor',
             'fullName' => 'required|string|max:255',
+            'nationalId' => 'required|string|min:5',
             'email' => 'required|email',
             'phone' => 'required|string|max:20',
-            'specialization' => 'required|string',
-            'experience' => 'required|string',
-            'education' => 'required|string',
-            'applicationType' => 'required|string|in:individual,vendor',
+            'category' => 'required|string|in:Software Development,Networking & Infrastructure,Cybersecurity,Data & AI,IT Consulting,Hardware Supply',
+            'grade' => 'required|string|in:Grade 1,Grade 2,Grade 3',
+            'experienceYears' => 'required|integer|min:0|max:50',
+            'organization' => 'nullable|string|max:255',
             'agree' => 'required|boolean|accepted',
-        ];
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
     }
 
     /**
@@ -218,15 +820,21 @@ class ServiceFormSubmissionController extends Controller
      */
     private function validateLmsForm(array $formData)
     {
-        $rules = [
-            'organizationName' => 'required|string|max:255',
-            'contactPerson' => 'required|string|max:255',
+        $validator = validator($formData, [
+            'learnerName' => 'required|string|max:255',
+            'employeeId' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'required|string|max:20',
-            'numberOfEmployees' => 'required|integer|min:1',
-            'trainingNeeds' => 'required|string',
-            'budget' => 'required|string',
+            'agency' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+            'program' => 'required|string|in:Digital Leadership,Cybersecurity Awareness,Public Sector Data Analytics,AI for Government,Project Management',
+            'cohort' => 'required|string|in:Self-paced,Q1 Cohort,Q2 Cohort,Q3 Cohort,Q4 Cohort',
+            'notes' => 'nullable|string',
             'agree' => 'required|boolean|accepted',
-        ];
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
     }
 }

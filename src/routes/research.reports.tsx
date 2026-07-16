@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getAuthToken } from "@/lib/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { RequireAuth } from "@/components/auth/RequireAuth";
@@ -21,7 +22,7 @@ function ResearchReportsPage() {
     queryFn: async () => {
       const response = await fetch('/api/research-projects/dashboard', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       });
       return response.json();

@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { getAuthToken } from "@/lib/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { RequireAuth } from "@/components/auth/RequireAuth";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +35,7 @@ function EditResearchIdeaPage() {
     queryFn: async () => {
       const response = await fetch(`/api/research-ideas/${id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch idea');
@@ -61,7 +63,7 @@ function EditResearchIdeaPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         },
         body: JSON.stringify(data),
       });
@@ -88,10 +90,38 @@ function EditResearchIdeaPage() {
     updateIdea.mutate(data);
   });
 
+  const { user } = usePermissions();
+
   if (isLoading) {
     return (
       <AppShell>
         <div className="text-center py-12 text-muted-foreground">Loading...</div>
+      </AppShell>
+    );
+  }
+
+  // Verify that the logged in user is the owner of the idea
+  const isOwner = user && idea?.data && (idea.data.submitter_id === user.id || idea.data.submitter?.id === user.id);
+  if (!isOwner) {
+    return (
+      <AppShell>
+        <div className="max-w-2xl mx-auto mt-8 px-4">
+          <Card className="border-destructive/20 bg-destructive/5">
+            <CardHeader>
+              <CardTitle className="text-destructive flex items-center gap-2">
+                Permission Denied
+              </CardTitle>
+              <CardDescription>
+                You are not authorized to edit this research idea. Only the creator of this idea can edit or update it.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => navigate({ to: "/research/ideas" })} variant="outline">
+                Back to Research Ideas
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </AppShell>
     );
   }
@@ -125,7 +155,7 @@ function EditResearchIdeaPage() {
             <CardContent className="space-y-4">
               {/* Title */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="title"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
@@ -145,7 +175,7 @@ function EditResearchIdeaPage() {
               {/* Category and Priority */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="research_category"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
@@ -168,7 +198,7 @@ function EditResearchIdeaPage() {
                 />
 
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="priority"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
@@ -193,7 +223,7 @@ function EditResearchIdeaPage() {
 
               {/* Government Sector */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="government_sector"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
@@ -212,7 +242,7 @@ function EditResearchIdeaPage() {
 
               {/* Summary */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="summary"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
@@ -242,7 +272,7 @@ function EditResearchIdeaPage() {
             <CardContent className="space-y-4">
               {/* Problem Statement */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="problem_statement"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
@@ -262,7 +292,7 @@ function EditResearchIdeaPage() {
 
               {/* Objectives */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="objectives"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
@@ -282,7 +312,7 @@ function EditResearchIdeaPage() {
 
               {/* Expected Outcome */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="expected_outcome"
                 render={({ field }) => (
                   <FormItem className="space-y-2">

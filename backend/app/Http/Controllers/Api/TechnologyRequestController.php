@@ -142,19 +142,45 @@ class TechnologyRequestController extends Controller
         $user = $request->user();
 
         $stats = [
+            'user_role' => $user->roles->first()?->name ?? 'none',
+
             'total_requests' => TechnologyRequest::count(),
             'by_stage' => TechnologyRequest::selectRaw('current_stage, count(*) as count')
-                ->groupBy('current_stage')->get(),
+                ->groupBy('current_stage')->get()
+                ->map(fn ($row) => [
+                    'stage' => $row->current_stage?->value ?? (string) $row->current_stage,
+                    'label' => $row->current_stage instanceof TechnologyStage
+                        ? $row->current_stage->label()
+                        : (string) $row->current_stage,
+                    'count' => $row->count,
+                ])->values(),
             'by_category' => TechnologyRequest::selectRaw('category, count(*) as count')
-                ->groupBy('category')->get(),
-            'pending_evaluations' => TechnologyEvaluation::where('status', 'pending')->count(),
-            'active_deployments' => DeploymentProject::where('status', 'active')->count(),
-            'open_incidents' => TechnologyIncident::whereIn('status', ['reported', 'investigating'])->count(),
+                ->groupBy('category')->get()
+                ->map(fn ($row) => ['category' => $row->category, 'count' => $row->count])->values(),
+
+            'pending_evaluations' => \App\Models\TechnologyEvaluation::where('status', 'pending')->count(),
+            'completed_evaluations' => \App\Models\TechnologyEvaluation::where('status', 'completed')->count(),
+            'active_deployments' => \App\Models\DeploymentProject::where('status', 'active')->count(),
+            'open_incidents' => \App\Models\TechnologyIncident::whereIn('status', ['reported', 'investigating'])->count(),
+            'unacknowledged_alerts' => \App\Models\MonitoringAlert::where('is_acknowledged', false)->count(),
+
+            'recent_requests' => TechnologyRequest::with('submitter')->latest()->take(5)->get(),
         ];
 
-        if ($user->hasRole('evaluator')) {
-            $stats['my_evaluations'] = TechnologyEvaluation::where('evaluator_id', $user->id)
+        // Evaluator roles: own evaluation workload
+        if ($user->hasAnyRole(['security_officer', 'enterprise_architect', 'risk_officer', 'compliance_officer', 'legal_officer'])) {
+            $stats['my_evaluations'] = \App\Models\TechnologyEvaluation::where('evaluator_id', $user->id)
                 ->where('status', 'pending')->count();
+        }
+
+        // Governance committee: approval workload
+        if ($user->hasRole('governance_committee')) {
+            $stats['pending_governance'] = TechnologyRequest::where('current_stage', TechnologyStage::GOVERNANCE_DECISION)->count();
+        }
+
+        // Vendor: own submitted requests
+        if ($user->hasRole('vendor')) {
+            $stats['my_requests'] = TechnologyRequest::where('submitted_by', $user->id)->count();
         }
 
         return response()->json($stats);

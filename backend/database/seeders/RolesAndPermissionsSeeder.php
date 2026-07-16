@@ -34,15 +34,12 @@ class RolesAndPermissionsSeeder extends Seeder
             // Dashboard
             'dashboard' => [
                 ['name' => 'view_dashboard', 'display_name' => 'View Dashboard'],
-            ],
-
-            // Sub-Cities Management
-            'sub_cities' => [
-                ['name' => 'view_sub_cities', 'display_name' => 'View Sub-Cities'],
-                ['name' => 'create_sub_cities', 'display_name' => 'Create Sub-Cities'],
-                ['name' => 'edit_sub_cities', 'display_name' => 'Edit Sub-Cities'],
-                ['name' => 'delete_sub_cities', 'display_name' => 'Delete Sub-Cities'],
-                ['name' => 'manage_sub_city_admins', 'display_name' => 'Manage Sub-City Administrators'],
+                ['name' => 'view_executive_dashboard', 'display_name' => 'View Executive Dashboard'],
+                ['name' => 'view_auditor_dashboard', 'display_name' => 'View Auditor Dashboard'],
+                ['name' => 'view_institution_dashboard', 'display_name' => 'View Institution Dashboard'],
+                ['name' => 'view_research_dashboard', 'display_name' => 'View Research Dashboard'],
+                ['name' => 'view_licensing_dashboard', 'display_name' => 'View Licensing Dashboard'],
+                ['name' => 'view_technology_transfer_dashboard', 'display_name' => 'View Technology Transfer Dashboard'],
             ],
 
             // User Management
@@ -54,7 +51,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 ['name' => 'manage_roles', 'display_name' => 'Manage User Roles'],
                 ['name' => 'view_all_users', 'display_name' => 'View All Users (System-wide)'],
                 ['name' => 'create_itdb_users', 'display_name' => 'Create ITDB Users'],
-                ['name' => 'create_subcity_users', 'display_name' => 'Create Sub-City Users'],
             ],
 
             // Technology Requests
@@ -65,6 +61,58 @@ class RolesAndPermissionsSeeder extends Seeder
                 ['name' => 'delete_requests', 'display_name' => 'Delete Requests'],
                 ['name' => 'submit_requests', 'display_name' => 'Submit Requests'],
                 ['name' => 'view_all_requests', 'display_name' => 'View All Requests (System-wide)'],
+                ['name' => 'classify_requests', 'display_name' => 'Classify Requests (Smart City Command Center)'],
+                ['name' => 'route_requests', 'display_name' => 'Route Requests to Workflows'],
+                ['name' => 'manage_command_center', 'display_name' => 'Manage Smart City Command Center'],
+            ],
+
+            // Research & Assessment
+            'research' => [
+                ['name' => 'view_research', 'display_name' => 'View Research'],
+                ['name' => 'create_research', 'display_name' => 'Create Research'],
+                ['name' => 'manage_research', 'display_name' => 'Manage Research'],
+                ['name' => 'approve_research', 'display_name' => 'Approve Research'],
+                ['name' => 'conduct_research', 'display_name' => 'Conduct Research'],
+                ['name' => 'assess_technology', 'display_name' => 'Assess Technology'],
+                ['name' => 'view_all_research', 'display_name' => 'View All Research (System-wide)'],
+            ],
+
+            // Technology Transfer
+            'technology_transfer' => [
+                ['name' => 'view_technology_transfer', 'display_name' => 'View Technology Transfer'],
+                ['name' => 'manage_technology_transfer', 'display_name' => 'Manage Technology Transfer'],
+                ['name' => 'approve_technology_transfer', 'display_name' => 'Approve Technology Transfer'],
+                ['name' => 'issue_certificates', 'display_name' => 'Issue Technology Certificates'],
+            ],
+
+            // Architecture & Development
+            'architecture' => [
+                ['name' => 'review_architecture', 'display_name' => 'Review Architecture'],
+                ['name' => 'approve_architecture', 'display_name' => 'Approve Architecture'],
+                ['name' => 'manage_development', 'display_name' => 'Manage Development'],
+            ],
+
+            // Quality & Verification
+            'quality' => [
+                ['name' => 'conduct_verification', 'display_name' => 'Conduct Verification'],
+                ['name' => 'approve_quality', 'display_name' => 'Approve Quality'],
+            ],
+
+            // Governance & Compliance
+            'governance' => [
+                ['name' => 'review_governance', 'display_name' => 'Review Governance'],
+                ['name' => 'make_governance_decision', 'display_name' => 'Make Governance Decision'],
+                ['name' => 'conduct_compliance_check', 'display_name' => 'Conduct Compliance Check'],
+                ['name' => 'conduct_risk_assessment', 'display_name' => 'Conduct Risk Assessment'],
+                ['name' => 'conduct_legal_review', 'display_name' => 'Conduct Legal Review'],
+            ],
+
+            // Institutions
+            'institutions' => [
+                ['name' => 'view_institutions', 'display_name' => 'View Institutions'],
+                ['name' => 'create_institutions', 'display_name' => 'Create Institutions'],
+                ['name' => 'verify_institutions', 'display_name' => 'Verify Institutions'],
+                ['name' => 'manage_institutions', 'display_name' => 'Manage Institutions'],
             ],
 
             // Workflow Management
@@ -181,230 +229,465 @@ class RolesAndPermissionsSeeder extends Seeder
     }
 
     /**
-     * Create all roles.
+     * Create all roles according to Smart City technology lifecycle.
      */
     protected function createRoles(): array
     {
         return [
+            // Top Level
             'itdb_administrator' => Role::firstOrCreate(
                 ['name' => 'itdb_administrator'],
                 [
                     'display_name' => 'ITDB Administrator',
-                    'description' => 'Top authority with full system access. Creates sub-cities, assigns auditors, makes final approvals, and oversees all operations.',
+                    'description' => 'Top authority with full system access. Oversees all operations and makes final decisions.',
                 ]
             ),
 
+            'smart_city_sector_director' => Role::firstOrCreate(
+                ['name' => 'smart_city_sector_director'],
+                [
+                    'display_name' => 'Smart City Sector Director',
+                    'description' => 'Oversees Smart City sector operations and strategic direction.',
+                ]
+            ),
+
+            // Smart City Command Center (Entry Point)
+            'smart_city_command_center' => Role::firstOrCreate(
+                ['name' => 'smart_city_command_center'],
+                [
+                    'display_name' => 'Smart City Command Center',
+                    'description' => 'Entry point for all requests. Receives, classifies, and routes requests. Monitors operations and manages service lifecycle.',
+                ]
+            ),
+
+            // Research & Assessment
+            'research_director' => Role::firstOrCreate(
+                ['name' => 'research_director'],
+                [
+                    'display_name' => 'Research Director',
+                    'description' => 'Leads research operations, assigns projects, and oversees technology assessment.',
+                ]
+            ),
+
+            'research_lead' => Role::firstOrCreate(
+                ['name' => 'research_lead'],
+                [
+                    'display_name' => 'Research Lead',
+                    'description' => 'Leads research projects and teams.',
+                ]
+            ),
+
+            'researcher' => Role::firstOrCreate(
+                ['name' => 'researcher'],
+                [
+                    'display_name' => 'Researcher',
+                    'description' => 'Conducts research and technology assessment.',
+                ]
+            ),
+
+            // Technology Transfer
+            'technology_transfer_manager' => Role::firstOrCreate(
+                ['name' => 'technology_transfer_manager'],
+                [
+                    'display_name' => 'Technology Transfer Manager',
+                    'description' => 'Manages technology transfer, registry, and deployment processes.',
+                ]
+            ),
+
+            // Architecture & Development
+            'enterprise_architect' => Role::firstOrCreate(
+                ['name' => 'enterprise_architect'],
+                [
+                    'display_name' => 'Enterprise Architect',
+                    'description' => 'Designs and evaluates enterprise architecture.',
+                ]
+            ),
+
+            'system_architect' => Role::firstOrCreate(
+                ['name' => 'system_architect'],
+                [
+                    'display_name' => 'System Architect',
+                    'description' => 'Designs and architects systems and solutions.',
+                ]
+            ),
+
+            'software_developer' => Role::firstOrCreate(
+                ['name' => 'software_developer'],
+                [
+                    'display_name' => 'Software Developer',
+                    'description' => 'Develops and implements software solutions.',
+                ]
+            ),
+
+            // Quality & Verification
+            'verification_officer' => Role::firstOrCreate(
+                ['name' => 'verification_officer'],
+                [
+                    'display_name' => 'Verification Officer',
+                    'description' => 'Conducts quality verification and testing.',
+                ]
+            ),
+
+            // Governance & Control
             'itdb_auditor' => Role::firstOrCreate(
                 ['name' => 'itdb_auditor'],
                 [
                     'display_name' => 'ITDB Auditor',
-                    'description' => 'Performs feasibility studies, conducts technical analysis, reviews requests, and provides recommendations.',
+                    'description' => 'Performs system audits and compliance checks.',
                 ]
             ),
 
-            'sub_city_admin' => Role::firstOrCreate(
-                ['name' => 'sub_city_admin'],
+            'governance_committee' => Role::firstOrCreate(
+                ['name' => 'governance_committee'],
                 [
-                    'display_name' => 'Sub-City Administrator',
-                    'description' => 'Manages assigned sub-city, submits technology requests, oversees operations, and manages sub-city auditors.',
+                    'display_name' => 'Governance Committee',
+                    'description' => 'Makes governance decisions, approves or rejects technology adoption.',
                 ]
             ),
 
-            'sub_city_auditor' => Role::firstOrCreate(
-                ['name' => 'sub_city_auditor'],
+            'review_committee' => Role::firstOrCreate(
+                ['name' => 'review_committee'],
                 [
-                    'display_name' => 'Sub-City Auditor',
-                    'description' => 'Collects surveys and field data, encodes system usage, gathers citizen feedback, and supports feasibility studies.',
+                    'display_name' => 'Review Committee',
+                    'description' => 'Reviews proposals, research, and technology submissions.',
+                ]
+            ),
+
+            'security_officer' => Role::firstOrCreate(
+                ['name' => 'security_officer'],
+                [
+                    'display_name' => 'Security Officer',
+                    'description' => 'Evaluates security aspects of technology and systems.',
+                ]
+            ),
+
+            'risk_officer' => Role::firstOrCreate(
+                ['name' => 'risk_officer'],
+                [
+                    'display_name' => 'Risk Officer',
+                    'description' => 'Assesses and manages risks.',
+                ]
+            ),
+
+            'compliance_officer' => Role::firstOrCreate(
+                ['name' => 'compliance_officer'],
+                [
+                    'display_name' => 'Compliance Officer',
+                    'description' => 'Ensures compliance with regulations and standards.',
+                ]
+            ),
+
+            'legal_officer' => Role::firstOrCreate(
+                ['name' => 'legal_officer'],
+                [
+                    'display_name' => 'Legal Officer',
+                    'description' => 'Provides legal review and guidance.',
+                ]
+            ),
+
+            // External Ecosystem
+            'institutional_user' => Role::firstOrCreate(
+                ['name' => 'institutional_user'],
+                [
+                    'display_name' => 'Institutional User',
+                    'description' => 'External organization user who can submit requests and track progress.',
+                ]
+            ),
+
+            'vendor' => Role::firstOrCreate(
+                ['name' => 'vendor'],
+                [
+                    'display_name' => 'Vendor',
+                    'description' => 'External vendor who can submit technology solutions.',
                 ]
             ),
         ];
     }
 
     /**
-     * Assign permissions to roles based on hierarchy.
+     * Assign permissions to roles based on Smart City hierarchy.
      */
     protected function assignPermissions(array $roles, array $permissions): void
     {
         // 1. ITDB Administrator - Full System Access
         $itdbAdminPermissions = [
-            // Dashboard
-            'view_dashboard',
-            
-            // Sub-Cities (Full Control)
-            'view_sub_cities', 'create_sub_cities', 'edit_sub_cities', 'delete_sub_cities', 'manage_sub_city_admins',
-            
-            // Users (Full Control)
-            'view_users', 'create_users', 'edit_users', 'delete_users', 'manage_roles', 
-            'view_all_users', 'create_itdb_users', 'create_subcity_users',
-            
-            // Requests (Full Control)
-            'view_requests', 'create_requests', 'edit_requests', 'delete_requests', 
-            'submit_requests', 'view_all_requests',
-            
-            // Workflows (Full Control)
-            'view_workflows', 'create_workflows', 'edit_workflows', 'delete_workflows',
-            'approve_workflows', 'final_approval', 'override_workflows', 'cancel_workflows',
-            
-            // Duplication Analysis (Full Control)
+            'view_dashboard', 'view_executive_dashboard',
+            'view_users', 'create_users', 'edit_users', 'delete_users', 'manage_roles', 'view_all_users', 'create_itdb_users',
+            'view_requests', 'create_requests', 'edit_requests', 'delete_requests', 'submit_requests', 'view_all_requests', 
+            'classify_requests', 'route_requests', 'manage_command_center',
+            'view_workflows', 'create_workflows', 'edit_workflows', 'delete_workflows', 'approve_workflows', 
+            'final_approval', 'override_workflows', 'cancel_workflows',
             'view_duplication', 'perform_duplication_analysis', 'override_duplication_analysis',
-            
-            // Feasibility (Full Control)
             'view_feasibility', 'conduct_feasibility', 'approve_feasibility',
-            
-            // Technologies (Full Control)
-            'view_technologies', 'create_technologies', 'edit_technologies', 
-            'delete_technologies', 'view_all_technologies',
-            
-            // Audits (Full Control)
+            'view_technologies', 'create_technologies', 'edit_technologies', 'delete_technologies', 'view_all_technologies',
             'view_audits', 'create_audits', 'conduct_audits', 'approve_audits', 'view_all_audits',
-            
-            // Vendors (Full Control)
+            'view_research', 'create_research', 'manage_research', 'approve_research', 'conduct_research', 
+            'assess_technology', 'view_all_research',
+            'view_technology_transfer', 'manage_technology_transfer', 'approve_technology_transfer', 'issue_certificates',
+            'review_architecture', 'approve_architecture', 'manage_development',
+            'conduct_verification', 'approve_quality',
+            'review_governance', 'make_governance_decision', 'conduct_compliance_check', 
+            'conduct_risk_assessment', 'conduct_legal_review',
+            'view_institutions', 'create_institutions', 'verify_institutions', 'manage_institutions',
             'view_vendors', 'create_vendors', 'edit_vendors', 'approve_vendors',
-            
-            // Surveys (Full Control)
             'view_surveys', 'create_surveys', 'manage_surveys', 'participate_surveys', 'collect_survey_data',
-            
-            // Reports (Full Control)
             'view_reports', 'create_reports', 'export_reports', 'view_system_reports',
-            
-            // Cybersecurity (Full Control)
             'view_cybersecurity', 'manage_cybersecurity', 'resolve_cybersecurity',
-            
-            // Notifications
             'view_notifications', 'send_notifications',
-            
-            // Settings (Full Control)
             'view_settings', 'manage_settings',
-            
-            // Data Collection
             'encode_data', 'collect_field_data', 'gather_feedback',
         ];
 
-        // 2. ITDB Auditor - Evaluation & Analysis Focus
-        $itdbAuditorPermissions = [
-            // Dashboard
-            'view_dashboard',
-            
-            // Requests (View All, No Create)
-            'view_requests', 'view_all_requests',
-            
-            // Workflows (Approve at evaluation stages)
-            'view_workflows', 'approve_workflows',
-            
-            // Duplication Analysis (Full Control)
-            'view_duplication', 'perform_duplication_analysis', 'override_duplication_analysis',
-            
-            // Feasibility (Full Control)
-            'view_feasibility', 'conduct_feasibility', 'approve_feasibility',
-            
-            // Technologies (View All)
+        // 2. Smart City Sector Director
+        $sectorDirectorPermissions = [
+            'view_dashboard', 'view_executive_dashboard',
+            'view_users', 'view_all_users',
+            'view_requests', 'view_all_requests', 'manage_command_center',
+            'view_workflows', 'approve_workflows', 'final_approval', 'override_workflows',
             'view_technologies', 'view_all_technologies',
-            
-            // Audits (Conduct)
-            'view_audits', 'create_audits', 'conduct_audits', 'view_all_audits',
-            
-            // Vendors (View & Evaluate)
-            'view_vendors', 'approve_vendors',
-            
-            // Surveys (View)
-            'view_surveys',
-            
-            // Reports (View & Create)
-            'view_reports', 'create_reports', 'export_reports', 'view_system_reports',
-            
-            // Cybersecurity (View & Manage)
-            'view_cybersecurity', 'manage_cybersecurity', 'resolve_cybersecurity',
-            
-            // Notifications
+            'view_research', 'approve_research', 'view_all_research',
+            'approve_technology_transfer',
+            'approve_architecture',
+            'make_governance_decision',
+            'view_institutions',
+            'view_reports', 'view_system_reports',
             'view_notifications',
-            
-            // Settings (View Only)
-            'view_settings',
         ];
 
-        // 3. Sub-City Administrator - Sub-City Management
-        $subCityAdminPermissions = [
-            // Dashboard
+        // 3. Smart City Command Center - Entry Point & Operations Manager
+        $commandCenterPermissions = [
             'view_dashboard',
-            
-            // Sub-Cities (View Own Only)
-            'view_sub_cities',
-            
-            // Users (Sub-City Scope)
-            'view_users', 'create_subcity_users', 'edit_users',
-            
-            // Requests (Sub-City Scope)
-            'view_requests', 'create_requests', 'edit_requests', 'delete_requests', 'submit_requests',
-            
-            // Workflows (View & Track)
-            'view_workflows',
-            
-            // Duplication (View Only)
-            'view_duplication',
-            
-            // Feasibility (View Only)
-            'view_feasibility',
-            
-            // Technologies (Sub-City Scope)
-            'view_technologies', 'create_technologies', 'edit_technologies',
-            
-            // Audits (View Sub-City)
-            'view_audits',
-            
-            // Vendors (View & Create)
-            'view_vendors', 'create_vendors',
-            
-            // Surveys (Manage)
-            'view_surveys', 'create_surveys', 'manage_surveys', 'participate_surveys',
-            
-            // Reports (Sub-City Scope)
+            'view_users',
+            'view_requests', 'create_requests', 'edit_requests', 'submit_requests', 'view_all_requests',
+            'classify_requests', 'route_requests', 'manage_command_center',
+            'view_workflows', 'approve_workflows',
+            'view_technologies', 'view_all_technologies',
+            'view_research', 'create_research', 'view_all_research',
+            'view_technology_transfer',
+            'view_institutions', 'verify_institutions',
             'view_reports', 'create_reports', 'export_reports',
-            
-            // Cybersecurity (View & Report)
-            'view_cybersecurity', 'manage_cybersecurity',
-            
-            // Notifications
+            'view_notifications', 'send_notifications',
+        ];
+
+        // 4. Research Director
+        $researchDirectorPermissions = [
+            'view_dashboard', 'view_research_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies',
+            'view_research', 'create_research', 'manage_research', 'approve_research', 'conduct_research',
+            'assess_technology', 'view_all_research',
+            'view_reports', 'create_reports',
             'view_notifications',
-            
-            // Settings (View Only)
+        ];
+
+        // 5. Research Lead
+        $researchLeadPermissions = [
+            'view_dashboard', 'view_research_dashboard',
+            'view_requests',
+            'view_workflows',
+            'view_research', 'create_research', 'conduct_research', 'assess_technology',
+            'view_reports', 'create_reports',
+            'view_notifications',
+        ];
+
+        // 6. Researcher
+        $researcherPermissions = [
+            'view_dashboard',
+            'view_research_dashboard',
+
+            'view_research',
+            'conduct_research',
+
+            'view_research_ideas',
+            'create_research_ideas',
+            'edit_research_ideas',
+
+            'view_research_projects',
+
+            'manage_tasks',
+            'manage_experiments',
+
+            'submit_progress_reports',
+
+            'view_reports',
+            'view_notifications',
+        ];
+
+        // 7. Technology Transfer Manager
+        $technologyTransferPermissions = [
+            'view_dashboard', 'view_technology_transfer_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies', 'create_technologies', 'edit_technologies', 'view_all_technologies',
+            'view_technology_transfer', 'manage_technology_transfer', 'approve_technology_transfer', 'issue_certificates',
+            'view_reports', 'create_reports',
+            'view_notifications',
+        ];
+
+        // 8. Enterprise Architect
+        $enterpriseArchitectPermissions = [
+            'view_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies',
+            'review_architecture', 'approve_architecture', 'manage_development',
+            'view_reports', 'create_reports',
+            'view_notifications',
+        ];
+
+        // 9. System Architect
+        $systemArchitectPermissions = [
+            'view_dashboard',
+            'view_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies',
+            'review_architecture', 'manage_development',
+            'view_reports', 'create_reports',
+            'view_notifications',
+        ];
+
+        // 10. Software Developer
+        $developerPermissions = [
+            'view_dashboard',
+            'view_requests',
+            'view_workflows',
+            'manage_development',
+            'view_notifications',
+        ];
+
+        // 11. Verification Officer
+        $verificationOfficerPermissions = [
+            'view_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies',
+            'conduct_verification', 'approve_quality',
+            'view_reports', 'create_reports',
+            'view_notifications',
+        ];
+
+        // 12. ITDB Auditor
+        $itdbAuditorPermissions = [
+            'view_dashboard', 'view_auditor_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_duplication', 'perform_duplication_analysis', 'override_duplication_analysis',
+            'view_feasibility', 'conduct_feasibility', 'approve_feasibility',
+            'view_technologies', 'view_all_technologies',
+            'view_audits', 'create_audits', 'conduct_audits', 'view_all_audits',
+            'view_vendors', 'approve_vendors',
+            'view_surveys',
+            'view_reports', 'create_reports', 'export_reports', 'view_system_reports',
+            'view_cybersecurity', 'manage_cybersecurity', 'resolve_cybersecurity',
+            'view_notifications',
             'view_settings',
         ];
 
-        // 4. Sub-City Auditor - Data Collection Focus
-        $subCityAuditorPermissions = [
-            // Dashboard
+        // 13. Governance Committee
+        $governanceCommitteePermissions = [
             'view_dashboard',
-            
-            // Requests (View Only - Sub-City)
-            'view_requests',
-            
-            // Workflows (View Only)
-            'view_workflows',
-            
-            // Technologies (View & Update)
-            'view_technologies', 'edit_technologies',
-            
-            // Audits (Support)
-            'view_audits',
-            
-            // Surveys (Full Control - Sub-City)
-            'view_surveys', 'create_surveys', 'manage_surveys', 'participate_surveys', 'collect_survey_data',
-            
-            // Reports (View & Create Basic)
-            'view_reports', 'create_reports',
-            
-            // Notifications
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies', 'view_all_technologies',
+            'review_governance', 'make_governance_decision',
+            'view_reports',
             'view_notifications',
-            
-            // Data Collection (Full Control)
-            'encode_data', 'collect_field_data', 'gather_feedback',
         ];
 
-        // Assign permissions to roles
+        // 14. Review Committee
+        $reviewCommitteePermissions = [
+            'view_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies',
+            'view_research', 'approve_research', 'view_all_research',
+            'review_governance',
+            'view_reports',
+            'view_notifications',
+        ];
+
+        // 15. Security Officer
+        $securityOfficerPermissions = [
+            'view_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies',
+            'view_cybersecurity', 'manage_cybersecurity', 'resolve_cybersecurity',
+            'conduct_compliance_check',
+            'view_reports', 'create_reports',
+            'view_notifications',
+        ];
+
+        // 16. Risk Officer
+        $riskOfficerPermissions = [
+            'view_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies',
+            'conduct_risk_assessment',
+            'view_reports', 'create_reports',
+            'view_notifications',
+        ];
+
+        // 17. Compliance Officer
+        $complianceOfficerPermissions = [
+            'view_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies',
+            'conduct_compliance_check',
+            'view_reports', 'create_reports',
+            'view_notifications',
+        ];
+
+        // 18. Legal Officer
+        $legalOfficerPermissions = [
+            'view_dashboard',
+            'view_requests', 'view_all_requests',
+            'view_workflows', 'approve_workflows',
+            'view_technologies',
+            'conduct_legal_review',
+            'view_reports', 'create_reports',
+            'view_notifications',
+        ];
+
+        // 19. Institutional User (External Organizations)
+        $institutionalUserPermissions = [
+            'view_dashboard', 'view_institution_dashboard',
+            'view_requests', 'create_requests', 'edit_requests', 'submit_requests',
+            'view_notifications',
+        ];
+
+        // 20. Vendor (External Technology Providers)
+        $vendorPermissions = [
+            'view_dashboard',
+            'view_requests', 'create_requests', 'edit_requests', 'submit_requests',
+            'view_technologies',
+            'view_notifications',
+        ];
+
+        // Assign permissions to all roles
         $this->assignPermissionsToRole($roles['itdb_administrator'], $permissions, $itdbAdminPermissions);
+        $this->assignPermissionsToRole($roles['smart_city_sector_director'], $permissions, $sectorDirectorPermissions);
+        $this->assignPermissionsToRole($roles['smart_city_command_center'], $permissions, $commandCenterPermissions);
+        $this->assignPermissionsToRole($roles['research_director'], $permissions, $researchDirectorPermissions);
+        $this->assignPermissionsToRole($roles['research_lead'], $permissions, $researchLeadPermissions);
+        $this->assignPermissionsToRole($roles['researcher'], $permissions, $researcherPermissions);
+        $this->assignPermissionsToRole($roles['technology_transfer_manager'], $permissions, $technologyTransferPermissions);
+        $this->assignPermissionsToRole($roles['enterprise_architect'], $permissions, $enterpriseArchitectPermissions);
+        $this->assignPermissionsToRole($roles['system_architect'], $permissions, $systemArchitectPermissions);
+        $this->assignPermissionsToRole($roles['software_developer'], $permissions, $developerPermissions);
+        $this->assignPermissionsToRole($roles['verification_officer'], $permissions, $verificationOfficerPermissions);
         $this->assignPermissionsToRole($roles['itdb_auditor'], $permissions, $itdbAuditorPermissions);
-        $this->assignPermissionsToRole($roles['sub_city_admin'], $permissions, $subCityAdminPermissions);
-        $this->assignPermissionsToRole($roles['sub_city_auditor'], $permissions, $subCityAuditorPermissions);
+        $this->assignPermissionsToRole($roles['governance_committee'], $permissions, $governanceCommitteePermissions);
+        $this->assignPermissionsToRole($roles['review_committee'], $permissions, $reviewCommitteePermissions);
+        $this->assignPermissionsToRole($roles['security_officer'], $permissions, $securityOfficerPermissions);
+        $this->assignPermissionsToRole($roles['risk_officer'], $permissions, $riskOfficerPermissions);
+        $this->assignPermissionsToRole($roles['compliance_officer'], $permissions, $complianceOfficerPermissions);
+        $this->assignPermissionsToRole($roles['legal_officer'], $permissions, $legalOfficerPermissions);
+        $this->assignPermissionsToRole($roles['institutional_user'], $permissions, $institutionalUserPermissions);
+        $this->assignPermissionsToRole($roles['vendor'], $permissions, $vendorPermissions);
         
         $this->command->newLine();
         $this->command->info('✓ All permissions assigned to roles successfully!');

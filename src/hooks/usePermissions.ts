@@ -13,6 +13,11 @@ export function usePermissions() {
    */
   const hasPermission = (permission: PermissionName): boolean => {
     if (!user) return false;
+    if (user.user_type === 'INSTITUTIONAL') {
+      if (['view_dashboard', 'view_institution_dashboard', 'view_notifications'].includes(permission)) {
+        return true;
+      }
+    }
     return user.permissions.includes(permission);
   };
 
@@ -21,6 +26,12 @@ export function usePermissions() {
    */
   const hasAnyPermission = (permissions: PermissionName[]): boolean => {
     if (!user) return false;
+    if (user.user_type === 'INSTITUTIONAL') {
+      const implicit = ['view_dashboard', 'view_institution_dashboard', 'view_notifications'];
+      if (permissions.some(p => implicit.includes(p))) {
+        return true;
+      }
+    }
     return permissions.some((permission) => user.permissions.includes(permission));
   };
 
@@ -29,7 +40,7 @@ export function usePermissions() {
    */
   const hasAllPermissions = (permissions: PermissionName[]): boolean => {
     if (!user) return false;
-    return permissions.every((permission) => user.permissions.includes(permission));
+    return permissions.every((permission) => hasPermission(permission));
   };
 
   /**
@@ -64,17 +75,10 @@ export function usePermissions() {
   };
 
   /**
-   * Check if user is Sub-City Administrator
-   */
-  const isSubCityAdmin = (): boolean => {
-    return hasRole('sub_city_administrator');
-  };
-
-  /**
    * Check if user is Auditor
    */
   const isAuditor = (): boolean => {
-    return hasRole('auditor');
+    return hasAnyRole(['itdb_auditor']);
   };
 
   return {
@@ -85,7 +89,6 @@ export function usePermissions() {
     hasAnyRole,
     hasAllRoles,
     isITDBAdmin,
-    isSubCityAdmin,
     isAuditor,
     user,
   };

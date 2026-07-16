@@ -50,6 +50,17 @@ trait HasRolesAndPermissions
      */
     public function hasPermission(string $permission): bool
     {
+        if ($this->user_type === 'INSTITUTIONAL') {
+            if (in_array($permission, [
+                'view_dashboard',
+                'view_institution_dashboard',
+                'view_notifications',
+                'view_settings'
+            ])) {
+                return true;
+            }
+        }
+
         return $this->roles()
             ->whereHas('permissions', function ($query) use ($permission) {
                 $query->where('name', $permission);
@@ -62,6 +73,13 @@ trait HasRolesAndPermissions
      */
     public function hasAnyPermission(array $permissions): bool
     {
+        if ($this->user_type === 'INSTITUTIONAL') {
+            $implicit = ['view_dashboard', 'view_institution_dashboard', 'view_notifications', 'view_settings'];
+            if (count(array_intersect($permissions, $implicit)) > 0) {
+                return true;
+            }
+        }
+
         return $this->roles()
             ->whereHas('permissions', function ($query) use ($permissions) {
                 $query->whereIn('name', $permissions);
@@ -95,6 +113,15 @@ trait HasRolesAndPermissions
             foreach ($role->permissions as $permission) {
                 $permissions[] = $permission->name;
             }
+        }
+
+        if ($this->user_type === 'INSTITUTIONAL') {
+            $permissions = array_merge($permissions, [
+                'view_dashboard',
+                'view_institution_dashboard',
+                'view_notifications',
+                'view_settings'
+            ]);
         }
 
         return array_values(array_unique($permissions));
@@ -167,22 +194,6 @@ trait HasRolesAndPermissions
     }
 
     /**
-     * Check if user is Sub-City Administrator.
-     */
-    public function isSubCityAdministrator(): bool
-    {
-        return $this->hasRole('sub_city_admin');
-    }
-
-    /**
-     * Check if user is Sub-City Auditor.
-     */
-    public function isSubCityAuditor(): bool
-    {
-        return $this->hasRole('sub_city_auditor');
-    }
-
-    /**
      * Check if user is any ITDB role (Administrator or Auditor).
      */
     public function isITDBUser(): bool
@@ -191,19 +202,11 @@ trait HasRolesAndPermissions
     }
 
     /**
-     * Check if user is any Sub-City role (Administrator or Auditor).
-     */
-    public function isSubCityUser(): bool
-    {
-        return $this->hasAnyRole(['sub_city_admin', 'sub_city_auditor']);
-    }
-
-    /**
      * Check if user can create users.
      */
     public function canCreateUsers(): bool
     {
-        return $this->hasAnyPermission(['create_users', 'create_itdb_users', 'create_subcity_users']);
+        return $this->hasAnyPermission(['create_users', 'create_itdb_users']);
     }
 
     /**
@@ -245,14 +248,6 @@ trait HasRolesAndPermissions
     }
 
     /**
-     * Check if user can manage sub-cities.
-     */
-    public function canManageSubCities(): bool
-    {
-        return $this->hasAnyPermission(['create_sub_cities', 'edit_sub_cities', 'delete_sub_cities']);
-    }
-
-    /**
      * Check if user can conduct feasibility studies.
      */
     public function canConductFeasibilityStudies(): bool
@@ -277,7 +272,7 @@ trait HasRolesAndPermissions
     }
 
     /**
-     * Get user's hierarchy level (1=highest, 4=lowest).
+     * Get user's hierarchy level (1=highest, 2=lowest).
      */
     public function getHierarchyLevel(): int
     {
@@ -285,13 +280,9 @@ trait HasRolesAndPermissions
             return 1;
         } elseif ($this->isITDBAuditor()) {
             return 2;
-        } elseif ($this->isSubCityAdministrator()) {
-            return 3;
-        } elseif ($this->isSubCityAuditor()) {
-            return 4;
         }
 
-        return 5; // No role assigned
+        return 3; // No role assigned
     }
 
     /**
@@ -312,48 +303,6 @@ trait HasRolesAndPermissions
             return true;
         }
 
-        // Sub-City Admin can manage Sub-City Auditors in their sub-city
-        if ($this->isSubCityAdministrator() && $otherUser->isSubCityAuditor()) {
-            return $this->sub_city_id === $otherUser->sub_city_id;
-        }
-
         return false;
-    }
-
-    /**
-     * Check if user can access resource from specific sub-city.
-     */
-    public function canAccessSubCity(?int $subCityId): bool
-    {
-        // ITDB users can access all sub-cities
-        if ($this->isITDBUser()) {
-            return true;
-        }
-
-        // Sub-city users can only access their own sub-city
-        if ($this->isSubCityUser()) {
-            return $this->sub_city_id === $subCityId;
-        }
-
-        return false;
-    }
-
-    /**
-     * Get scope query for sub-city isolation.
-     */
-    public function scopeSubCityData($query, string $subCityColumn = 'sub_city_id')
-    {
-        // ITDB users see all data
-        if ($this->isITDBUser()) {
-            return $query;
-        }
-
-        // Sub-city users see only their sub-city data
-        if ($this->isSubCityUser() && $this->sub_city_id) {
-            return $query->where($subCityColumn, $this->sub_city_id);
-        }
-
-        // No access by default
-        return $query->whereRaw('1 = 0');
     }
 }

@@ -16,9 +16,18 @@ export function hasRole(user: User | null | undefined, role: RoleName | RoleName
  * Check if user has a specific permission
  */
 export function hasPermission(user: User | null | undefined, permission: PermissionName | PermissionName[]): boolean {
-  if (!user || !user.permissions) return false;
+  if (!user) return false;
   
   const permissions = Array.isArray(permission) ? permission : [permission];
+  
+  if (user.user_type === 'INSTITUTIONAL') {
+    const implicit = ['view_dashboard', 'view_institution_dashboard', 'view_notifications'];
+    if (permissions.some(p => implicit.includes(p))) {
+      return true;
+    }
+  }
+  
+  if (!user.permissions) return false;
   return permissions.some(p => user.permissions.includes(p));
 }
 
@@ -26,7 +35,16 @@ export function hasPermission(user: User | null | undefined, permission: Permiss
  * Check if user has any of the given permissions
  */
 export function hasAnyPermission(user: User | null | undefined, permissions: PermissionName[]): boolean {
-  if (!user || !user.permissions) return false;
+  if (!user) return false;
+  
+  if (user.user_type === 'INSTITUTIONAL') {
+    const implicit = ['view_dashboard', 'view_institution_dashboard', 'view_notifications'];
+    if (permissions.some(p => implicit.includes(p))) {
+      return true;
+    }
+  }
+  
+  if (!user.permissions) return false;
   return permissions.some(p => user.permissions.includes(p));
 }
 
@@ -34,8 +52,8 @@ export function hasAnyPermission(user: User | null | undefined, permissions: Per
  * Check if user has all of the given permissions
  */
 export function hasAllPermissions(user: User | null | undefined, permissions: PermissionName[]): boolean {
-  if (!user || !user.permissions) return false;
-  return permissions.every(p => user.permissions.includes(p));
+  if (!user) return false;
+  return permissions.every(p => hasPermission(user, p));
 }
 
 /**
@@ -46,17 +64,10 @@ export function isITDBAdmin(user: User | null | undefined): boolean {
 }
 
 /**
- * Check if user is Sub-City Administrator
- */
-export function isSubCityAdmin(user: User | null | undefined): boolean {
-  return hasRole(user, 'sub_city_administrator');
-}
-
-/**
  * Check if user is Auditor
  */
 export function isAuditor(user: User | null | undefined): boolean {
-  return hasRole(user, 'auditor');
+  return hasRole(user, 'itdb_auditor');
 }
 
 /**
@@ -76,21 +87,15 @@ export function getRoleDisplayName(user: User | null | undefined): string {
 }
 
 /**
- * Check if user can view resource (based on sub-city)
+ * Check if user can view resource
  */
 export function canViewResource(
-  user: User | null | undefined,
-  resourceSubCity?: string
+  user: User | null | undefined
 ): boolean {
   if (!user) return false;
   
   // ITDB Admin and Auditor can view all
   if (isITDBAdmin(user) || isAuditor(user)) return true;
-  
-  // Sub-City Admin can only view their own sub-city
-  if (isSubCityAdmin(user)) {
-    return !resourceSubCity || resourceSubCity === user.sub_city;
-  }
   
   return false;
 }
@@ -100,23 +105,16 @@ export function canViewResource(
  */
 export function canEditResource(
   user: User | null | undefined,
-  resourceOwnerId?: number,
-  resourceSubCity?: string
+  resourceOwnerId?: number
 ): boolean {
   if (!user) return false;
   
   // ITDB Admin can edit all
   if (isITDBAdmin(user)) return true;
   
-  // Sub-City Admin can edit their own resources
-  if (isSubCityAdmin(user)) {
-    const ownsResource = resourceOwnerId === user.id;
-    const sameSubCity = !resourceSubCity || resourceSubCity === user.sub_city;
-    return ownsResource || sameSubCity;
-  }
-  
-  // Auditors cannot edit (only review)
-  return false;
+  // Check ownership
+  const ownsResource = resourceOwnerId === user.id;
+  return ownsResource;
 }
 
 /**
@@ -140,16 +138,74 @@ export function filterNavByPermissions(
 }
 
 /**
- * Get dashboard route based on user role
+ * Get dashboard route based on user permissions.
+ * Resolves the most appropriate dashboard a user is allowed to see.
  */
 export function getDashboardRoute(user: User | null | undefined): string {
-  if (!user) return '/login';
+  console.log('[getDashboardRoute] Evaluating dashboard for user:', user?.email);
   
-  if (isITDBAdmin(user)) return '/dashboard/executive';
-  if (isSubCityAdmin(user)) return '/dashboard/subcity';
-  if (isAuditor(user)) return '/dashboard/auditor';
+  if (!user) {
+    console.log('[getDashboardRoute] No user, returning /login');
+    return '/login';
+  }
+
+  console.log('[getDashboardRoute] User permissions:', user.permissions);
+  console.log('[getDashboardRoute] User type:', user.user_type);
+
+  // Priority order: Check specific dashboards first
   
-  return '/dashboard';
+  // Executive Dashboard (highest priority - ITDB Admin only)
+  if (hasPermission(user, 'view_executive_dashboard')) {
+    console.log('[getDashboardRoute] Matched: Executive Dashboard');
+    return '/dashboard/executive';
+  }
+  
+  // Auditor Dashboard
+  if (hasPermission(user, 'view_auditor_dashboard')) {
+    console.log('[getDashboardRoute] Matched: Auditor Dashboard');
+    return '/dashboard/auditor';
+  }
+  
+  // Institution Dashboard
+  if (user.user_type === 'INSTITUTIONAL' || hasPermission(user, 'view_institution_dashboard')) {
+    console.log('[getDashboardRoute] Matched: Institution Dashboard');
+    return '/dashboard/institution';
+  }
+  
+  // Research Dashboard (includes Smart City Command Center)
+  if (hasPermission(user, 'view_research_dashboard')) {
+    console.log('[getDashboardRoute] Matched: Research Dashboard');
+    return '/dashboard/research';
+  }
+  
+  // Licensing Dashboard
+  if (hasPermission(user, 'view_licensing_dashboard')) {
+    console.log('[getDashboardRoute] Matched: Licensing Dashboard');
+    return '/dashboard/licensing';
+  }
+  
+  // Technology Transfer Dashboard
+  if (hasPermission(user, 'view_technology_transfer_dashboard')) {
+    console.log('[getDashboardRoute] Matched: Technology Transfer Dashboard');
+    return '/dashboard/technology-transfer';
+  }
+
+  // SubCity Dashboard
+  if (hasPermission(user, 'view_subcity_dashboard')) {
+    console.log('[getDashboardRoute] Matched: SubCity Dashboard');
+    return '/dashboard/subcity';
+  }
+
+  // Main dashboard (for users with view_dashboard permission)
+  if (hasPermission(user, 'view_dashboard')) {
+    console.log('[getDashboardRoute] Matched: Main Dashboard');
+    return '/dashboard/main';
+  }
+
+  // Fallback: No access page for users without any dashboard permissions
+  // This prevents infinite redirect loops
+  console.warn('[getDashboardRoute] No dashboard permissions found, returning /dashboard/no-access');
+  return '/dashboard/no-access';
 }
 
 /**
@@ -158,8 +214,7 @@ export function getDashboardRoute(user: User | null | undefined): string {
 export function formatRoleName(role: RoleName): string {
   const roleNames: Record<RoleName, string> = {
     itdb_administrator: 'ITDB Administrator',
-    sub_city_administrator: 'Sub-City Administrator',
-    auditor: 'Auditor',
+    itdb_auditor: 'ITDB Auditor',
   };
   return roleNames[role] || role;
 }
@@ -170,8 +225,7 @@ export function formatRoleName(role: RoleName): string {
 export function getRoleBadgeColor(role: RoleName): string {
   const colors: Record<RoleName, string> = {
     itdb_administrator: 'bg-purple-100 text-purple-800 border-purple-200',
-    sub_city_administrator: 'bg-blue-100 text-blue-800 border-blue-200',
-    auditor: 'bg-green-100 text-green-800 border-green-200',
+    itdb_auditor: 'bg-amber-100 text-amber-800 border-amber-200',
   };
   return colors[role] || 'bg-gray-100 text-gray-800 border-gray-200';
 }

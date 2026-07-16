@@ -41,7 +41,6 @@ return new class extends Migration
             $table->string('current_stage')->default('submission');
             $table->string('status')->default('draft');
             $table->foreignId('submitted_by')->constrained('users');
-            $table->unsignedBigInteger('sub_city_id')->nullable();
             $table->timestamp('submitted_at')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->timestamps();

@@ -54,6 +54,7 @@ class InstitutionRolePermissionSeeder extends Seeder
         // Assign permissions to institutional_user role
         $institutionalUserPermissions = [
             'view_dashboard',
+            'view_institution_dashboard', // Dashboard permission
             'view_requests',
             'create_requests',
             'edit_requests',

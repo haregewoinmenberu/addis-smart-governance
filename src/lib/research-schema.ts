@@ -7,15 +7,9 @@ export const researchIdeaSchema = z.object({
   problem_statement: z.string().min(100, "Problem statement must be at least 100 characters"),
   objectives: z.string().min(50, "Objectives must be at least 50 characters"),
   expected_outcome: z.string().min(50, "Expected outcome must be at least 50 characters"),
-  research_category: z.enum([
-    "basic_research",
-    "applied_research",
-    "experimental_development",
-    "innovation",
-    "pilot_project"
-  ], { errorMap: () => ({ message: "Please select a research category" }) }),
+  research_category: z.string().min(1, "Please select a research category"),
   government_sector: z.string().optional(),
-  priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+  priority: z.enum(["low", "medium", "high", "critical"]),
 });
 
 export type ResearchIdeaFormData = z.infer<typeof researchIdeaSchema>;
@@ -59,12 +53,12 @@ export const researchProjectSchema = z.object({
 export type ResearchProjectFormData = z.infer<typeof researchProjectSchema>;
 
 // Category labels
-export const researchCategoryLabels = {
-  basic_research: "Basic Research",
-  applied_research: "Applied Research",
+export const researchCategoryLabels: Record<string, string> = {
+  basic_research:           "Basic Research",
+  applied_research:         "Applied Research",
   experimental_development: "Experimental Development",
-  innovation: "Innovation",
-  pilot_project: "Pilot Project",
+  innovation:               "Innovation",
+  pilot_project:            "Pilot Project",
 };
 
 // Priority labels

@@ -216,57 +216,60 @@ function Page() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="text-left font-medium px-4 py-3">Request</th>
-                <th className="text-left font-medium px-4 py-3">Office</th>
-                <th className="text-left font-medium px-4 py-3">Status</th>
-                <th className="text-left font-medium px-4 py-3">Stage</th>
-                <th className="text-left font-medium px-4 py-3">Budget</th>
-                <th className="text-left font-medium px-4 py-3">Submitted</th>
-                <th className="text-right font-medium px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
+        <div className="border border-border/40 rounded-xl overflow-hidden bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[#f8fafc] border-b border-border/40 text-[11px] uppercase tracking-wider font-semibold text-[#718096]">
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    Loading requests...
-                  </td>
+                  <th className="text-left py-3.5 px-6 font-semibold">Request</th>
+                  <th className="text-left py-3.5 px-6 font-semibold">Office</th>
+                  <th className="text-left py-3.5 px-6 font-semibold">Status</th>
+                  <th className="text-left py-3.5 px-6 font-semibold">Stage</th>
+                  <th className="text-left py-3.5 px-6 font-semibold">Budget</th>
+                  <th className="text-left py-3.5 px-6 font-semibold">Submitted</th>
+                  <th className="text-right py-3.5 px-6 font-semibold">Actions</th>
                 </tr>
-              ) : requests.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                    No requests found
-                  </td>
-                </tr>
-              ) : (
-                requests.map((r: RequestItem) => (
-                  <tr key={r.id} className="border-t border-border/60 hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                          <FileStack className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{r.title}</p>
-                          <p className="text-xs text-muted-foreground">{r.code}</p>
-                        </div>
-                      </div>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
+                      Loading requests...
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{r.office}</td>
-                    <td className="px-4 py-3"><Badge variant="secondary" className={statusStyle(r.status)}>{r.status}</Badge></td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Progress value={(r.step / r.total_steps) * 100} className="h-1.5 w-24 rounded-full bg-muted" />
-                        <span className="text-xs text-muted-foreground">{r.step}/{r.total_steps}</span>
-                      </div>
+                  </tr>
+                ) : requests.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
+                      No requests found
                     </td>
-                    <td className="px-4 py-3 font-medium">{formatCurrency(r.budget ?? 0)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(r.submitted_at)}</td>
-                    <td className="px-4 py-3 text-right">
+                  </tr>
+                ) : (
+                  requests.map((r: RequestItem, rowIndex: number) => (
+                    <tr key={r.id} className={`border-b border-border/40 hover:bg-slate-50/50 transition-colors ${
+                      rowIndex % 2 === 0 ? "bg-white" : "bg-[#f8fafc]/30"
+                    }`}>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                            <FileStack className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-[#1a202c]">{r.title}</p>
+                            <p className="text-xs text-muted-foreground">{r.code}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">{r.office}</td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]"><Badge variant="secondary" className={statusStyle(r.status)}>{r.status}</Badge></td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">
+                        <div className="flex items-center gap-2">
+                          <Progress value={(r.step / r.total_steps) * 100} className="h-1.5 w-24 rounded-full bg-muted" />
+                          <span className="text-xs text-muted-foreground">{r.step}/{r.total_steps}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-[#1a202c]">{formatCurrency(r.budget ?? 0)}</td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">{formatDate(r.submitted_at)}</td>
+                      <td className="px-6 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -306,7 +309,8 @@ function Page() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
+    </Card>
       <AlertDialog open={confirmState.isOpen} onOpenChange={(open) => { if (!open) closeConfirm(); }}>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>

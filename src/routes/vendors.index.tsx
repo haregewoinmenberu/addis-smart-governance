@@ -103,51 +103,55 @@ function Page() {
           ) : filteredVendors.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">No vendors found</div>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="text-left font-medium px-4 py-3">Vendor</th>
-                  <th className="text-left font-medium px-4 py-3">Active Projects</th>
-                  <th className="text-left font-medium px-4 py-3">SLA Breaches</th>
-                  <th className="text-left font-medium px-4 py-3">Score</th>
-                  <th className="text-left font-medium px-4 py-3">Status</th>
-                  <th className="text-left font-medium px-4 py-3">Last Reviewed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredVendors.map((v) => (
-                  <tr key={v.id} className="border-t border-border/60 hover:bg-muted/30">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-gradient-primary text-primary-foreground flex items-center justify-center font-semibold">{v.name[0]}</div>
-                        <span className="font-medium">{v.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">{v.active_projects}</td>
-                    <td className="px-4 py-3">
-                      <span className={v.sla_breaches > 0 ? "text-destructive font-medium" : "text-muted-foreground"}>
-                        {v.sla_breaches}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-1.5 w-24 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className={v.score >= 90 ? "h-full bg-success" : v.score >= 80 ? "h-full bg-info" : v.score >= 70 ? "h-full bg-warning" : "h-full bg-destructive"}
-                            style={{ width: `${v.score}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-semibold">{v.score}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3"><Badge variant="secondary" className={stat(v.status)}>{v.status}</Badge></td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">
-                      {new Date(v.last_reviewed_at).toLocaleDateString()}
-                    </td>
+            <div className="border border-border/40 rounded-xl overflow-hidden bg-white shadow-sm m-4">
+              <table className="w-full text-sm">
+                <thead className="bg-[#f8fafc] border-b border-border/40 text-[11px] uppercase tracking-wider font-semibold text-[#718096]">
+                  <tr>
+                    <th className="text-left py-3.5 px-6 font-semibold">Vendor</th>
+                    <th className="text-left py-3.5 px-6 font-semibold">Active Projects</th>
+                    <th className="text-left py-3.5 px-6 font-semibold">SLA Breaches</th>
+                    <th className="text-left py-3.5 px-6 font-semibold">Score</th>
+                    <th className="text-left py-3.5 px-6 font-semibold">Status</th>
+                    <th className="text-left py-3.5 px-6 font-semibold">Last Reviewed</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredVendors.map((v: Vendor, rowIndex: number) => (
+                    <tr key={v.id} className={`border-b border-border/40 hover:bg-slate-50/50 transition-colors ${
+                      rowIndex % 2 === 0 ? "bg-white" : "bg-[#f8fafc]/30"
+                    }`}>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-xl bg-gradient-primary text-primary-foreground flex items-center justify-center font-semibold">{v.name[0]}</div>
+                          <span className="font-semibold text-[#1a202c]">{v.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">{v.active_projects}</td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">
+                        <span className={v.sla_breaches > 0 ? "text-destructive font-medium" : "text-[#718096]"}>
+                          {v.sla_breaches}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-24 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={v.score >= 90 ? "h-full bg-success" : v.score >= 80 ? "h-full bg-info" : v.score >= 70 ? "h-full bg-warning" : "h-full bg-destructive"}
+                              style={{ width: `${v.score}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-semibold text-[#1a202c]">{v.score}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]"><Badge variant="secondary" className={stat(v.status)}>{v.status}</Badge></td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {new Date(v.last_reviewed_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </Card>

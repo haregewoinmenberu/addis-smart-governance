@@ -23,7 +23,6 @@ class Institution extends Model
         'alternative_phone',
         'address',
         'city',
-        'sub_city_id',
         'woreda',
         'website',
         'description',
@@ -46,7 +45,6 @@ class Institution extends Model
         'COMMISSION' => 'Commission',
         'AGENCY' => 'Agency',
         'OFFICE' => 'Office',
-        'SUB_CITY' => 'Sub-City',
         'WOREDA' => 'Woreda',
         'PUBLIC_ENTERPRISE' => 'Public Enterprise',
         'UNIVERSITY' => 'University',
@@ -76,14 +74,6 @@ class Institution extends Model
     public const STATUS_ACTIVE = 'ACTIVE';
     public const STATUS_SUSPENDED = 'SUSPENDED';
     public const STATUS_INACTIVE = 'INACTIVE';
-
-    /**
-     * Get the sub-city that the institution belongs to.
-     */
-    public function subCity(): BelongsTo
-    {
-        return $this->belongsTo(SubCity::class);
-    }
 
     /**
      * Get the user who verified the institution.

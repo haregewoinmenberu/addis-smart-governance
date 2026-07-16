@@ -11,6 +11,7 @@ export const researchSchema = z.object({
   abstract: z.string().min(20, "Abstract must be at least 20 characters"),
   estimatedBudget: z.string().optional(),
   durationMonths: z.number().min(1).max(60),
+  supportingLetter: z.instanceof(File).optional().or(z.null()),
   agree: z.literal(true, { errorMap: () => ({ message: "You must agree to continue" }) }),
 });
 
@@ -27,6 +28,7 @@ export const transformationSchema = z.object({
   currentMaturity: z.enum(["Initial", "Developing", "Established", "Advanced"]),
   scope: z.string().min(20, "Please describe the scope (at least 20 characters)"),
   expectedStart: z.string().min(1, "Expected start date is required"),
+  officialLetter: z.instanceof(File).optional().or(z.null()),
   agree: z.literal(true, { errorMap: () => ({ message: "You must agree to continue" }) }),
 });
 
@@ -50,6 +52,7 @@ export const licensingSchema = z.object({
   grade: z.enum(["Grade 1", "Grade 2", "Grade 3"]),
   experienceYears: z.number().min(0).max(50),
   organization: z.string().optional(),
+  documents: z.array(z.instanceof(File)).min(1, "At least one document is required"),
   agree: z.literal(true, { errorMap: () => ({ message: "You must agree to continue" }) }),
 });
 

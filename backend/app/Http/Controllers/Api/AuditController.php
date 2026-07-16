@@ -77,4 +77,19 @@ class AuditController extends Controller
 
         return response()->json(['message' => 'Deleted']);
     }
+
+    public function getAllUserWithRoleAndPermission()
+    {
+        $users = \App\Models\User::with('roles:id,display_name')
+            ->get(['id', 'name']);
+
+        $getAllRoles = \App\Models\Role::get(['display_name']);
+        $getAllPermissions = \App\Models\Permission::get(['display_name']);    
+
+        return response()->json([
+            'data' => $users,
+            'roles' => $getAllRoles,
+            'permissions' => $getAllPermissions,
+        ]);
+    }
 }

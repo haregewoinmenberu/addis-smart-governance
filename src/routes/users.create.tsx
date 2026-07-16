@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tantml:react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
-import { createUser, getSubCities } from "@/lib/api";
+import { createUser } from "@/lib/api";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
@@ -28,11 +28,6 @@ export const Route = createFileRoute("/users/create")({
 function Page() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
-  const { data: subCitiesData } = useQuery({
-    queryKey: ["sub-cities"],
-    queryFn: () => getSubCities(),
-  });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -41,8 +36,7 @@ function Page() {
     department: "",
     password: "",
     password_confirmation: "",
-    sub_city_id: "",
-    role: "sub_city_administrator",
+    role: "itdb_auditor",
   });
 
   const createMutation = useMutation({
@@ -67,8 +61,6 @@ function Page() {
     
     createMutation.mutate(formData);
   };
-
-  const subCities = subCitiesData?.data ?? [];
 
   return (
     <AppShell>
@@ -146,32 +138,10 @@ function Page() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="itdb_administrator">ITDB Administrator</SelectItem>
-                  <SelectItem value="sub_city_administrator">Sub-City Administrator</SelectItem>
-                  <SelectItem value="auditor">Auditor</SelectItem>
+                  <SelectItem value="itdb_auditor">ITDB Auditor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            {formData.role === "sub_city_administrator" && (
-              <div className="space-y-2">
-                <Label htmlFor="sub_city_id">Sub-City</Label>
-                <Select
-                  value={formData.sub_city_id}
-                  onValueChange={(value) => setFormData({ ...formData, sub_city_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select sub-city" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subCities.map((sc: any) => (
-                      <SelectItem key={sc.id} value={sc.id.toString()}>
-                        {sc.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

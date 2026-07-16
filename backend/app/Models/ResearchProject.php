@@ -15,6 +15,7 @@ class ResearchProject extends Model
     protected $fillable = [
         'project_code',
         'research_idea_id',
+        'smart_city_request_id',
         'title',
         'current_stage',
         'background',
@@ -29,8 +30,14 @@ class ResearchProject extends Model
         'success_metrics',
         'progress_percentage',
         'project_lead_id',
-        'sub_city_id',
+        'research_director_id',
         'trl_level',
+        'approved_by_director',
+        'director_approved_at',
+        'approved_by_committee',
+        'committee_approved_at',
+        'director_notes',
+        'committee_notes',
     ];
 
     protected $casts = [
@@ -38,6 +45,10 @@ class ResearchProject extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'estimated_budget' => 'decimal:2',
+        'approved_by_director' => 'boolean',
+        'director_approved_at' => 'datetime',
+        'approved_by_committee' => 'boolean',
+        'committee_approved_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -61,9 +72,19 @@ class ResearchProject extends Model
         return $this->belongsTo(User::class, 'project_lead_id');
     }
 
-    public function subCity()
+    public function researchDirector()
     {
-        return $this->belongsTo(SubCity::class);
+        return $this->belongsTo(User::class, 'research_director_id');
+    }
+
+    public function smartCityRequest()
+    {
+        return $this->belongsTo(SmartCityResearchRequest::class, 'smart_city_request_id');
+    }
+
+    public function communications()
+    {
+        return $this->hasMany(ResearchCommunication::class);
     }
 
     public function proposalVersions()

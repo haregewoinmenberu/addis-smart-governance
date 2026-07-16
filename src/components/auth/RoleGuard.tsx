@@ -20,7 +20,7 @@ interface RoleGuardProps {
  * </RoleGuard>
  * 
  * @example
- * <RoleGuard roles={["itdb_administrator", "sub_city_administrator"]} requireAll={false}>
+ * <RoleGuard roles={["itdb_administrator", "itdb_auditor"]} requireAll={false}>
  *   <ManagementTools />
  * </RoleGuard>
  */

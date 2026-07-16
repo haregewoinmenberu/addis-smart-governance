@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { getAuthToken } from "@/lib/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { RequireAuth } from "@/components/auth/RequireAuth";
@@ -30,7 +31,7 @@ function TechnologyTransfersPage() {
       
       const response = await fetch(`/api/technology-transfers?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       });
       return response.json();

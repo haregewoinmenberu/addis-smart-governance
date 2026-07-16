@@ -41,9 +41,14 @@ export function getAuthToken(): string | null {
 }
 
 async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
+  // When sending FormData (file uploads) let the browser set the multipart
+  // Content-Type (including the boundary) — never override it, or the upload
+  // will be unparseable on the server.
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     "Accept": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(options.headers ?? {}),
   };
 
@@ -55,7 +60,9 @@ async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: options.method ?? "GET",
     headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: options.body
+      ? (isFormData ? (options.body as FormData) : JSON.stringify(options.body))
+      : undefined,
     credentials: 'omit', // Don't send cookies to prevent session-based redirects
   });
 
@@ -97,6 +104,15 @@ export async function apiPost<T>(path: string, body: unknown) {
 }
 
 /**
+ * POST multipart/form-data (file uploads). Pass a FormData instance; the
+ * browser sets the Content-Type boundary automatically. For updates, use
+ * Laravel method spoofing by appending `_method=PUT` to the FormData.
+ */
+export async function apiPostForm<T>(path: string, formData: FormData) {
+  return apiFetch<T>(path, { method: "POST", body: formData });
+}
+
+/**
  * @deprecated Use apiPost with /update endpoint instead
  * Example: apiPost(`/users/${id}/update`, data)
  */
@@ -130,10 +146,25 @@ export async function logout() {
 }
 
 // Dashboard
+export interface DashboardStat {
+  label: string;
+  value: string | number;
+  delta?: string;
+  trend?: "up" | "down";
+  accent?: "primary" | "info" | "warning" | "destructive" | "success";
+}
+export interface DashboardResponse {
+  stats: DashboardStat[];
+  investment: { m: string; v: number; c: number }[];
+  subcity: { name: string; v: number }[];
+  compliance: { name: string; v: number; c: string }[];
+  insights: { t: string; b: string }[];
+  approvals: { t: string; o: string; s: string; v: string }[];
+  readiness: { l: string; v: number }[];
+}
+
 export async function getDashboard() {
-  return apiGet<{ stats: unknown[]; investment: unknown[]; subcity: unknown[]; compliance: unknown[]; insights: unknown[]; approvals: unknown[]; readiness: unknown[] }>(
-    "/dashboard",
-  );
+  return apiGet<DashboardResponse>("/dashboard");
 }
 
 export async function getResearchProjectDashboard() {
@@ -449,27 +480,6 @@ export async function deleteAllNotifications() {
   return apiPost<{ message: string; count: number }>("/notifications/all/clear", {});
 }
 
-// Sub-Cities Management
-export async function getSubCities(params?: Record<string, string>) {
-  return getPaginatedList("/sub-cities", params);
-}
-
-export async function getSubCity(id: string | number) {
-  return getItem("/sub-cities", id);
-}
-
-export async function createSubCity(data: unknown) {
-  return createItem("/sub-cities", data);
-}
-
-export async function updateSubCity(id: string | number, data: unknown) {
-  return updateItem("/sub-cities", id, data);
-}
-
-export async function deleteSubCity(id: string | number) {
-  return deleteItem("/sub-cities", id);
-}
-
 // Profile & Account Management
 export async function updateProfile(data: { name?: string; email?: string; phone?: string; department?: string }) {
   return apiPost<{ user: unknown; message: string }>("/auth/profile/update", data);
@@ -508,26 +518,6 @@ export async function getSettings() {
 
 export async function updateSettings(data: Record<string, unknown>) {
   return apiPost<{ message: string; data: Record<string, unknown> }>("/settings/update", data);
-}
-
-export async function activateSubCity(id: string | number) {
-  return apiPost<{ data: unknown; message: string }>(`/sub-cities/${id}/activate`, {});
-}
-
-export async function deactivateSubCity(id: string | number) {
-  return apiPost<{ data: unknown; message: string }>(`/sub-cities/${id}/deactivate`, {});
-}
-
-export async function getSubCityStatistics(id: string | number) {
-  return apiGet<{ data: unknown }>(`/sub-cities/${id}/statistics`);
-}
-
-export async function getSubCityUsers(id: string | number) {
-  return apiGet<{ data: unknown[] }>(`/sub-cities/${id}/users`);
-}
-
-export async function updateSubCityAdministrator(id: string | number, data: { user_id: number }) {
-  return apiPost<{ data: unknown; message: string }>(`/sub-cities/${id}/administrator/update`, data);
 }
 
 // Duplication Cases

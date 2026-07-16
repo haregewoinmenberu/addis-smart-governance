@@ -85,7 +85,7 @@ function Page() {
     <AppShell>
       <PageHeader
         title="User Management & RBAC"
-        subtitle="Role-based access for ITDB Administrators, Sub-City Administrators, and Auditors."
+        subtitle="Role-based access for ITDB Administrators and Auditors."
         actions={
           <PermissionGuard permission="create_users">
             <Link to="/users/create">
@@ -118,67 +118,70 @@ function Page() {
             />
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="text-left font-medium px-4 py-3">User</th>
-                <th className="text-left font-medium px-4 py-3">Roles</th>
-                <th className="text-left font-medium px-4 py-3">Department</th>
-                <th className="text-left font-medium px-4 py-3">Status</th>
-                <th className="text-right font-medium px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
+        <div className="border border-border/40 rounded-xl overflow-hidden bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[#f8fafc] border-b border-border/40 text-[11px] uppercase tracking-wider font-semibold text-[#718096]">
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                    Loading users...
-                  </td>
+                  <th className="text-left py-3.5 px-6 font-semibold">User</th>
+                  <th className="text-left py-3.5 px-6 font-semibold">Roles</th>
+                  <th className="text-left py-3.5 px-6 font-semibold">Department</th>
+                  <th className="text-left py-3.5 px-6 font-semibold">Status</th>
+                  <th className="text-right py-3.5 px-6 font-semibold">Actions</th>
                 </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-                users.map((user: any) => (
-                  <tr key={user.id} className="border-t border-border/60 hover:bg-muted/30">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
-                          {user.name.split(" ").map((x: string) => x[0]).join("").toUpperCase()}
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                      Loading users...
+                    </td>
+                  </tr>
+                ) : users.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                      No users found
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((user: any, rowIndex: number) => (
+                    <tr key={user.id} className={`border-b border-border/40 hover:bg-slate-50/50 transition-colors ${
+                      rowIndex % 2 === 0 ? "bg-white" : "bg-[#f8fafc]/30"
+                    }`}>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                            {user.name.split(" ").map((x: string) => x[0]).join("").toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-[#1a202c]">{user.name}</p>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">
+                        <div className="flex flex-wrap gap-1">
+                          {user.roles?.map((role: any) => (
+                            <Badge key={role.id} variant="secondary" className="text-xs">
+                              {role.display_name}
+                            </Badge>
+                          ))}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {user.roles?.map((role: any) => (
-                          <Badge key={role.id} variant="secondary" className="text-xs">
-                            {role.display_name}
-                          </Badge>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">{user.department || "—"}</td>
-                    <td className="px-4 py-3">
-                      <Badge
-                        variant="secondary"
-                        className={
-                          user.is_active
-                            ? "bg-success/10 text-success border-success/20"
-                            : "bg-destructive/10 text-destructive border-destructive/20"
-                        }
-                      >
-                        {user.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-right">
+                      </td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">{user.department || "—"}</td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">
+                        <Badge
+                          variant="secondary"
+                          className={
+                            user.is_active
+                              ? "bg-success/10 text-success border-success/20 animate-none"
+                              : "bg-destructive/10 text-destructive border-destructive/20 animate-none"
+                          }
+                        >
+                          {user.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -227,7 +230,8 @@ function Page() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
+    </Card>
     </AppShell>
   );
 }

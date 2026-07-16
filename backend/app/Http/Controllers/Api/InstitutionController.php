@@ -4,8 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Institution;
-use App\Models\User;
-use App\Models\SubCity;
+use App\Models\User; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +18,7 @@ class InstitutionController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Institution::with(['subCity', 'verifier']);
+        $query = Institution::with([ 'verifier']);
 
         // Filter by type
         if ($request->has('type')) {
@@ -175,7 +174,7 @@ class InstitutionController extends Controller
      */
     public function show($id)
     {
-        $institution = Institution::with(['subCity', 'verifier', 'users'])->findOrFail($id);
+        $institution = Institution::with([ 'verifier', 'users'])->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -340,7 +339,7 @@ class InstitutionController extends Controller
             ], 404);
         }
 
-        $institution = Institution::with(['subCity', 'users'])->findOrFail($user->institution_id);
+        $institution = Institution::with([ 'users'])->findOrFail($user->institution_id);
 
         return response()->json([
             'success' => true,

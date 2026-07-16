@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ResearchIdea;
 use App\Models\ResearchActivityLog;
+use App\Models\User;
 use App\Enums\IdeaStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,7 @@ class ResearchIdeaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ResearchIdea::with(['submitter', 'subCity', 'attachments']);
+        $query = ResearchIdea::with(['submitter', 'attachments']);
 
         if ($request->status) {
             $query->where('status', $request->status);
@@ -53,23 +54,34 @@ class ResearchIdeaController extends Controller
 
         $validated['submitted_by'] = auth()->id();
         $validated['status'] = IdeaStatus::DRAFT;
+        $validated['assignment_status'] = 'pending_smart_city';
+
+        // Auto-assign to Smart City Command Center
+        $smartCityUser = User::whereHas('roles', function($q) {
+            $q->where('name', 'smart_city_command');
+        })->first();
+        
+        if ($smartCityUser) {
+            $validated['assigned_to_smart_city'] = $smartCityUser->id;
+        }
 
         $idea = ResearchIdea::create($validated);
 
-        ResearchActivityLog::log('created', $idea, null, $validated, 'Research idea created');
+        ResearchActivityLog::log('created', $idea, null, $validated, 'Research idea created and assigned to Smart City Command Center');
 
-        return response()->json($idea->load('submitter', 'subCity'), 201);
+        return response()->json($idea->load('submitter', 'assignedToSmartCity'), 201);
     }
 
     public function show(ResearchIdea $researchIdea)
     {
-        return response()->json($researchIdea->load([
-            'submitter',
-            'subCity',
-            'attachments',
-            'screenings.evaluator',
-            'project'
-        ]));
+        return response()->json([
+            'data' => $researchIdea->load([
+                'submitter',
+                'attachments',
+                'screenings.evaluator',
+                'project'
+            ])
+        ]);
     }
 
     public function update(Request $request, ResearchIdea $researchIdea)
@@ -90,7 +102,7 @@ class ResearchIdeaController extends Controller
 
         ResearchActivityLog::log('updated', $researchIdea, $oldValues, $validated, 'Research idea updated');
 
-        return response()->json($researchIdea->load('submitter', 'subCity'));
+        return response()->json($researchIdea->load('submitter'));
     }
 
     public function destroy(ResearchIdea $researchIdea)
@@ -107,11 +119,24 @@ class ResearchIdeaController extends Controller
         $researchIdea->update([
             'status' => IdeaStatus::SUBMITTED,
             'submitted_at' => now(),
+            'smart_city_assigned_at' => now(),
+            'assignment_status' => 'pending_smart_city',
         ]);
 
-        ResearchActivityLog::log('submitted', $researchIdea, null, null, 'Research idea submitted for review');
+        // Auto-assign to Smart City Command Center if not already assigned
+        if (!$researchIdea->assigned_to_smart_city) {
+            $smartCityUser = User::whereHas('roles', function($q) {
+                $q->where('name', 'smart_city_command');
+            })->first();
+            
+            if ($smartCityUser) {
+                $researchIdea->update(['assigned_to_smart_city' => $smartCityUser->id]);
+            }
+        }
 
-        return response()->json($researchIdea);
+        ResearchActivityLog::log('submitted', $researchIdea, null, null, 'Research idea submitted to Smart City Command Center for review');
+
+        return response()->json($researchIdea->load('assignedToSmartCity'));
     }
 
     public function uploadAttachment(Request $request, ResearchIdea $researchIdea)

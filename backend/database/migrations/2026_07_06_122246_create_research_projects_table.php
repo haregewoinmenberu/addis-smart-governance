@@ -26,7 +26,6 @@ return new class extends Migration
             $table->text('success_metrics')->nullable();
             $table->integer('progress_percentage')->default(0);
             $table->foreignId('project_lead_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('sub_city_id')->nullable()->constrained('sub_cities')->onDelete('set null');
             $table->string('trl_level')->default('1');
             $table->timestamps();
             $table->softDeletes();

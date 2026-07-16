@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { getAuthToken } from "@/lib/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { RequireAuth } from "@/components/auth/RequireAuth";
@@ -26,7 +27,7 @@ function ProjectDetailPage() {
     queryFn: async () => {
       const response = await fetch(`/api/research-projects/${id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${getAuthToken()}`
         }
       });
       if (!response.ok) throw new Error('Failed to fetch project');

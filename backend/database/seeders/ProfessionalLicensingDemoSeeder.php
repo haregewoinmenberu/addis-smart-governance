@@ -76,6 +76,9 @@ class ProfessionalLicensingDemoSeeder extends Seeder
     {
         $users = [];
 
+        // Ensure all licensing roles have dashboard permissions
+        $this->ensureDashboardPermissions();
+
         // Licensing Authority
         $licensingAuthority = User::firstOrCreate(
             ['email' => 'licensing@gov.et'],
@@ -555,5 +558,34 @@ class ProfessionalLicensingDemoSeeder extends Seeder
         }
         $this->command->info('========================================');
         $this->command->info('');
+    }
+
+    /**
+     * Ensure all licensing roles have dashboard permissions
+     */
+    protected function ensureDashboardPermissions(): void
+    {
+        $licensingRoles = [
+            'licensing_authority',
+            'verification_officer',
+            'exam_officer',
+            'disciplinary_committee',
+            'professional_applicant',
+            'public_user',
+        ];
+
+        $dashboardPermissions = ['view_dashboard', 'view_licensing_dashboard'];
+
+        foreach ($licensingRoles as $roleName) {
+            $role = Role::where('name', $roleName)->first();
+            if ($role) {
+                foreach ($dashboardPermissions as $permName) {
+                    $permission = \App\Models\Permission::where('name', $permName)->first();
+                    if ($permission && !$role->permissions()->where('permission_id', $permission->id)->exists()) {
+                        $role->permissions()->attach($permission->id);
+                    }
+                }
+            }
+        }
     }
 }

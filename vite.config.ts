@@ -12,4 +12,17 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      proxy: {
+        // Forward all /api/* requests from the Vite dev server (port 8080)
+        // to the Laravel backend (port 8000).
+        "/api": {
+          target: "http://localhost:8000",
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
+  },
 });

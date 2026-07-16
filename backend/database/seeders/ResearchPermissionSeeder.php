@@ -12,6 +12,9 @@ class ResearchPermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+            // Dashboard Permission
+            ['name' => 'view_research_dashboard', 'display_name' => 'View Research Dashboard', 'module' => 'research'],
+            
             // Research Ideas
             ['name' => 'view-research-ideas', 'display_name' => 'View Research Ideas', 'module' => 'research'],
             ['name' => 'create-research-ideas', 'display_name' => 'Create Research Ideas', 'module' => 'research'],
@@ -72,11 +75,31 @@ class ResearchPermissionSeeder extends Seeder
             $permissionIds[$permission['name']] = $perm->id;
         }
 
+        // Smart City Command Center Role
+        $smartCityCommand = Role::firstOrCreate(
+            ['name' => 'smart_city_command'],
+            ['display_name' => 'Smart City Command Center', 'description' => 'Central integration authority']
+        );
+        $smartCityPermissions = [
+            'view_research_dashboard',
+            'view-research-ideas', 'create-research-ideas',
+            'view-research-projects', 'view-research-reports', 'view-research-analytics',
+            'view-proposals', 'review-proposals', 'approve-proposals',
+            'view_notifications',
+        ];
+
+        // Merge in cross-module permissions that are not in $permissionIds (research-only scope)
+        $crossModulePerms = Permission::whereIn('name', ['view_notifications'])->pluck('id', 'name')->toArray();
+        $mergedPermissionIds = array_merge($permissionIds, $crossModulePerms);
+
+        $smartCityCommand->permissions()->sync(array_intersect_key($mergedPermissionIds, array_flip($smartCityPermissions)));
+
         // Research Director Role
         $researchDirector = Role::firstOrCreate(
             ['name' => 'research_director'],
             ['display_name' => 'Research Director', 'description' => 'Full access to research management system']
         );
+        // Ensure dashboard permission is included
         $researchDirector->permissions()->sync($permissionIds);
 
         // Research Lead Role
@@ -85,6 +108,7 @@ class ResearchPermissionSeeder extends Seeder
             ['display_name' => 'Research Lead', 'description' => 'Lead research projects and teams']
         );
         $leadPermissions = [
+            'view_research_dashboard',
             'view-research-ideas', 'create-research-ideas', 'edit-research-ideas', 'submit-research-ideas',
             'view-research-projects', 'create-research-projects', 'edit-research-projects', 'manage-research-projects',
             'view-proposals', 'create-proposals', 'edit-proposals',
@@ -110,6 +134,7 @@ class ResearchPermissionSeeder extends Seeder
             ['display_name' => 'Review Committee', 'description' => 'Review and approve research proposals']
         );
         $committeePermissions = [
+            'view_research_dashboard',
             'view-research-ideas', 'view-research-screenings', 'create-research-screenings', 'approve-research-screenings',
             'view-proposals', 'review-proposals', 'approve-proposals',
             'evaluate-research', 'assess-trl', 'approve-technology-transfer',
@@ -122,6 +147,7 @@ class ResearchPermissionSeeder extends Seeder
             ['display_name' => 'Researcher', 'description' => 'Conduct research and experiments']
         );
         $researcherPermissions = [
+            'view_research_dashboard',
             'view-research-ideas', 'create-research-ideas',
             'view-research-projects', 'manage-tasks', 'manage-experiments',
         ];

@@ -185,92 +185,96 @@ function Page() {
               </Button>
             </div>
           </div>
-          <div className="overflow-x-auto -mx-5">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="text-left font-medium px-5 py-3">Asset</th>
-                  <th className="text-left font-medium px-3 py-3">Owner</th>
-                  <th className="text-left font-medium px-3 py-3">Environment</th>
-                  <th className="text-left font-medium px-3 py-3">Category</th>
-                  <th className="text-left font-medium px-3 py-3">Status</th>
-                  <th className="text-right font-medium px-5 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
+          <div className="border border-border/40 rounded-xl overflow-hidden bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-[#f8fafc] border-b border-border/40 text-[11px] uppercase tracking-wider font-semibold text-[#718096]">
                   <tr>
-                    <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
-                      Loading technologies...
-                    </td>
+                    <th className="text-left py-3.5 px-6 font-semibold">Asset</th>
+                    <th className="text-left py-3.5 px-6 font-semibold">Owner</th>
+                    <th className="text-left py-3.5 px-6 font-semibold">Environment</th>
+                    <th className="text-left py-3.5 px-6 font-semibold">Category</th>
+                    <th className="text-left py-3.5 px-6 font-semibold">Status</th>
+                    <th className="text-right py-3.5 px-6 font-semibold">Actions</th>
                   </tr>
-                ) : technologies.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
-                      No technologies found
-                    </td>
-                  </tr>
-                ) : (
-                  technologies.map((tech: Technology) => {
-                    const Icon = envIcon(tech.deployment_type);
-                    return (
-                      <tr key={tech.id} className="border-t border-border/60 hover:bg-muted/30 transition-colors">
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                              <Database className="h-4 w-4" />
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                        Loading technologies...
+                      </td>
+                    </tr>
+                  ) : technologies.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
+                        No technologies found
+                      </td>
+                    </tr>
+                  ) : (
+                    technologies.map((tech: Technology, rowIndex: number) => {
+                      const Icon = envIcon(tech.deployment_type);
+                      return (
+                        <tr key={tech.id} className={`border-b border-border/40 hover:bg-slate-50/50 transition-colors ${
+                          rowIndex % 2 === 0 ? "bg-white" : "bg-[#f8fafc]/30"
+                        }`}>
+                          <td className="px-6 py-4 text-sm text-[#4a5568]">
+                            <div className="flex items-center gap-3">
+                              <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                                <Database className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-[#1a202c]">{tech.name}</p>
+                                <p className="text-xs text-muted-foreground">{tech.code || `TECH-${tech.id}`}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{tech.name}</p>
-                              <p className="text-xs text-muted-foreground">{tech.code || `TECH-${tech.id}`}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 text-muted-foreground">{tech.owner || "—"}</td>
-                        <td className="px-3 py-3">
-                          <span className="inline-flex items-center gap-1.5 text-xs">
-                            <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                            {tech.deployment_type || "—"}
-                          </span>
-                        </td>
-                        <td className="px-3 py-3 text-muted-foreground">{tech.category}</td>
-                        <td className="px-3 py-3">
-                          <Badge variant="secondary" className={statusStyle(tech.status)}>
-                            {tech.status}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <PermissionGuard permission="edit_technologies">
-                                <DropdownMenuItem onClick={() => handleEdit(tech.id)}>
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
-                                </DropdownMenuItem>
-                              </PermissionGuard>
-                              <PermissionGuard permission="delete_technologies">
-                                <DropdownMenuItem
-                                  onClick={() => openConfirm(tech)}
-                                  className="text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </PermissionGuard>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-[#4a5568]">{tech.owner || "—"}</td>
+                          <td className="px-6 py-4 text-sm text-[#4a5568]">
+                            <span className="inline-flex items-center gap-1.5 text-xs">
+                              <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                              {tech.deployment_type || "—"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-[#4a5568]">{tech.category}</td>
+                          <td className="px-6 py-4 text-sm text-[#4a5568]">
+                            <Badge variant="secondary" className={statusStyle(tech.status)}>
+                              {tech.status}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <PermissionGuard permission="edit_technologies">
+                                  <DropdownMenuItem onClick={() => handleEdit(tech.id)}>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                                <PermissionGuard permission="delete_technologies">
+                                  <DropdownMenuItem
+                                    onClick={() => openConfirm(tech)}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </Card>
 

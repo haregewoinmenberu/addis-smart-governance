@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { getRoleBadgeColor, formatRoleName } from "@/lib/rbac";
 import type { RoleName } from "@/types/rbac";
-import { Shield, UserCheck, ClipboardCheck } from "lucide-react";
+import { Shield, ClipboardCheck } from "lucide-react";
 
 interface RoleBadgeProps {
   role: RoleName;
@@ -11,8 +11,7 @@ interface RoleBadgeProps {
 
 const roleIcons: Record<RoleName, React.ComponentType<{ className?: string }>> = {
   itdb_administrator: Shield,
-  sub_city_administrator: UserCheck,
-  auditor: ClipboardCheck,
+  itdb_auditor: ClipboardCheck,
 };
 
 /**

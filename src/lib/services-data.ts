@@ -1,7 +1,7 @@
 import { FlaskConical, Cpu, ShieldCheck, GraduationCap, CheckCircle2, Sparkles, Users, BarChart3, FileCheck, Clock, Shield, BookOpen } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export type ServiceKey = "research" | "transformation" | "licensing" | "lms";
+export type ServiceKey = "research" | "transformation" | "licensing" ;
 
 export interface ServiceFeature {
   icon: LucideIcon;
@@ -195,8 +195,7 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
     stats: [
       { label: "Systems Modernized", value: "428" },
       { label: "Smart City Projects", value: "67" },
-      { label: "Agencies Connected", value: "145" },
-      { label: "Uptime SLA", value: "99.9%" }
+      { label: "Agencies Connected", value: "145" }, 
     ],
     ctaText: "Begin Digital Transformation",
     ctaSubtext: "Request a system assessment or start a modernization project",
@@ -213,7 +212,7 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
       },
       {
         title: "Plan transformation",
-        desc: "AI-generated roadmap with phased timelines, resource allocation, and risk mitigation strategies."
+        desc: "Roadmap with phased timelines, resource allocation, and risk mitigation strategies."
       },
       {
         title: "Implement changes",
@@ -294,8 +293,7 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
     stats: [
       { label: "Licensed Professionals", value: "12,450" },
       { label: "Certified Vendors", value: "890" },
-      { label: "Avg. Processing Time", value: "3 days" },
-      { label: "Verification API Calls", value: "45K/mo" }
+      { label: "Avg. Processing Time", value: "3 days" }, 
     ],
     ctaText: "Get Licensed Today",
     ctaSubtext: "Apply for professional certification or register as a vendor",
@@ -341,105 +339,6 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
     formTitle: "Professional License Application",
     formSubtitle: "Apply for IT professional certification or vendor registration with STRP."
   },
-  
-  lms: {
-    slug: "lms",
-    title: "Learning Management System",
-    shortTitle: "Government LMS",
-    icon: GraduationCap,
-    tagline: "Empowering Public Sector Excellence Through Continuous Learning",
-    description: "Comprehensive e-learning platform for government workforce training, skill development, and professional certification tracking.",
-    longDescription: "The Learning Management System (LMS) is designed specifically for Ethiopia's public sector workforce. It provides structured training programs, micro-credentials, skill assessments, and career development pathways aligned with government digital transformation goals.",
-    features: [
-      {
-        icon: BookOpen,
-        title: "Government Training Catalog",
-        description: "Curated courses covering digital literacy, cybersecurity, data analytics, project management, and technology policy—all tailored for public sector context."
-      },
-      {
-        icon: GraduationCap,
-        title: "E-Learning for Public Sector",
-        description: "Self-paced and instructor-led courses with video lectures, interactive labs, assessments, and peer collaboration tools accessible from any device."
-      },
-      {
-        icon: CheckCircle2,
-        title: "Certification & Skill Tracking",
-        description: "Earn micro-credentials and professional certificates. HR systems integrate directly to track employee skills and identify training gaps."
-      },
-      {
-        icon: BarChart3,
-        title: "Learning Analytics Dashboard",
-        description: "Track training completion rates, skill development trends, and workforce readiness metrics across all government agencies."
-      }
-    ],
-    benefits: [
-      {
-        title: "Upskill Government Workforce",
-        description: "Equip civil servants with modern digital skills needed to deliver 21st-century public services efficiently."
-      },
-      {
-        title: "Cost-Effective Training",
-        description: "Reduce training costs by 70% compared to traditional in-person workshops while reaching more employees across the country."
-      },
-      {
-        title: "Career Development Pathways",
-        description: "Clear skill progression tracks help employees advance their careers while ensuring agencies have the talent they need."
-      },
-      {
-        title: "Knowledge Retention",
-        description: "On-demand course library ensures institutional knowledge is preserved and accessible even as employees transition roles."
-      }
-    ],
-    stats: [
-      { label: "Active Learners", value: "18,900" },
-      { label: "Courses Available", value: "340" },
-      { label: "Certificates Issued", value: "6,780" },
-      { label: "Avg. Completion Rate", value: "84%" }
-    ],
-    ctaText: "Start Learning Today",
-    ctaSubtext: "Browse courses or create a custom training program for your agency",
-    highlights: [
-      "Government-specific training curriculum",
-      "Digital literacy and advanced tech courses",
-      "Self-paced and instructor-led learning",
-      "Certificates and skill tracking system"
-    ],
-    workflow: [
-      {
-        title: "Browse catalog",
-        desc: "Explore 340+ courses covering digital skills, leadership, project management, and government-specific topics."
-      },
-      {
-        title: "Enroll in courses",
-        desc: "Self-enroll in available courses or have your manager assign courses aligned with your career path."
-      },
-      {
-        title: "Complete training",
-        desc: "Learn at your own pace with interactive modules, assessments, and discussion forums."
-      },
-      {
-        title: "Earn credentials",
-        desc: "Receive certificates upon completion, visible on your profile and transferable across government agencies."
-      }
-    ],
-    faqs: [
-      {
-        q: "What types of courses are available?",
-        a: "Courses cover digital literacy, cybersecurity, data analytics, project management, leadership skills, and policy implementation—all tailored for government professionals."
-      },
-      {
-        q: "How do I get access to the LMS?",
-        a: "All government employees and civil servants can access the LMS using their STRP credentials. Agency managers can also enroll teams in specific training programs."
-      },
-      {
-        q: "Are certificates recognized across agencies?",
-        a: "Yes, all certificates are recognized by participating government agencies and can be included in your official personnel file and used for career advancement."
-      }
-    ],
-    formKind: "lms",
-    formTitle: "Learning Program Registration",
-    formSubtitle: "Register your organization for training programs or create a custom curriculum for your agency."
-  }
 };
 
 export const SERVICES = servicesData;

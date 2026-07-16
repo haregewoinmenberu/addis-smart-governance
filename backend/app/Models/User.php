@@ -27,7 +27,6 @@ class User extends Authenticatable
         'institution_id',
         'user_type',
         'is_primary_contact',
-        'sub_city_id',
         'department',
         'is_active',
         'last_login_at',
@@ -155,5 +154,5 @@ class User extends Authenticatable
     public function belongsToSubCity($subCityId)
     {
         return $this->sub_city_id == $subCityId;
-    }
+    } 
 } 

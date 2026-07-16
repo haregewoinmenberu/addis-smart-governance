@@ -12,12 +12,15 @@ use App\Models\DeploymentProject;
 use App\Models\TechnologyMonitoring;
 use App\Models\TechnologyIncident;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 class TechnologyTransferDemoSeeder extends Seeder
 {
     public function run(): void
     {
+        // Ensure all technology transfer roles have dashboard permissions
+        $this->ensureDashboardPermissions();
+
         $users = [
             [
                 'name' => 'Tech Manager',
@@ -70,11 +73,10 @@ class TechnologyTransferDemoSeeder extends Seeder
 
             $role = Role::where('name', $userData['role'])->first();
             if ($role) {
-                try {
-                    $user->assignRole($role);
-                } catch (\Exception $e) {
-                    // Role assignment failed, continue
-                }
+                \Illuminate\Support\Facades\DB::table('role_user')->updateOrInsert(
+                    ['user_id' => $user->id, 'role_id' => $role->id],
+                    ['user_id' => $user->id, 'role_id' => $role->id]
+                );
             }
 
             $createdUsers[$userData['role']] = $user;
@@ -296,5 +298,36 @@ class TechnologyTransferDemoSeeder extends Seeder
         echo "4. risk@gov.et / password123 (Risk Officer)\n";
         echo "5. governance@gov.et / password123 (Governance Committee)\n";
         echo "6. vendor@tech.com / password123 (Vendor)\n";
+    }
+
+    /**
+     * Ensure all technology transfer roles have dashboard permissions
+     */
+    protected function ensureDashboardPermissions(): void
+    {
+        $techTransferRoles = [
+            'technology_transfer_manager',
+            'governance_committee',
+            'security_officer',
+            'enterprise_architect',
+            'risk_officer',
+            'compliance_officer',
+            'legal_officer',
+            'vendor',
+        ];
+
+        $dashboardPermissions = ['view_dashboard', 'view_technology_transfer_dashboard'];
+
+        foreach ($techTransferRoles as $roleName) {
+            $role = Role::where('name', $roleName)->first();
+            if ($role) {
+                foreach ($dashboardPermissions as $permName) {
+                    $permission = \App\Models\Permission::where('name', $permName)->first();
+                    if ($permission && !$role->permissions()->where('permission_id', $permission->id)->exists()) {
+                        $role->permissions()->attach($permission->id);
+                    }
+                }
+            }
+        }
     }
 }

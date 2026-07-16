@@ -66,24 +66,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log("AuthContext: User fetched successfully", data.user?.email);
         setUserState(data.user);
         setIsAuthenticated(true);
-      } else if (response.status === 401) {
-        // Token is invalid, clear it
-        console.log("AuthContext: Token expired or invalid (401)");
+      } else if (response.status === 401 || response.status === 500) {
+        // Token is invalid or server error - clear auth to prevent redirect loops
+        console.log(`AuthContext: Auth failed with status ${response.status}, clearing token`);
+        const errorText = await response.text();
+        console.error("AuthContext: Error response:", errorText);
         clearAuthToken();
         setUserState(null);
         setIsAuthenticated(false);
       } else {
-        // For other errors (500, 503, etc.), keep the token
+        // For other errors (503, etc.), keep trying
         console.error("AuthContext: Failed to fetch user, status:", response.status);
         const errorText = await response.text();
         console.error("AuthContext: Error response:", errorText);
-        // Keep authenticated state if we have a token
-        setIsAuthenticated(!!token);
+        // Don't set authenticated without a user - this prevents redirect loops
+        setUserState(null);
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error("AuthContext: Network error:", error);
-      // Network error - keep the token and authenticated state
-      setIsAuthenticated(!!token);
+      // Network error - clear auth to prevent redirect loops
+      clearAuthToken();
+      setUserState(null);
+      setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
       setIsFetching(false);

@@ -1,23 +1,49 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { getAuthToken } from "@/lib/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { RequireAuth } from "@/components/auth/RequireAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { researchIdeaSchema, researchCategoryLabels, priorityLabels, type ResearchIdeaFormData } from "@/lib/research-schema";
+import {
+  researchIdeaSchema,
+  researchCategoryLabels,
+  priorityLabels,
+  type ResearchIdeaFormData,
+} from "@/lib/research-schema";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  Loader2,
+  Lightbulb,
+  Target,
+  FlaskConical,
+  TrendingUp,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
 export const Route = createFileRoute("/research/ideas/create")({
   component: () => (
@@ -26,6 +52,73 @@ export const Route = createFileRoute("/research/ideas/create")({
     </RequireAuth>
   ),
 });
+
+// Government sector options
+const GOVERNMENT_SECTORS = [
+  "Health",
+  "Education",
+  "Transportation",
+  "Agriculture",
+  "Finance",
+  "Trade & Industry",
+  "Urban Development",
+  "Environment",
+  "Water & Sanitation",
+  "Energy",
+  "ICT",
+  "Social Affairs",
+  "Justice",
+  "Security",
+  "Culture & Tourism",
+  "Other",
+];
+
+// Priority badge colors
+const PRIORITY_STYLES: Record<string, string> = {
+  low: "bg-slate-100 text-slate-700 border-slate-200",
+  medium: "bg-blue-100 text-blue-700 border-blue-200",
+  high: "bg-orange-100 text-orange-700 border-orange-200",
+  critical: "bg-red-100 text-red-700 border-red-200",
+};
+
+// Section icons
+const SECTION_ICONS = {
+  basic: <Lightbulb className="h-5 w-5 text-amber-500" />,
+  problem: <Target className="h-5 w-5 text-blue-500" />,
+  outcome: <TrendingUp className="h-5 w-5 text-green-500" />,
+};
+
+function CharCounter({
+  value = "",
+  min,
+  label,
+}: {
+  value?: string;
+  min: number;
+  label: string;
+}) {
+  const len = value?.length ?? 0;
+  const ok = len >= min;
+  return (
+    <div className="flex items-center justify-between mt-1">
+      <span
+        className={`text-xs flex items-center gap-1 ${ok ? "text-green-600" : "text-muted-foreground"}`}
+      >
+        {ok ? (
+          <CheckCircle2 className="h-3 w-3" />
+        ) : (
+          <AlertCircle className="h-3 w-3" />
+        )}
+        {ok ? `${label} requirement met` : `Minimum ${min} characters required`}
+      </span>
+      <span
+        className={`text-xs font-mono ${ok ? "text-green-600" : len > 0 ? "text-amber-600" : "text-muted-foreground"}`}
+      >
+        {len}/{min}
+      </span>
+    </div>
+  );
+}
 
 function CreateResearchIdeaPage() {
   const navigate = useNavigate();
@@ -39,51 +132,76 @@ function CreateResearchIdeaPage() {
       problem_statement: "",
       objectives: "",
       expected_outcome: "",
-      research_category: "basic_research",
+      research_category: "",
       government_sector: "",
       priority: "medium",
     },
+    mode: "onChange",
   });
+
+  const watchedValues = form.watch();
+  const selectedPriority = form.watch("priority");
 
   const createIdea = useMutation({
     mutationFn: async (data: ResearchIdeaFormData) => {
-      const response = await fetch('/api/research-ideas', {
-        method: 'POST',
+      const response = await fetch("/api/research-ideas", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
         },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('Failed to create idea');
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Failed to create idea");
+      }
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Research idea created successfully",
+        title: "✅ Research Idea Submitted",
+        description:
+          "Your idea has been created and assigned to the Smart City Command Center.",
       });
-      navigate({ to: '/research/ideas' });
+      navigate({ to: "/research/ideas" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create research idea",
+        title: "Submission Failed",
+        description: error.message || "Failed to submit research idea",
         variant: "destructive",
       });
     },
   });
 
+  const onSubmit = form.handleSubmit((data: ResearchIdeaFormData) => {
+    createIdea.mutate(data);
+  });
+
+  // Calculate overall form progress
+  const fields = [
+    watchedValues.title,
+    watchedValues.summary,
+    watchedValues.problem_statement,
+    watchedValues.objectives,
+    watchedValues.expected_outcome,
+    watchedValues.research_category,
+  ];
+  const filledCount = fields.filter((f) => f && String(f).length > 0).length;
+  const progressPct = Math.round((filledCount / fields.length) * 100);
+
   return (
     <AppShell>
       <PageHeader
         title="Submit Research Idea"
-        subtitle="Propose a new research or innovation project"
+        subtitle="Propose a new research or innovation project for Addis Ababa"
         actions={
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => navigate({ to: '/research/ideas' })}
+          <Button
+            id="back-to-ideas-btn"
+            variant="outline"
+            size="sm"
+            onClick={() => navigate({ to: "/research/ideas" })}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Ideas
@@ -91,53 +209,99 @@ function CreateResearchIdeaPage() {
         }
       />
 
+      {/* Progress bar */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-muted-foreground">
+            Form completion
+          </span>
+          <span
+            className={`text-sm font-semibold ${progressPct === 100 ? "text-green-600" : "text-primary"}`}
+          >
+            {progressPct}%
+          </span>
+        </div>
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-primary to-blue-500 rounded-full transition-all duration-500"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+      </div>
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit((data) => createIdea.mutate(data))} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>
-                Provide the core details of your research idea
-              </CardDescription>
+        <form
+          id="create-research-idea-form"
+          onSubmit={onSubmit}
+          className="space-y-6"
+        >
+          {/* ─── Section 1: Basic Information ─── */}
+          <Card className="border-border/60 shadow-sm">
+            <CardHeader className="pb-4 border-b border-border/40">
+              <CardTitle className="flex items-center gap-2 text-base">
+                {SECTION_ICONS.basic}
+                Basic Information
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="pt-5 space-y-5">
               {/* Title */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-semibold">Research Title *</FormLabel>
+                    <FormLabel className="text-sm font-semibold">
+                      Research Title <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter a descriptive title for your research idea"
+                        id="idea-title"
+                        placeholder="e.g., AI-Driven Traffic Management System for Addis Ababa"
                         {...field}
-                        className="h-11 rounded-lg"
+                        className="h-11"
                       />
                     </FormControl>
+                    <CharCounter
+                      value={field.value}
+                      min={10}
+                      label="Title"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Category and Priority */}
+              {/* Category + Priority */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="research_category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-semibold">Research Category *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <FormLabel className="text-sm font-semibold">
+                        Research Category{" "}
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-lg">
-                            <SelectValue placeholder="Select category" />
+                          <SelectTrigger id="idea-category" className="h-11">
+                            <SelectValue placeholder="Select a category" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {Object.entries(researchCategoryLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                          ))}
+                          {Object.entries(researchCategoryLabels).map(
+                            ([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                <div className="flex items-center gap-2">
+                                  <FlaskConical className="h-3.5 w-3.5 text-muted-foreground" />
+                                  {label}
+                                </div>
+                              </SelectItem>
+                            )
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -146,23 +310,48 @@ function CreateResearchIdeaPage() {
                 />
 
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-semibold">Priority</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <FormLabel className="text-sm font-semibold">
+                        Priority Level
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-lg">
+                          <SelectTrigger id="idea-priority" className="h-11">
                             <SelectValue placeholder="Select priority" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {Object.entries(priorityLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                          ))}
+                          {Object.entries(priorityLabels).map(
+                            ([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                <div className="flex items-center gap-2">
+                                  <Badge
+                                    className={`text-xs py-0 ${PRIORITY_STYLES[value]}`}
+                                  >
+                                    {label}
+                                  </Badge>
+                                </div>
+                              </SelectItem>
+                            )
+                          )}
                         </SelectContent>
                       </Select>
+                      {selectedPriority && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Selected:{" "}
+                          <Badge
+                            className={`text-xs py-0 ${PRIORITY_STYLES[selectedPriority]}`}
+                          >
+                            {priorityLabels[selectedPriority as keyof typeof priorityLabels]}
+                          </Badge>
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -171,18 +360,33 @@ function CreateResearchIdeaPage() {
 
               {/* Government Sector */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="government_sector"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-semibold">Government Sector (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Health, Education, Transportation"
-                        {...field}
-                        className="h-11 rounded-lg"
-                      />
-                    </FormControl>
+                    <FormLabel className="text-sm font-semibold">
+                      Government Sector{" "}
+                      <span className="text-muted-foreground font-normal text-xs">
+                        (optional)
+                      </span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger id="idea-sector" className="h-11">
+                          <SelectValue placeholder="Select a sector or leave blank" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {GOVERNMENT_SECTORS.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -190,19 +394,28 @@ function CreateResearchIdeaPage() {
 
               {/* Summary */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="summary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-semibold">Executive Summary *</FormLabel>
+                    <FormLabel className="text-sm font-semibold">
+                      Executive Summary{" "}
+                      <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Provide a brief summary of your research idea (minimum 50 characters)"
+                        id="idea-summary"
+                        placeholder="Give a concise overview of your research idea — what it is, why it matters, and what you aim to achieve..."
                         rows={4}
                         {...field}
-                        className="rounded-lg resize-none"
+                        className="resize-none"
                       />
                     </FormControl>
+                    <CharCounter
+                      value={field.value}
+                      min={50}
+                      label="Summary"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -210,29 +423,42 @@ function CreateResearchIdeaPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Problem & Objectives</CardTitle>
-              <CardDescription>
-                Describe the problem you're addressing and your research objectives
-              </CardDescription>
+          {/* ─── Section 2: Problem & Objectives ─── */}
+          <Card className="border-border/60 shadow-sm">
+            <CardHeader className="pb-4 border-b border-border/40">
+              <CardTitle className="flex items-center gap-2 text-base">
+                {SECTION_ICONS.problem}
+                Problem Statement & Objectives
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="pt-5 space-y-5">
               {/* Problem Statement */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="problem_statement"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-semibold">Problem Statement *</FormLabel>
+                    <FormLabel className="text-sm font-semibold">
+                      Problem Statement{" "}
+                      <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <p className="text-xs text-muted-foreground -mt-1 mb-2">
+                      Clearly describe the problem or gap this research will address. Include context, affected stakeholders, and current limitations.
+                    </p>
                     <FormControl>
                       <Textarea
-                        placeholder="Clearly describe the problem or gap your research will address (minimum 100 characters)"
+                        id="idea-problem"
+                        placeholder="Describe the problem in detail. What is the current situation? Who is affected? What happens without a solution?..."
                         rows={6}
                         {...field}
-                        className="rounded-lg resize-none"
+                        className="resize-none"
                       />
                     </FormControl>
+                    <CharCounter
+                      value={field.value}
+                      min={100}
+                      label="Problem statement"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -240,39 +466,31 @@ function CreateResearchIdeaPage() {
 
               {/* Objectives */}
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="objectives"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-semibold">Research Objectives *</FormLabel>
+                    <FormLabel className="text-sm font-semibold">
+                      Research Objectives{" "}
+                      <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <p className="text-xs text-muted-foreground -mt-1 mb-2">
+                      List specific, measurable objectives. Use bullet points or numbered items for clarity.
+                    </p>
                     <FormControl>
                       <Textarea
-                        placeholder="List the specific objectives your research aims to achieve (minimum 50 characters)"
+                        id="idea-objectives"
+                        placeholder="1. Develop a framework for...&#10;2. Analyze and evaluate...&#10;3. Implement and test..."
                         rows={5}
                         {...field}
-                        className="rounded-lg resize-none"
+                        className="resize-none font-mono text-sm"
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Expected Outcome */}
-              <FormField
-                control={form.control}
-                name="expected_outcome"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-semibold">Expected Outcome *</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe the anticipated results and impact of your research (minimum 50 characters)"
-                        rows={5}
-                        {...field}
-                        className="rounded-lg resize-none"
-                      />
-                    </FormControl>
+                    <CharCounter
+                      value={field.value}
+                      min={50}
+                      label="Objectives"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -280,25 +498,83 @@ function CreateResearchIdeaPage() {
             </CardContent>
           </Card>
 
-          {/* Submit Actions */}
-          <div className="flex gap-3">
+          {/* ─── Section 3: Expected Outcome ─── */}
+          <Card className="border-border/60 shadow-sm">
+            <CardHeader className="pb-4 border-b border-border/40">
+              <CardTitle className="flex items-center gap-2 text-base">
+                {SECTION_ICONS.outcome}
+                Expected Outcomes & Impact
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-5">
+              <FormField
+                control={form.control as any}
+                name="expected_outcome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold">
+                      Expected Outcome{" "}
+                      <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <p className="text-xs text-muted-foreground -mt-1 mb-2">
+                      Describe the tangible deliverables, anticipated results, and the impact this research will have on the city and its residents.
+                    </p>
+                    <FormControl>
+                      <Textarea
+                        id="idea-outcome"
+                        placeholder="Describe the expected deliverables (reports, tools, policies, prototypes...), the anticipated improvements, and long-term societal or economic impact..."
+                        rows={5}
+                        {...field}
+                        className="resize-none"
+                      />
+                    </FormControl>
+                    <CharCounter
+                      value={field.value}
+                      min={50}
+                      label="Expected outcome"
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* ─── Submit Actions ─── */}
+          <div className="flex flex-col sm:flex-row gap-3 pb-4">
             <Button
+              id="submit-idea-btn"
               type="submit"
-              disabled={createIdea.isPending}
-              className="h-12 bg-gradient-primary text-primary-foreground shadow-glow font-semibold"
+              disabled={createIdea.isPending || progressPct < 100}
+              className="h-12 px-8 bg-gradient-primary text-primary-foreground shadow-glow font-semibold flex-1 sm:flex-none"
             >
-              {createIdea.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              <Save className="h-4 w-4 mr-2" />
-              {createIdea.isPending ? 'Submitting...' : 'Submit Research Idea'}
+              {createIdea.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Submit Research Idea
+                </>
+              )}
             </Button>
             <Button
+              id="cancel-idea-btn"
               type="button"
               variant="outline"
-              onClick={() => navigate({ to: '/research/ideas' })}
-              className="h-12"
+              className="h-12 px-6"
+              onClick={() => navigate({ to: "/research/ideas" })}
+              disabled={createIdea.isPending}
             >
               Cancel
             </Button>
+            {progressPct < 100 && (
+              <p className="text-xs text-muted-foreground self-center sm:ml-2">
+                Complete all required fields to submit
+              </p>
+            )}
           </div>
         </form>
       </Form>

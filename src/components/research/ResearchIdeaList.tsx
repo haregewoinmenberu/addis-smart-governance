@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ResearchIdea, IdeaStatus, Priority } from '@/types/research';
+import { getAuthToken } from '@/lib/api';
 import { Search, Plus, Eye } from 'lucide-react';
 
 interface ResearchIdeaListProps {
@@ -28,7 +29,9 @@ export default function ResearchIdeaList({ onViewIdea, onCreateIdea }: ResearchI
       if (search) params.append('search', search);
       if (filterStatus) params.append('status', filterStatus);
 
-      const response = await fetch(`/api/research-ideas?${params}`);
+      const response = await fetch(`/api/research-ideas?${params}`, {
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
       const data = await response.json();
       setIdeas(data.data);
     } catch (error) {

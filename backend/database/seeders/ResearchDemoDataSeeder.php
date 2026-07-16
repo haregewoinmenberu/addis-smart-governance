@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\ResearchIdea;
+use App\Models\ResearchIdeaAttachment;
 use App\Models\ResearchProject;
 use App\Models\ResearchScreening;
 use App\Enums\IdeaStatus;
@@ -14,11 +15,15 @@ use App\Enums\ResearchCategory;
 use App\Enums\ResearchStage;
 use App\Enums\ApprovalDecision;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class ResearchDemoDataSeeder extends Seeder
 {
     public function run(): void
     {
+        // Ensure all research roles have dashboard permissions
+        $this->ensureDashboardPermissions();
+
         // Create Demo Users
         $director = User::create([
             'name' => 'Dr. Sarah Johnson',
@@ -112,6 +117,11 @@ class ResearchDemoDataSeeder extends Seeder
             'submitted_by' => $lead->id,
             'submitted_at' => null,
         ]);
+
+        // Create sample attachments for testing document preview
+        $this->createSampleAttachments($idea1, $researcher->id);
+        $this->createSampleAttachments($idea2, $lead->id);
+        $this->createSampleAttachments($idea3, $researcher->id);
 
         // Create Screening for idea2
         ResearchScreening::create([
@@ -227,5 +237,253 @@ class ResearchDemoDataSeeder extends Seeder
         echo "  → Login as Director\n";
         echo "  → Transition project stages\n";
         echo "  → View workflow history\n\n";
+    }
+
+    /**
+     * Create sample attachments for research ideas
+     */
+    protected function createSampleAttachments(ResearchIdea $idea, int $uploadedBy): void
+    {
+        // Create directory for this research idea
+        $directory = "research_ideas/{$idea->id}";
+        Storage::disk('public')->makeDirectory($directory);
+
+        // Sample attachment 1: Research Proposal (PDF)
+        $proposalContent = $this->generateSamplePdfContent($idea);
+        $proposalPath = "{$directory}/research_proposal.pdf";
+        Storage::disk('public')->put($proposalPath, $proposalContent);
+
+        ResearchIdeaAttachment::create([
+            'research_idea_id' => $idea->id,
+            'file_name' => 'research_proposal.pdf',
+            'file_path' => $proposalPath,
+            'file_type' => 'application/pdf',
+            'file_size' => strlen($proposalContent),
+            'uploaded_by' => $uploadedBy,
+        ]);
+
+        // Sample attachment 2: Budget Document (TXT simulating Excel)
+        $budgetContent = $this->generateSampleBudget($idea);
+        $budgetPath = "{$directory}/budget_breakdown.txt";
+        Storage::disk('public')->put($budgetPath, $budgetContent);
+
+        ResearchIdeaAttachment::create([
+            'research_idea_id' => $idea->id,
+            'file_name' => 'budget_breakdown.txt',
+            'file_path' => $budgetPath,
+            'file_type' => 'text/plain',
+            'file_size' => strlen($budgetContent),
+            'uploaded_by' => $uploadedBy,
+        ]);
+
+        // Sample attachment 3: Project Timeline (Image placeholder)
+        $timelinePath = "{$directory}/project_timeline.png";
+        $this->createSampleImage($timelinePath, 'Project Timeline');
+
+        ResearchIdeaAttachment::create([
+            'research_idea_id' => $idea->id,
+            'file_name' => 'project_timeline.png',
+            'file_path' => $timelinePath,
+            'file_type' => 'image/png',
+            'file_size' => Storage::disk('public')->size($timelinePath),
+            'uploaded_by' => $uploadedBy,
+        ]);
+
+        echo "   ✓ Created 3 sample attachments for: {$idea->title}\n";
+    }
+
+    /**
+     * Generate sample PDF content
+     */
+    protected function generateSamplePdfContent(ResearchIdea $idea): string
+    {
+        $priority = $idea->priority instanceof \BackedEnum
+            ? $idea->priority->value
+            : $idea->priority;
+
+        $category = $idea->research_category instanceof \BackedEnum
+            ? $idea->research_category->value
+            : $idea->research_category;
+
+        return <<<PDF
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 <<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+>>
+>>
+endobj
+4 0 obj
+<<
+/Length 700
+>>
+stream
+BT
+/F1 18 Tf
+50 750 Td
+(Research Proposal) Tj
+
+0 -30 Td
+/F1 12 Tf
+(Title: {$idea->title}) Tj
+
+0 -20 Td
+(Category: {$category}) Tj
+
+0 -20 Td
+(Priority: {$priority}) Tj
+
+0 -30 Td
+(Summary:) Tj
+
+0 -20 Td
+({$idea->summary}) Tj
+
+0 -30 Td
+(Problem Statement:) Tj
+
+0 -20 Td
+({$idea->problem_statement}) Tj
+
+0 -30 Td
+(Expected Outcome:) Tj
+
+0 -20 Td
+({$idea->expected_outcome}) Tj
+
+0 -30 Td
+(This is a sample PDF document for testing purposes.) Tj
+
+ET
+endstream
+endobj
+
+xref
+0 5
+0000000000 65535 f
+0000000009 00000 n
+0000000058 00000 n
+0000000115 00000 n
+0000000315 00000 n
+
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+
+startxref
+865
+%%EOF
+PDF;
+    }
+
+    /**
+     * Generate sample budget content
+     */
+    protected function generateSampleBudget(ResearchIdea $idea): string
+    {
+        return <<<BUDGET
+RESEARCH PROJECT BUDGET BREAKDOWN
+==================================
+
+Project: {$idea->title}
+Date: {$idea->created_at->format('Y-m-d')}
+
+1. PERSONNEL COSTS
+   - Research Lead: $50,000
+   - Senior Researchers (2): $80,000
+   - Junior Researchers (3): $60,000
+   - Technical Staff: $40,000
+   Subtotal: $230,000
+
+2. EQUIPMENT & MATERIALS
+   - Laboratory Equipment: $150,000
+   - Computing Hardware: $80,000
+   - Software Licenses: $30,000
+   - Materials & Supplies: $40,000
+   Subtotal: $300,000
+
+3. OPERATIONAL COSTS
+   - Facility Rental: $60,000
+   - Utilities: $24,000
+   - Communications: $12,000
+   - Travel: $50,000
+   Subtotal: $146,000
+
+4. OTHER COSTS
+   - Training & Workshops: $30,000
+   - Contingency (10%): $70,600
+   Subtotal: $100,600
+
+TOTAL PROJECT BUDGET: $776,600
+
+This is a sample budget document for testing purposes.
+Actual budget details would be more comprehensive.
+BUDGET;
+    }
+
+    /**
+     * Create a simple sample image (1x1 PNG)
+     */
+    protected function createSampleImage(string $path, string $label): void
+    {
+        // Create a minimal valid PNG (1x1 transparent pixel)
+        $pngData = base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+        );
+        
+        Storage::disk('public')->put($path, $pngData);
+    }
+
+    /**
+     * Ensure all research roles have dashboard permissions
+     */
+    protected function ensureDashboardPermissions(): void
+    {
+        $researchRoles = [
+            'research_director',
+            'research_lead',
+            'system_architect',
+            'review_committee',
+            'researcher',
+        ];
+
+        $dashboardPermissions = ['view_dashboard', 'view_research_dashboard'];
+
+        foreach ($researchRoles as $roleName) {
+            $role = Role::where('name', $roleName)->first();
+            if ($role) {
+                foreach ($dashboardPermissions as $permName) {
+                    $permission = \App\Models\Permission::where('name', $permName)->first();
+                    if ($permission && !$role->permissions()->where('permission_id', $permission->id)->exists()) {
+                        $role->permissions()->attach($permission->id);
+                    }
+                }
+            }
+        }
     }
 }

@@ -1,12 +1,19 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { getAuthToken } from "@/lib/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Edit, CheckCircle, XCircle, Clock } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { ArrowLeft, Edit, CheckCircle, XCircle, Clock, Trash2 } from "lucide-react";
 import { researchCategoryLabels, priorityLabels } from "@/lib/research-schema";
 
 export const Route = createFileRoute("/research/ideas/$id")({
@@ -20,17 +27,37 @@ export const Route = createFileRoute("/research/ideas/$id")({
 function ResearchIdeaDetailPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { data: idea, isLoading } = useQuery({
     queryKey: ["research-idea", id],
     queryFn: async () => {
       const response = await fetch(`/api/research-ideas/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
       });
-      if (!response.ok) throw new Error('Failed to fetch idea');
+      if (!response.ok) throw new Error("Failed to fetch idea");
       return response.json();
+    },
+  });
+
+  const deleteIdea = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/research-ideas/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
+      if (!response.ok) throw new Error("Failed to delete idea");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Deleted", description: "Research idea deleted successfully." });
+      queryClient.invalidateQueries({ queryKey: ["research-ideas"] });
+      navigate({ to: "/research/ideas" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not delete the idea.", variant: "destructive" });
     },
   });
 
@@ -71,18 +98,31 @@ function ResearchIdeaDetailPage() {
         actions={
           <div className="flex gap-2">
             {idea?.data?.status === 'draft' && (
-              <Button
-                size="sm"
-                className="bg-gradient-primary text-primary-foreground shadow-glow"
-                onClick={() => navigate({ to: `/research/ideas/${id}/edit` })}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
+              <>
+                <Button
+                  id={`edit-idea-${id}-btn`}
+                  size="sm"
+                  className="bg-gradient-primary text-primary-foreground shadow-glow"
+                  onClick={() => navigate({ to: `/research/ideas/${id}/edit` })}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+                <Button
+                  id={`delete-idea-${id}-btn`}
+                  size="sm"
+                  variant="outline"
+                  className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </>
             )}
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigate({ to: '/research/ideas' })}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -217,6 +257,31 @@ function ResearchIdeaDetailPage() {
           </Card>
         )}
       </div>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Research Idea</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-foreground">"{idea?.data?.title}"</span>?{" "}
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteIdea.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              id="confirm-delete-idea-detail-btn"
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteIdea.isPending}
+              onClick={() => deleteIdea.mutate()}
+            >
+              {deleteIdea.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }

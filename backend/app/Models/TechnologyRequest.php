@@ -20,7 +20,10 @@ class TechnologyRequest extends Model
         'technical_documentation', 'architecture_diagram', 'api_documentation',
         'licenses', 'source_code_repository', 'required_infrastructure',
         'deployment_requirements', 'dependencies', 'estimated_cost', 'expected_users',
-        'current_stage', 'status', 'submitted_by', 'sub_city_id', 'submitted_at', 'approved_at'
+        'current_stage', 'status', 'submitted_by', 'submitted_at', 'approved_at',
+        'requester_name', 'requester_email', 'requester_phone', 'requester_organization',
+        'is_external_request', 'request_classification', 'assigned_to_command_center_at',
+        'command_center_notes'
     ];
 
     protected $casts = [
@@ -28,6 +31,8 @@ class TechnologyRequest extends Model
         'submitted_at' => 'datetime',
         'approved_at' => 'datetime',
         'estimated_cost' => 'decimal:2',
+        'is_external_request' => 'boolean',
+        'assigned_to_command_center_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -54,11 +59,6 @@ class TechnologyRequest extends Model
     public function researchProject(): BelongsTo
     {
         return $this->belongsTo(ResearchProject::class);
-    }
-
-    public function subCity(): BelongsTo
-    {
-        return $this->belongsTo(SubCity::class);
     }
 
     public function evaluations(): HasMany

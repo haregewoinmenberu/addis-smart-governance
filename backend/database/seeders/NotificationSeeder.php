@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Notification;
 use App\Models\User;
-use App\Models\SubCity;
 use Carbon\Carbon;
 
 class NotificationSeeder extends Seeder
@@ -27,8 +26,6 @@ class NotificationSeeder extends Seeder
         $creator = $users->first();
         
         // Get sub-cities
-        $subCities = SubCity::all();
-        $subCity = $subCities->first();
 
         $notifications = [];
 
@@ -38,7 +35,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => $creator->id,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'New Technology Request Submitted',
                 'message' => 'A new technology request for "Cloud Infrastructure Upgrade" has been submitted and requires your review.',
                 'type' => 'request',
@@ -56,7 +52,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => $creator->id,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Request Approved',
                 'message' => 'Your technology request "Mobile App Development" has been approved and is now in progress.',
                 'type' => 'success',
@@ -75,7 +70,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => $creator->id,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Cybersecurity Alert: CRITICAL',
                 'message' => 'A critical security vulnerability has been detected in the payment gateway system. Immediate action required.',
                 'type' => 'security',
@@ -94,7 +88,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => $creator->id,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Audit Scheduled',
                 'message' => 'An IT infrastructure audit has been scheduled for your sub-city on May 20, 2026.',
                 'type' => 'audit',
@@ -113,7 +106,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => null,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Deadline Reminder',
                 'message' => 'The deadline for "Quarterly Technology Report" is approaching in 3 days.',
                 'type' => 'deadline',
@@ -132,7 +124,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => $creator->id,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Workflow Escalated',
                 'message' => 'A workflow has been escalated to you for approval: "Budget Approval for IT Equipment"',
                 'type' => 'workflow',
@@ -151,7 +142,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => $creator->id,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Vendor Approved',
                 'message' => 'Vendor "TechSolutions Ethiopia" has been approved and is now active in the system.',
                 'type' => 'success',
@@ -169,7 +159,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => $creator->id,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Request Rejected',
                 'message' => 'Your technology request "Legacy System Migration" has been rejected. Reason: Insufficient budget allocation.',
                 'type' => 'error',
@@ -188,7 +177,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => null,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'System Maintenance Scheduled',
                 'message' => 'System maintenance is scheduled for May 18, 2026 from 2:00 AM to 4:00 AM. The system will be unavailable during this time.',
                 'type' => 'system',
@@ -206,7 +194,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => $creator->id,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Survey Response Required',
                 'message' => 'Please complete the "IT Infrastructure Assessment Survey" by May 17, 2026.',
                 'type' => 'info',
@@ -225,7 +212,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => null,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Welcome to STRP',
                 'message' => 'Welcome to the Smart Technology Request Portal! Your account has been created successfully.',
                 'type' => 'info',
@@ -243,7 +229,6 @@ class NotificationSeeder extends Seeder
             $notifications[] = [
                 'user_id' => $user->id,
                 'created_by_id' => null,
-                'sub_city_id' => $user->sub_city_id ?? $subCity?->id,
                 'title' => 'Password Expiring Soon',
                 'message' => 'Your password will expire in 14 days. Please change it to maintain account security.',
                 'type' => 'warning',

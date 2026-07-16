@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
-import { getUser, updateUser, getSubCities } from "@/lib/api";
+import { getUser, updateUser } from "@/lib/api";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -35,18 +35,12 @@ function Page() {
     queryFn: () => getUser(id),
   });
 
-  const { data: subCitiesData } = useQuery({
-    queryKey: ["sub-cities"],
-    queryFn: () => getSubCities(),
-  });
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     department: "",
-    sub_city_id: "",
-    role: "sub_city_administrator",
+    role: "itdb_auditor",
   });
 
   useEffect(() => {
@@ -57,8 +51,7 @@ function Page() {
         email: user.email || "",
         phone: user.phone || "",
         department: user.department || "",
-        sub_city_id: user.sub_city_id?.toString() || "",
-        role: user.roles?.[0]?.name || "sub_city_administrator",
+        role: user.roles?.[0]?.name || "itdb_auditor",
       });
     }
   }, [userData]);
@@ -80,8 +73,6 @@ function Page() {
     e.preventDefault();
     updateMutation.mutate(formData);
   };
-
-  const subCities = subCitiesData?.data ?? [];
 
   if (isLoading) {
     return (
@@ -169,41 +160,17 @@ function Page() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="itdb_administrator">ITDB Administrator</SelectItem>
-                  <SelectItem value="sub_city_administrator">Sub-City Administrator</SelectItem>
-                  <SelectItem value="auditor">Auditor</SelectItem>
+                  <SelectItem value="itdb_auditor">ITDB Auditor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            {formData.role === "sub_city_administrator" && (
-              <div className="space-y-2">
-                <Label htmlFor="sub_city_id">Sub-City</Label>
-                <Select
-                  value={formData.sub_city_id}
-                  onValueChange={(value) => setFormData({ ...formData, sub_city_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select sub-city" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subCities.map((sc: any) => (
-                      <SelectItem key={sc.id} value={sc.id.toString()}>
-                        {sc.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
             <div className="flex gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate({ to: "/users" })}
-              >
+                onClick={() => navigate({ to: "/users" })} >
                 Cancel
-              </Button>
+              </Button> 
               <Button type="submit" disabled={updateMutation.isPending}>
                 {updateMutation.isPending ? "Updating..." : "Update User"}
               </Button>
@@ -213,4 +180,4 @@ function Page() {
       </Card>
     </AppShell>
   );
-}
+} 

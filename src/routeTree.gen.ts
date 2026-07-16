@@ -13,8 +13,8 @@ import { Route as WorkflowsRouteImport } from './routes/workflows'
 import { Route as VendorsRouteImport } from './routes/vendors'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as SurveysRouteImport } from './routes/surveys'
-import { Route as SubCitiesRouteImport } from './routes/sub-cities'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ServiceRequestsRouteImport } from './routes/service-requests'
 import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RegistryRouteImport } from './routes/registry'
@@ -30,15 +30,13 @@ import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendorsIndexRouteImport } from './routes/vendors.index'
 import { Route as UsersIndexRouteImport } from './routes/users.index'
-import { Route as SubCitiesIndexRouteImport } from './routes/sub-cities.index'
 import { Route as RequestsIndexRouteImport } from './routes/requests.index'
 import { Route as RegistryIndexRouteImport } from './routes/registry.index'
 import { Route as ProfileIndexRouteImport } from './routes/profile.index'
 import { Route as NotificationsIndexRouteImport } from './routes/notifications.index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as VendorsCreateRouteImport } from './routes/vendors.create'
 import { Route as UsersCreateRouteImport } from './routes/users.create'
-import { Route as SubCitiesCreateRouteImport } from './routes/sub-cities.create'
-import { Route as SubCitiesIdRouteImport } from './routes/sub-cities.$id'
 import { Route as ServicesServiceSlugRouteImport } from './routes/services.$serviceSlug'
 import { Route as ResearchTransfersRouteImport } from './routes/research.transfers'
 import { Route as ResearchScreeningsRouteImport } from './routes/research.screenings'
@@ -48,9 +46,17 @@ import { Route as ResearchIdeasRouteImport } from './routes/research.ideas'
 import { Route as ResearchEvaluationsRouteImport } from './routes/research.evaluations'
 import { Route as RequestsCreateRouteImport } from './routes/requests.create'
 import { Route as RegistryCreateRouteImport } from './routes/registry.create'
-import { Route as SubCitiesIdIndexRouteImport } from './routes/sub-cities.$id.index'
+import { Route as DashboardTechnologyTransferRouteImport } from './routes/dashboard.technology-transfer'
+import { Route as DashboardSubcityRouteImport } from './routes/dashboard.subcity'
+import { Route as DashboardResearchRouteImport } from './routes/dashboard.research'
+import { Route as DashboardNoAccessRouteImport } from './routes/dashboard.no-access'
+import { Route as DashboardMainRouteImport } from './routes/dashboard.main'
+import { Route as DashboardLicensingRouteImport } from './routes/dashboard.licensing'
+import { Route as DashboardInstitutionRouteImport } from './routes/dashboard.institution'
+import { Route as DashboardExecutiveRouteImport } from './routes/dashboard.executive'
+import { Route as DashboardAuditorRouteImport } from './routes/dashboard.auditor'
+import { Route as ResearchIdeasIndexRouteImport } from './routes/research.ideas.index'
 import { Route as UsersIdEditRouteImport } from './routes/users.$id.edit'
-import { Route as SubCitiesIdEditRouteImport } from './routes/sub-cities.$id.edit'
 import { Route as ResearchProjectsIdRouteImport } from './routes/research.projects.$id'
 import { Route as ResearchIdeasCreateRouteImport } from './routes/research.ideas.create'
 import { Route as ResearchIdeasIdRouteImport } from './routes/research.ideas.$id'
@@ -82,14 +88,14 @@ const SurveysRoute = SurveysRouteImport.update({
   path: '/surveys',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SubCitiesRoute = SubCitiesRouteImport.update({
-  id: '/sub-cities',
-  path: '/sub-cities',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServiceRequestsRoute = ServiceRequestsRouteImport.update({
+  id: '/service-requests',
+  path: '/service-requests',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsRoute = RequestsRouteImport.update({
@@ -167,11 +173,6 @@ const UsersIndexRoute = UsersIndexRouteImport.update({
   path: '/',
   getParentRoute: () => UsersRoute,
 } as any)
-const SubCitiesIndexRoute = SubCitiesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SubCitiesRoute,
-} as any)
 const RequestsIndexRoute = RequestsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -192,6 +193,11 @@ const NotificationsIndexRoute = NotificationsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => NotificationsRoute,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const VendorsCreateRoute = VendorsCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -201,16 +207,6 @@ const UsersCreateRoute = UsersCreateRouteImport.update({
   id: '/create',
   path: '/create',
   getParentRoute: () => UsersRoute,
-} as any)
-const SubCitiesCreateRoute = SubCitiesCreateRouteImport.update({
-  id: '/create',
-  path: '/create',
-  getParentRoute: () => SubCitiesRoute,
-} as any)
-const SubCitiesIdRoute = SubCitiesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => SubCitiesRoute,
 } as any)
 const ServicesServiceSlugRoute = ServicesServiceSlugRouteImport.update({
   id: '/services/$serviceSlug',
@@ -257,20 +253,61 @@ const RegistryCreateRoute = RegistryCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => RegistryRoute,
 } as any)
-const SubCitiesIdIndexRoute = SubCitiesIdIndexRouteImport.update({
+const DashboardTechnologyTransferRoute =
+  DashboardTechnologyTransferRouteImport.update({
+    id: '/technology-transfer',
+    path: '/technology-transfer',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardSubcityRoute = DashboardSubcityRouteImport.update({
+  id: '/subcity',
+  path: '/subcity',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardResearchRoute = DashboardResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNoAccessRoute = DashboardNoAccessRouteImport.update({
+  id: '/no-access',
+  path: '/no-access',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMainRoute = DashboardMainRouteImport.update({
+  id: '/main',
+  path: '/main',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardLicensingRoute = DashboardLicensingRouteImport.update({
+  id: '/licensing',
+  path: '/licensing',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardInstitutionRoute = DashboardInstitutionRouteImport.update({
+  id: '/institution',
+  path: '/institution',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardExecutiveRoute = DashboardExecutiveRouteImport.update({
+  id: '/executive',
+  path: '/executive',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAuditorRoute = DashboardAuditorRouteImport.update({
+  id: '/auditor',
+  path: '/auditor',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const ResearchIdeasIndexRoute = ResearchIdeasIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => SubCitiesIdRoute,
+  getParentRoute: () => ResearchIdeasRoute,
 } as any)
 const UsersIdEditRoute = UsersIdEditRouteImport.update({
   id: '/$id/edit',
   path: '/$id/edit',
   getParentRoute: () => UsersRoute,
-} as any)
-const SubCitiesIdEditRoute = SubCitiesIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => SubCitiesIdRoute,
 } as any)
 const ResearchProjectsIdRoute = ResearchProjectsIdRouteImport.update({
   id: '/$id',
@@ -331,7 +368,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/cybersecurity': typeof CybersecurityRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -341,12 +378,21 @@ export interface FileRoutesByFullPath {
   '/registry': typeof RegistryRouteWithChildren
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
+  '/service-requests': typeof ServiceRequestsRoute
   '/settings': typeof SettingsRoute
-  '/sub-cities': typeof SubCitiesRouteWithChildren
   '/surveys': typeof SurveysRoute
   '/users': typeof UsersRouteWithChildren
   '/vendors': typeof VendorsRouteWithChildren
   '/workflows': typeof WorkflowsRoute
+  '/dashboard/auditor': typeof DashboardAuditorRoute
+  '/dashboard/executive': typeof DashboardExecutiveRoute
+  '/dashboard/institution': typeof DashboardInstitutionRoute
+  '/dashboard/licensing': typeof DashboardLicensingRoute
+  '/dashboard/main': typeof DashboardMainRoute
+  '/dashboard/no-access': typeof DashboardNoAccessRoute
+  '/dashboard/research': typeof DashboardResearchRoute
+  '/dashboard/subcity': typeof DashboardSubcityRoute
+  '/dashboard/technology-transfer': typeof DashboardTechnologyTransferRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
@@ -356,15 +402,13 @@ export interface FileRoutesByFullPath {
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
-  '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
-  '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/notifications/': typeof NotificationsIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/registry/': typeof RegistryIndexRoute
   '/requests/': typeof RequestsIndexRoute
-  '/sub-cities/': typeof SubCitiesIndexRoute
   '/users/': typeof UsersIndexRoute
   '/vendors/': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
@@ -372,9 +416,8 @@ export interface FileRoutesByFullPath {
   '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
-  '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
   '/users/$id/edit': typeof UsersIdEditRoute
-  '/sub-cities/$id/': typeof SubCitiesIdIndexRoute
+  '/research/ideas/': typeof ResearchIdeasIndexRoute
   '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
   '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
@@ -385,33 +428,40 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/cybersecurity': typeof CybersecurityRoute
-  '/dashboard': typeof DashboardRoute
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/institution-register': typeof InstitutionRegisterRoute
   '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
+  '/service-requests': typeof ServiceRequestsRoute
   '/settings': typeof SettingsRoute
   '/surveys': typeof SurveysRoute
   '/workflows': typeof WorkflowsRoute
+  '/dashboard/auditor': typeof DashboardAuditorRoute
+  '/dashboard/executive': typeof DashboardExecutiveRoute
+  '/dashboard/institution': typeof DashboardInstitutionRoute
+  '/dashboard/licensing': typeof DashboardLicensingRoute
+  '/dashboard/main': typeof DashboardMainRoute
+  '/dashboard/no-access': typeof DashboardNoAccessRoute
+  '/dashboard/research': typeof DashboardResearchRoute
+  '/dashboard/subcity': typeof DashboardSubcityRoute
+  '/dashboard/technology-transfer': typeof DashboardTechnologyTransferRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
-  '/research/ideas': typeof ResearchIdeasRouteWithChildren
   '/research/projects': typeof ResearchProjectsRouteWithChildren
   '/research/reports': typeof ResearchReportsRoute
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
-  '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/notifications': typeof NotificationsIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/registry': typeof RegistryIndexRoute
   '/requests': typeof RequestsIndexRoute
-  '/sub-cities': typeof SubCitiesIndexRoute
   '/users': typeof UsersIndexRoute
   '/vendors': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
@@ -419,9 +469,8 @@ export interface FileRoutesByTo {
   '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
-  '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
   '/users/$id/edit': typeof UsersIdEditRoute
-  '/sub-cities/$id': typeof SubCitiesIdIndexRoute
+  '/research/ideas': typeof ResearchIdeasIndexRoute
   '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
   '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
@@ -433,7 +482,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/cybersecurity': typeof CybersecurityRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -443,12 +492,21 @@ export interface FileRoutesById {
   '/registry': typeof RegistryRouteWithChildren
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
+  '/service-requests': typeof ServiceRequestsRoute
   '/settings': typeof SettingsRoute
-  '/sub-cities': typeof SubCitiesRouteWithChildren
   '/surveys': typeof SurveysRoute
   '/users': typeof UsersRouteWithChildren
   '/vendors': typeof VendorsRouteWithChildren
   '/workflows': typeof WorkflowsRoute
+  '/dashboard/auditor': typeof DashboardAuditorRoute
+  '/dashboard/executive': typeof DashboardExecutiveRoute
+  '/dashboard/institution': typeof DashboardInstitutionRoute
+  '/dashboard/licensing': typeof DashboardLicensingRoute
+  '/dashboard/main': typeof DashboardMainRoute
+  '/dashboard/no-access': typeof DashboardNoAccessRoute
+  '/dashboard/research': typeof DashboardResearchRoute
+  '/dashboard/subcity': typeof DashboardSubcityRoute
+  '/dashboard/technology-transfer': typeof DashboardTechnologyTransferRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
@@ -458,15 +516,13 @@ export interface FileRoutesById {
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
-  '/sub-cities/$id': typeof SubCitiesIdRouteWithChildren
-  '/sub-cities/create': typeof SubCitiesCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/notifications/': typeof NotificationsIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/registry/': typeof RegistryIndexRoute
   '/requests/': typeof RequestsIndexRoute
-  '/sub-cities/': typeof SubCitiesIndexRoute
   '/users/': typeof UsersIndexRoute
   '/vendors/': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
@@ -474,9 +530,8 @@ export interface FileRoutesById {
   '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
-  '/sub-cities/$id/edit': typeof SubCitiesIdEditRoute
   '/users/$id/edit': typeof UsersIdEditRoute
-  '/sub-cities/$id/': typeof SubCitiesIdIndexRoute
+  '/research/ideas/': typeof ResearchIdeasIndexRoute
   '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
   '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
@@ -499,12 +554,21 @@ export interface FileRouteTypes {
     | '/registry'
     | '/reports'
     | '/requests'
+    | '/service-requests'
     | '/settings'
-    | '/sub-cities'
     | '/surveys'
     | '/users'
     | '/vendors'
     | '/workflows'
+    | '/dashboard/auditor'
+    | '/dashboard/executive'
+    | '/dashboard/institution'
+    | '/dashboard/licensing'
+    | '/dashboard/main'
+    | '/dashboard/no-access'
+    | '/dashboard/research'
+    | '/dashboard/subcity'
+    | '/dashboard/technology-transfer'
     | '/registry/create'
     | '/requests/create'
     | '/research/evaluations'
@@ -514,15 +578,13 @@ export interface FileRouteTypes {
     | '/research/screenings'
     | '/research/transfers'
     | '/services/$serviceSlug'
-    | '/sub-cities/$id'
-    | '/sub-cities/create'
     | '/users/create'
     | '/vendors/create'
+    | '/dashboard/'
     | '/notifications/'
     | '/profile/'
     | '/registry/'
     | '/requests/'
-    | '/sub-cities/'
     | '/users/'
     | '/vendors/'
     | '/registry/$id/edit'
@@ -530,9 +592,8 @@ export interface FileRouteTypes {
     | '/research/ideas/$id'
     | '/research/ideas/create'
     | '/research/projects/$id'
-    | '/sub-cities/$id/edit'
     | '/users/$id/edit'
-    | '/sub-cities/$id/'
+    | '/research/ideas/'
     | '/research/evaluations/create/$projectId'
     | '/research/ideas/$id/edit'
     | '/research/projects/create/$ideaId'
@@ -543,33 +604,40 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/cybersecurity'
-    | '/dashboard'
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
     | '/institution-register'
     | '/login'
     | '/reports'
+    | '/service-requests'
     | '/settings'
     | '/surveys'
     | '/workflows'
+    | '/dashboard/auditor'
+    | '/dashboard/executive'
+    | '/dashboard/institution'
+    | '/dashboard/licensing'
+    | '/dashboard/main'
+    | '/dashboard/no-access'
+    | '/dashboard/research'
+    | '/dashboard/subcity'
+    | '/dashboard/technology-transfer'
     | '/registry/create'
     | '/requests/create'
     | '/research/evaluations'
-    | '/research/ideas'
     | '/research/projects'
     | '/research/reports'
     | '/research/screenings'
     | '/research/transfers'
     | '/services/$serviceSlug'
-    | '/sub-cities/create'
     | '/users/create'
     | '/vendors/create'
+    | '/dashboard'
     | '/notifications'
     | '/profile'
     | '/registry'
     | '/requests'
-    | '/sub-cities'
     | '/users'
     | '/vendors'
     | '/registry/$id/edit'
@@ -577,9 +645,8 @@ export interface FileRouteTypes {
     | '/research/ideas/$id'
     | '/research/ideas/create'
     | '/research/projects/$id'
-    | '/sub-cities/$id/edit'
     | '/users/$id/edit'
-    | '/sub-cities/$id'
+    | '/research/ideas'
     | '/research/evaluations/create/$projectId'
     | '/research/ideas/$id/edit'
     | '/research/projects/create/$ideaId'
@@ -600,12 +667,21 @@ export interface FileRouteTypes {
     | '/registry'
     | '/reports'
     | '/requests'
+    | '/service-requests'
     | '/settings'
-    | '/sub-cities'
     | '/surveys'
     | '/users'
     | '/vendors'
     | '/workflows'
+    | '/dashboard/auditor'
+    | '/dashboard/executive'
+    | '/dashboard/institution'
+    | '/dashboard/licensing'
+    | '/dashboard/main'
+    | '/dashboard/no-access'
+    | '/dashboard/research'
+    | '/dashboard/subcity'
+    | '/dashboard/technology-transfer'
     | '/registry/create'
     | '/requests/create'
     | '/research/evaluations'
@@ -615,15 +691,13 @@ export interface FileRouteTypes {
     | '/research/screenings'
     | '/research/transfers'
     | '/services/$serviceSlug'
-    | '/sub-cities/$id'
-    | '/sub-cities/create'
     | '/users/create'
     | '/vendors/create'
+    | '/dashboard/'
     | '/notifications/'
     | '/profile/'
     | '/registry/'
     | '/requests/'
-    | '/sub-cities/'
     | '/users/'
     | '/vendors/'
     | '/registry/$id/edit'
@@ -631,9 +705,8 @@ export interface FileRouteTypes {
     | '/research/ideas/$id'
     | '/research/ideas/create'
     | '/research/projects/$id'
-    | '/sub-cities/$id/edit'
     | '/users/$id/edit'
-    | '/sub-cities/$id/'
+    | '/research/ideas/'
     | '/research/evaluations/create/$projectId'
     | '/research/ideas/$id/edit'
     | '/research/projects/create/$ideaId'
@@ -645,7 +718,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
   CybersecurityRoute: typeof CybersecurityRoute
-  DashboardRoute: typeof DashboardRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   DuplicationRoute: typeof DuplicationRoute
   FeasibilityRoute: typeof FeasibilityRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -655,8 +728,8 @@ export interface RootRouteChildren {
   RegistryRoute: typeof RegistryRouteWithChildren
   ReportsRoute: typeof ReportsRoute
   RequestsRoute: typeof RequestsRouteWithChildren
+  ServiceRequestsRoute: typeof ServiceRequestsRoute
   SettingsRoute: typeof SettingsRoute
-  SubCitiesRoute: typeof SubCitiesRouteWithChildren
   SurveysRoute: typeof SurveysRoute
   UsersRoute: typeof UsersRouteWithChildren
   VendorsRoute: typeof VendorsRouteWithChildren
@@ -701,18 +774,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SurveysRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sub-cities': {
-      id: '/sub-cities'
-      path: '/sub-cities'
-      fullPath: '/sub-cities'
-      preLoaderRoute: typeof SubCitiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/service-requests': {
+      id: '/service-requests'
+      path: '/service-requests'
+      fullPath: '/service-requests'
+      preLoaderRoute: typeof ServiceRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/requests': {
@@ -820,13 +893,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersIndexRouteImport
       parentRoute: typeof UsersRoute
     }
-    '/sub-cities/': {
-      id: '/sub-cities/'
-      path: '/'
-      fullPath: '/sub-cities/'
-      preLoaderRoute: typeof SubCitiesIndexRouteImport
-      parentRoute: typeof SubCitiesRoute
-    }
     '/requests/': {
       id: '/requests/'
       path: '/'
@@ -855,6 +921,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotificationsIndexRouteImport
       parentRoute: typeof NotificationsRoute
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/vendors/create': {
       id: '/vendors/create'
       path: '/create'
@@ -868,20 +941,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/users/create'
       preLoaderRoute: typeof UsersCreateRouteImport
       parentRoute: typeof UsersRoute
-    }
-    '/sub-cities/create': {
-      id: '/sub-cities/create'
-      path: '/create'
-      fullPath: '/sub-cities/create'
-      preLoaderRoute: typeof SubCitiesCreateRouteImport
-      parentRoute: typeof SubCitiesRoute
-    }
-    '/sub-cities/$id': {
-      id: '/sub-cities/$id'
-      path: '/$id'
-      fullPath: '/sub-cities/$id'
-      preLoaderRoute: typeof SubCitiesIdRouteImport
-      parentRoute: typeof SubCitiesRoute
     }
     '/services/$serviceSlug': {
       id: '/services/$serviceSlug'
@@ -946,12 +1005,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegistryCreateRouteImport
       parentRoute: typeof RegistryRoute
     }
-    '/sub-cities/$id/': {
-      id: '/sub-cities/$id/'
+    '/dashboard/technology-transfer': {
+      id: '/dashboard/technology-transfer'
+      path: '/technology-transfer'
+      fullPath: '/dashboard/technology-transfer'
+      preLoaderRoute: typeof DashboardTechnologyTransferRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/subcity': {
+      id: '/dashboard/subcity'
+      path: '/subcity'
+      fullPath: '/dashboard/subcity'
+      preLoaderRoute: typeof DashboardSubcityRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/research': {
+      id: '/dashboard/research'
+      path: '/research'
+      fullPath: '/dashboard/research'
+      preLoaderRoute: typeof DashboardResearchRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/no-access': {
+      id: '/dashboard/no-access'
+      path: '/no-access'
+      fullPath: '/dashboard/no-access'
+      preLoaderRoute: typeof DashboardNoAccessRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/main': {
+      id: '/dashboard/main'
+      path: '/main'
+      fullPath: '/dashboard/main'
+      preLoaderRoute: typeof DashboardMainRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/licensing': {
+      id: '/dashboard/licensing'
+      path: '/licensing'
+      fullPath: '/dashboard/licensing'
+      preLoaderRoute: typeof DashboardLicensingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/institution': {
+      id: '/dashboard/institution'
+      path: '/institution'
+      fullPath: '/dashboard/institution'
+      preLoaderRoute: typeof DashboardInstitutionRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/executive': {
+      id: '/dashboard/executive'
+      path: '/executive'
+      fullPath: '/dashboard/executive'
+      preLoaderRoute: typeof DashboardExecutiveRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/auditor': {
+      id: '/dashboard/auditor'
+      path: '/auditor'
+      fullPath: '/dashboard/auditor'
+      preLoaderRoute: typeof DashboardAuditorRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/research/ideas/': {
+      id: '/research/ideas/'
       path: '/'
-      fullPath: '/sub-cities/$id/'
-      preLoaderRoute: typeof SubCitiesIdIndexRouteImport
-      parentRoute: typeof SubCitiesIdRoute
+      fullPath: '/research/ideas/'
+      preLoaderRoute: typeof ResearchIdeasIndexRouteImport
+      parentRoute: typeof ResearchIdeasRoute
     }
     '/users/$id/edit': {
       id: '/users/$id/edit'
@@ -959,13 +1081,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/users/$id/edit'
       preLoaderRoute: typeof UsersIdEditRouteImport
       parentRoute: typeof UsersRoute
-    }
-    '/sub-cities/$id/edit': {
-      id: '/sub-cities/$id/edit'
-      path: '/edit'
-      fullPath: '/sub-cities/$id/edit'
-      preLoaderRoute: typeof SubCitiesIdEditRouteImport
-      parentRoute: typeof SubCitiesIdRoute
     }
     '/research/projects/$id': {
       id: '/research/projects/$id'
@@ -1040,6 +1155,36 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardAuditorRoute: typeof DashboardAuditorRoute
+  DashboardExecutiveRoute: typeof DashboardExecutiveRoute
+  DashboardInstitutionRoute: typeof DashboardInstitutionRoute
+  DashboardLicensingRoute: typeof DashboardLicensingRoute
+  DashboardMainRoute: typeof DashboardMainRoute
+  DashboardNoAccessRoute: typeof DashboardNoAccessRoute
+  DashboardResearchRoute: typeof DashboardResearchRoute
+  DashboardSubcityRoute: typeof DashboardSubcityRoute
+  DashboardTechnologyTransferRoute: typeof DashboardTechnologyTransferRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAuditorRoute: DashboardAuditorRoute,
+  DashboardExecutiveRoute: DashboardExecutiveRoute,
+  DashboardInstitutionRoute: DashboardInstitutionRoute,
+  DashboardLicensingRoute: DashboardLicensingRoute,
+  DashboardMainRoute: DashboardMainRoute,
+  DashboardNoAccessRoute: DashboardNoAccessRoute,
+  DashboardResearchRoute: DashboardResearchRoute,
+  DashboardSubcityRoute: DashboardSubcityRoute,
+  DashboardTechnologyTransferRoute: DashboardTechnologyTransferRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 interface NotificationsRouteChildren {
   NotificationsIndexRoute: typeof NotificationsIndexRoute
 }
@@ -1082,36 +1227,6 @@ const RequestsRouteChildren: RequestsRouteChildren = {
 
 const RequestsRouteWithChildren = RequestsRoute._addFileChildren(
   RequestsRouteChildren,
-)
-
-interface SubCitiesIdRouteChildren {
-  SubCitiesIdEditRoute: typeof SubCitiesIdEditRoute
-  SubCitiesIdIndexRoute: typeof SubCitiesIdIndexRoute
-}
-
-const SubCitiesIdRouteChildren: SubCitiesIdRouteChildren = {
-  SubCitiesIdEditRoute: SubCitiesIdEditRoute,
-  SubCitiesIdIndexRoute: SubCitiesIdIndexRoute,
-}
-
-const SubCitiesIdRouteWithChildren = SubCitiesIdRoute._addFileChildren(
-  SubCitiesIdRouteChildren,
-)
-
-interface SubCitiesRouteChildren {
-  SubCitiesIdRoute: typeof SubCitiesIdRouteWithChildren
-  SubCitiesCreateRoute: typeof SubCitiesCreateRoute
-  SubCitiesIndexRoute: typeof SubCitiesIndexRoute
-}
-
-const SubCitiesRouteChildren: SubCitiesRouteChildren = {
-  SubCitiesIdRoute: SubCitiesIdRouteWithChildren,
-  SubCitiesCreateRoute: SubCitiesCreateRoute,
-  SubCitiesIndexRoute: SubCitiesIndexRoute,
-}
-
-const SubCitiesRouteWithChildren = SubCitiesRoute._addFileChildren(
-  SubCitiesRouteChildren,
 )
 
 interface UsersRouteChildren {
@@ -1168,11 +1283,13 @@ const ResearchIdeasIdRouteWithChildren = ResearchIdeasIdRoute._addFileChildren(
 interface ResearchIdeasRouteChildren {
   ResearchIdeasIdRoute: typeof ResearchIdeasIdRouteWithChildren
   ResearchIdeasCreateRoute: typeof ResearchIdeasCreateRoute
+  ResearchIdeasIndexRoute: typeof ResearchIdeasIndexRoute
 }
 
 const ResearchIdeasRouteChildren: ResearchIdeasRouteChildren = {
   ResearchIdeasIdRoute: ResearchIdeasIdRouteWithChildren,
   ResearchIdeasCreateRoute: ResearchIdeasCreateRoute,
+  ResearchIdeasIndexRoute: ResearchIdeasIndexRoute,
 }
 
 const ResearchIdeasRouteWithChildren = ResearchIdeasRoute._addFileChildren(
@@ -1218,7 +1335,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
   CybersecurityRoute: CybersecurityRoute,
-  DashboardRoute: DashboardRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   DuplicationRoute: DuplicationRoute,
   FeasibilityRoute: FeasibilityRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
@@ -1228,8 +1345,8 @@ const rootRouteChildren: RootRouteChildren = {
   RegistryRoute: RegistryRouteWithChildren,
   ReportsRoute: ReportsRoute,
   RequestsRoute: RequestsRouteWithChildren,
+  ServiceRequestsRoute: ServiceRequestsRoute,
   SettingsRoute: SettingsRoute,
-  SubCitiesRoute: SubCitiesRouteWithChildren,
   SurveysRoute: SurveysRoute,
   UsersRoute: UsersRouteWithChildren,
   VendorsRoute: VendorsRouteWithChildren,
