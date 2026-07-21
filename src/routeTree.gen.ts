@@ -12,24 +12,36 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkflowsRouteImport } from './routes/workflows'
 import { Route as VendorsRouteImport } from './routes/vendors'
 import { Route as UsersRouteImport } from './routes/users'
+import { Route as TrainingRouteImport } from './routes/training'
+import { Route as TicketsRouteImport } from './routes/tickets'
+import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as SurveysRouteImport } from './routes/surveys'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ServiceRequestsRouteImport } from './routes/service-requests'
+import { Route as SecurityReviewRouteImport } from './routes/security-review'
 import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RegistryRouteImport } from './routes/registry'
+import { Route as RbacRouteImport } from './routes/rbac'
+import { Route as QualityRouteImport } from './routes/quality'
+import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as PermissionsRouteImport } from './routes/permissions'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InstitutionRegisterRouteImport } from './routes/institution-register'
+import { Route as InfrastructureRouteImport } from './routes/infrastructure'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeasibilityRouteImport } from './routes/feasibility'
 import { Route as DuplicationRouteImport } from './routes/duplication'
+import { Route as DevelopmentRouteImport } from './routes/development'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CybersecurityRouteImport } from './routes/cybersecurity'
+import { Route as CloudRouteImport } from './routes/cloud'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendorsIndexRouteImport } from './routes/vendors.index'
 import { Route as UsersIndexRouteImport } from './routes/users.index'
+import { Route as TicketsIndexRouteImport } from './routes/tickets.index'
 import { Route as RequestsIndexRouteImport } from './routes/requests.index'
 import { Route as RegistryIndexRouteImport } from './routes/registry.index'
 import { Route as ProfileIndexRouteImport } from './routes/profile.index'
@@ -37,6 +49,8 @@ import { Route as NotificationsIndexRouteImport } from './routes/notifications.i
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as VendorsCreateRouteImport } from './routes/vendors.create'
 import { Route as UsersCreateRouteImport } from './routes/users.create'
+import { Route as TicketsCreateRouteImport } from './routes/tickets.create'
+import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
 import { Route as ServicesServiceSlugRouteImport } from './routes/services.$serviceSlug'
 import { Route as ResearchTransfersRouteImport } from './routes/research.transfers'
 import { Route as ResearchScreeningsRouteImport } from './routes/research.screenings'
@@ -54,6 +68,7 @@ import { Route as DashboardMainRouteImport } from './routes/dashboard.main'
 import { Route as DashboardLicensingRouteImport } from './routes/dashboard.licensing'
 import { Route as DashboardInstitutionRouteImport } from './routes/dashboard.institution'
 import { Route as DashboardExecutiveRouteImport } from './routes/dashboard.executive'
+import { Route as DashboardBureauHeadRouteImport } from './routes/dashboard.bureau-head'
 import { Route as DashboardAuditorRouteImport } from './routes/dashboard.auditor'
 import { Route as ResearchIdeasIndexRouteImport } from './routes/research.ideas.index'
 import { Route as UsersIdEditRouteImport } from './routes/users.$id.edit'
@@ -83,6 +98,21 @@ const UsersRoute = UsersRouteImport.update({
   path: '/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrainingRoute = TrainingRouteImport.update({
+  id: '/training',
+  path: '/training',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsRoute = TicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TasksRoute = TasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SurveysRoute = SurveysRouteImport.update({
   id: '/surveys',
   path: '/surveys',
@@ -96,6 +126,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ServiceRequestsRoute = ServiceRequestsRouteImport.update({
   id: '/service-requests',
   path: '/service-requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityReviewRoute = SecurityReviewRouteImport.update({
+  id: '/security-review',
+  path: '/security-review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsRoute = RequestsRouteImport.update({
@@ -113,6 +148,26 @@ const RegistryRoute = RegistryRouteImport.update({
   path: '/registry',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RbacRoute = RbacRouteImport.update({
+  id: '/rbac',
+  path: '/rbac',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QualityRoute = QualityRouteImport.update({
+  id: '/quality',
+  path: '/quality',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PermissionsRoute = PermissionsRouteImport.update({
+  id: '/permissions',
+  path: '/permissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -126,6 +181,11 @@ const LoginRoute = LoginRouteImport.update({
 const InstitutionRegisterRoute = InstitutionRegisterRouteImport.update({
   id: '/institution-register',
   path: '/institution-register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfrastructureRoute = InfrastructureRouteImport.update({
+  id: '/infrastructure',
+  path: '/infrastructure',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -143,6 +203,11 @@ const DuplicationRoute = DuplicationRouteImport.update({
   path: '/duplication',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevelopmentRoute = DevelopmentRouteImport.update({
+  id: '/development',
+  path: '/development',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -151,6 +216,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const CybersecurityRoute = CybersecurityRouteImport.update({
   id: '/cybersecurity',
   path: '/cybersecurity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CloudRoute = CloudRouteImport.update({
+  id: '/cloud',
+  path: '/cloud',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuditRoute = AuditRouteImport.update({
@@ -172,6 +242,11 @@ const UsersIndexRoute = UsersIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => UsersRoute,
+} as any)
+const TicketsIndexRoute = TicketsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TicketsRoute,
 } as any)
 const RequestsIndexRoute = RequestsIndexRouteImport.update({
   id: '/',
@@ -207,6 +282,16 @@ const UsersCreateRoute = UsersCreateRouteImport.update({
   id: '/create',
   path: '/create',
   getParentRoute: () => UsersRoute,
+} as any)
+const TicketsCreateRoute = TicketsCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => TicketsRoute,
+} as any)
+const TicketsIdRoute = TicketsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => TicketsRoute,
 } as any)
 const ServicesServiceSlugRoute = ServicesServiceSlugRouteImport.update({
   id: '/services/$serviceSlug',
@@ -294,6 +379,11 @@ const DashboardExecutiveRoute = DashboardExecutiveRouteImport.update({
   path: '/executive',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBureauHeadRoute = DashboardBureauHeadRouteImport.update({
+  id: '/bureau-head',
+  path: '/bureau-head',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAuditorRoute = DashboardAuditorRouteImport.update({
   id: '/auditor',
   path: '/auditor',
@@ -367,24 +457,36 @@ const ResearchEvaluationsCreateProjectIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/cloud': typeof CloudRoute
   '/cybersecurity': typeof CybersecurityRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/development': typeof DevelopmentRoute
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/infrastructure': typeof InfrastructureRoute
   '/institution-register': typeof InstitutionRegisterRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRouteWithChildren
+  '/permissions': typeof PermissionsRoute
+  '/projects': typeof ProjectsRoute
+  '/quality': typeof QualityRoute
+  '/rbac': typeof RbacRoute
   '/registry': typeof RegistryRouteWithChildren
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
+  '/security-review': typeof SecurityReviewRoute
   '/service-requests': typeof ServiceRequestsRoute
   '/settings': typeof SettingsRoute
   '/surveys': typeof SurveysRoute
+  '/tasks': typeof TasksRoute
+  '/tickets': typeof TicketsRouteWithChildren
+  '/training': typeof TrainingRoute
   '/users': typeof UsersRouteWithChildren
   '/vendors': typeof VendorsRouteWithChildren
   '/workflows': typeof WorkflowsRoute
   '/dashboard/auditor': typeof DashboardAuditorRoute
+  '/dashboard/bureau-head': typeof DashboardBureauHeadRoute
   '/dashboard/executive': typeof DashboardExecutiveRoute
   '/dashboard/institution': typeof DashboardInstitutionRoute
   '/dashboard/licensing': typeof DashboardLicensingRoute
@@ -402,6 +504,8 @@ export interface FileRoutesByFullPath {
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
+  '/tickets/$id': typeof TicketsIdRoute
+  '/tickets/create': typeof TicketsCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -409,6 +513,7 @@ export interface FileRoutesByFullPath {
   '/profile/': typeof ProfileIndexRoute
   '/registry/': typeof RegistryIndexRoute
   '/requests/': typeof RequestsIndexRoute
+  '/tickets/': typeof TicketsIndexRoute
   '/users/': typeof UsersIndexRoute
   '/vendors/': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
@@ -427,18 +532,29 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/cloud': typeof CloudRoute
   '/cybersecurity': typeof CybersecurityRoute
+  '/development': typeof DevelopmentRoute
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/infrastructure': typeof InfrastructureRoute
   '/institution-register': typeof InstitutionRegisterRoute
   '/login': typeof LoginRoute
+  '/permissions': typeof PermissionsRoute
+  '/projects': typeof ProjectsRoute
+  '/quality': typeof QualityRoute
+  '/rbac': typeof RbacRoute
   '/reports': typeof ReportsRoute
+  '/security-review': typeof SecurityReviewRoute
   '/service-requests': typeof ServiceRequestsRoute
   '/settings': typeof SettingsRoute
   '/surveys': typeof SurveysRoute
+  '/tasks': typeof TasksRoute
+  '/training': typeof TrainingRoute
   '/workflows': typeof WorkflowsRoute
   '/dashboard/auditor': typeof DashboardAuditorRoute
+  '/dashboard/bureau-head': typeof DashboardBureauHeadRoute
   '/dashboard/executive': typeof DashboardExecutiveRoute
   '/dashboard/institution': typeof DashboardInstitutionRoute
   '/dashboard/licensing': typeof DashboardLicensingRoute
@@ -455,6 +571,8 @@ export interface FileRoutesByTo {
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
+  '/tickets/$id': typeof TicketsIdRoute
+  '/tickets/create': typeof TicketsCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -462,6 +580,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileIndexRoute
   '/registry': typeof RegistryIndexRoute
   '/requests': typeof RequestsIndexRoute
+  '/tickets': typeof TicketsIndexRoute
   '/users': typeof UsersIndexRoute
   '/vendors': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
@@ -481,24 +600,36 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/cloud': typeof CloudRoute
   '/cybersecurity': typeof CybersecurityRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/development': typeof DevelopmentRoute
   '/duplication': typeof DuplicationRoute
   '/feasibility': typeof FeasibilityRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/infrastructure': typeof InfrastructureRoute
   '/institution-register': typeof InstitutionRegisterRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRouteWithChildren
+  '/permissions': typeof PermissionsRoute
+  '/projects': typeof ProjectsRoute
+  '/quality': typeof QualityRoute
+  '/rbac': typeof RbacRoute
   '/registry': typeof RegistryRouteWithChildren
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
+  '/security-review': typeof SecurityReviewRoute
   '/service-requests': typeof ServiceRequestsRoute
   '/settings': typeof SettingsRoute
   '/surveys': typeof SurveysRoute
+  '/tasks': typeof TasksRoute
+  '/tickets': typeof TicketsRouteWithChildren
+  '/training': typeof TrainingRoute
   '/users': typeof UsersRouteWithChildren
   '/vendors': typeof VendorsRouteWithChildren
   '/workflows': typeof WorkflowsRoute
   '/dashboard/auditor': typeof DashboardAuditorRoute
+  '/dashboard/bureau-head': typeof DashboardBureauHeadRoute
   '/dashboard/executive': typeof DashboardExecutiveRoute
   '/dashboard/institution': typeof DashboardInstitutionRoute
   '/dashboard/licensing': typeof DashboardLicensingRoute
@@ -516,6 +647,8 @@ export interface FileRoutesById {
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
+  '/tickets/$id': typeof TicketsIdRoute
+  '/tickets/create': typeof TicketsCreateRoute
   '/users/create': typeof UsersCreateRoute
   '/vendors/create': typeof VendorsCreateRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -523,6 +656,7 @@ export interface FileRoutesById {
   '/profile/': typeof ProfileIndexRoute
   '/registry/': typeof RegistryIndexRoute
   '/requests/': typeof RequestsIndexRoute
+  '/tickets/': typeof TicketsIndexRoute
   '/users/': typeof UsersIndexRoute
   '/vendors/': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
@@ -543,24 +677,36 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/audit'
+    | '/cloud'
     | '/cybersecurity'
     | '/dashboard'
+    | '/development'
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
+    | '/infrastructure'
     | '/institution-register'
     | '/login'
     | '/notifications'
+    | '/permissions'
+    | '/projects'
+    | '/quality'
+    | '/rbac'
     | '/registry'
     | '/reports'
     | '/requests'
+    | '/security-review'
     | '/service-requests'
     | '/settings'
     | '/surveys'
+    | '/tasks'
+    | '/tickets'
+    | '/training'
     | '/users'
     | '/vendors'
     | '/workflows'
     | '/dashboard/auditor'
+    | '/dashboard/bureau-head'
     | '/dashboard/executive'
     | '/dashboard/institution'
     | '/dashboard/licensing'
@@ -578,6 +724,8 @@ export interface FileRouteTypes {
     | '/research/screenings'
     | '/research/transfers'
     | '/services/$serviceSlug'
+    | '/tickets/$id'
+    | '/tickets/create'
     | '/users/create'
     | '/vendors/create'
     | '/dashboard/'
@@ -585,6 +733,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/registry/'
     | '/requests/'
+    | '/tickets/'
     | '/users/'
     | '/vendors/'
     | '/registry/$id/edit'
@@ -603,18 +752,29 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/audit'
+    | '/cloud'
     | '/cybersecurity'
+    | '/development'
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
+    | '/infrastructure'
     | '/institution-register'
     | '/login'
+    | '/permissions'
+    | '/projects'
+    | '/quality'
+    | '/rbac'
     | '/reports'
+    | '/security-review'
     | '/service-requests'
     | '/settings'
     | '/surveys'
+    | '/tasks'
+    | '/training'
     | '/workflows'
     | '/dashboard/auditor'
+    | '/dashboard/bureau-head'
     | '/dashboard/executive'
     | '/dashboard/institution'
     | '/dashboard/licensing'
@@ -631,6 +791,8 @@ export interface FileRouteTypes {
     | '/research/screenings'
     | '/research/transfers'
     | '/services/$serviceSlug'
+    | '/tickets/$id'
+    | '/tickets/create'
     | '/users/create'
     | '/vendors/create'
     | '/dashboard'
@@ -638,6 +800,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/registry'
     | '/requests'
+    | '/tickets'
     | '/users'
     | '/vendors'
     | '/registry/$id/edit'
@@ -656,24 +819,36 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/audit'
+    | '/cloud'
     | '/cybersecurity'
     | '/dashboard'
+    | '/development'
     | '/duplication'
     | '/feasibility'
     | '/forgot-password'
+    | '/infrastructure'
     | '/institution-register'
     | '/login'
     | '/notifications'
+    | '/permissions'
+    | '/projects'
+    | '/quality'
+    | '/rbac'
     | '/registry'
     | '/reports'
     | '/requests'
+    | '/security-review'
     | '/service-requests'
     | '/settings'
     | '/surveys'
+    | '/tasks'
+    | '/tickets'
+    | '/training'
     | '/users'
     | '/vendors'
     | '/workflows'
     | '/dashboard/auditor'
+    | '/dashboard/bureau-head'
     | '/dashboard/executive'
     | '/dashboard/institution'
     | '/dashboard/licensing'
@@ -691,6 +866,8 @@ export interface FileRouteTypes {
     | '/research/screenings'
     | '/research/transfers'
     | '/services/$serviceSlug'
+    | '/tickets/$id'
+    | '/tickets/create'
     | '/users/create'
     | '/vendors/create'
     | '/dashboard/'
@@ -698,6 +875,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/registry/'
     | '/requests/'
+    | '/tickets/'
     | '/users/'
     | '/vendors/'
     | '/registry/$id/edit'
@@ -717,20 +895,31 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
+  CloudRoute: typeof CloudRoute
   CybersecurityRoute: typeof CybersecurityRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  DevelopmentRoute: typeof DevelopmentRoute
   DuplicationRoute: typeof DuplicationRoute
   FeasibilityRoute: typeof FeasibilityRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  InfrastructureRoute: typeof InfrastructureRoute
   InstitutionRegisterRoute: typeof InstitutionRegisterRoute
   LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRouteWithChildren
+  PermissionsRoute: typeof PermissionsRoute
+  ProjectsRoute: typeof ProjectsRoute
+  QualityRoute: typeof QualityRoute
+  RbacRoute: typeof RbacRoute
   RegistryRoute: typeof RegistryRouteWithChildren
   ReportsRoute: typeof ReportsRoute
   RequestsRoute: typeof RequestsRouteWithChildren
+  SecurityReviewRoute: typeof SecurityReviewRoute
   ServiceRequestsRoute: typeof ServiceRequestsRoute
   SettingsRoute: typeof SettingsRoute
   SurveysRoute: typeof SurveysRoute
+  TasksRoute: typeof TasksRoute
+  TicketsRoute: typeof TicketsRouteWithChildren
+  TrainingRoute: typeof TrainingRoute
   UsersRoute: typeof UsersRouteWithChildren
   VendorsRoute: typeof VendorsRouteWithChildren
   WorkflowsRoute: typeof WorkflowsRoute
@@ -767,6 +956,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/training': {
+      id: '/training'
+      path: '/training'
+      fullPath: '/training'
+      preLoaderRoute: typeof TrainingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets': {
+      id: '/tickets'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof TicketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/surveys': {
       id: '/surveys'
       path: '/surveys'
@@ -786,6 +996,13 @@ declare module '@tanstack/react-router' {
       path: '/service-requests'
       fullPath: '/service-requests'
       preLoaderRoute: typeof ServiceRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security-review': {
+      id: '/security-review'
+      path: '/security-review'
+      fullPath: '/security-review'
+      preLoaderRoute: typeof SecurityReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/requests': {
@@ -809,6 +1026,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegistryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rbac': {
+      id: '/rbac'
+      path: '/rbac'
+      fullPath: '/rbac'
+      preLoaderRoute: typeof RbacRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quality': {
+      id: '/quality'
+      path: '/quality'
+      fullPath: '/quality'
+      preLoaderRoute: typeof QualityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/permissions': {
+      id: '/permissions'
+      path: '/permissions'
+      fullPath: '/permissions'
+      preLoaderRoute: typeof PermissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notifications': {
       id: '/notifications'
       path: '/notifications'
@@ -828,6 +1073,13 @@ declare module '@tanstack/react-router' {
       path: '/institution-register'
       fullPath: '/institution-register'
       preLoaderRoute: typeof InstitutionRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/infrastructure': {
+      id: '/infrastructure'
+      path: '/infrastructure'
+      fullPath: '/infrastructure'
+      preLoaderRoute: typeof InfrastructureRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -851,6 +1103,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DuplicationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/development': {
+      id: '/development'
+      path: '/development'
+      fullPath: '/development'
+      preLoaderRoute: typeof DevelopmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -863,6 +1122,13 @@ declare module '@tanstack/react-router' {
       path: '/cybersecurity'
       fullPath: '/cybersecurity'
       preLoaderRoute: typeof CybersecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cloud': {
+      id: '/cloud'
+      path: '/cloud'
+      fullPath: '/cloud'
+      preLoaderRoute: typeof CloudRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/audit': {
@@ -892,6 +1158,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/users/'
       preLoaderRoute: typeof UsersIndexRouteImport
       parentRoute: typeof UsersRoute
+    }
+    '/tickets/': {
+      id: '/tickets/'
+      path: '/'
+      fullPath: '/tickets/'
+      preLoaderRoute: typeof TicketsIndexRouteImport
+      parentRoute: typeof TicketsRoute
     }
     '/requests/': {
       id: '/requests/'
@@ -941,6 +1214,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/users/create'
       preLoaderRoute: typeof UsersCreateRouteImport
       parentRoute: typeof UsersRoute
+    }
+    '/tickets/create': {
+      id: '/tickets/create'
+      path: '/create'
+      fullPath: '/tickets/create'
+      preLoaderRoute: typeof TicketsCreateRouteImport
+      parentRoute: typeof TicketsRoute
+    }
+    '/tickets/$id': {
+      id: '/tickets/$id'
+      path: '/$id'
+      fullPath: '/tickets/$id'
+      preLoaderRoute: typeof TicketsIdRouteImport
+      parentRoute: typeof TicketsRoute
     }
     '/services/$serviceSlug': {
       id: '/services/$serviceSlug'
@@ -1061,6 +1348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardExecutiveRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/bureau-head': {
+      id: '/dashboard/bureau-head'
+      path: '/bureau-head'
+      fullPath: '/dashboard/bureau-head'
+      preLoaderRoute: typeof DashboardBureauHeadRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/auditor': {
       id: '/dashboard/auditor'
       path: '/auditor'
@@ -1157,6 +1451,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardAuditorRoute: typeof DashboardAuditorRoute
+  DashboardBureauHeadRoute: typeof DashboardBureauHeadRoute
   DashboardExecutiveRoute: typeof DashboardExecutiveRoute
   DashboardInstitutionRoute: typeof DashboardInstitutionRoute
   DashboardLicensingRoute: typeof DashboardLicensingRoute
@@ -1170,6 +1465,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAuditorRoute: DashboardAuditorRoute,
+  DashboardBureauHeadRoute: DashboardBureauHeadRoute,
   DashboardExecutiveRoute: DashboardExecutiveRoute,
   DashboardInstitutionRoute: DashboardInstitutionRoute,
   DashboardLicensingRoute: DashboardLicensingRoute,
@@ -1228,6 +1524,21 @@ const RequestsRouteChildren: RequestsRouteChildren = {
 const RequestsRouteWithChildren = RequestsRoute._addFileChildren(
   RequestsRouteChildren,
 )
+
+interface TicketsRouteChildren {
+  TicketsIdRoute: typeof TicketsIdRoute
+  TicketsCreateRoute: typeof TicketsCreateRoute
+  TicketsIndexRoute: typeof TicketsIndexRoute
+}
+
+const TicketsRouteChildren: TicketsRouteChildren = {
+  TicketsIdRoute: TicketsIdRoute,
+  TicketsCreateRoute: TicketsCreateRoute,
+  TicketsIndexRoute: TicketsIndexRoute,
+}
+
+const TicketsRouteWithChildren =
+  TicketsRoute._addFileChildren(TicketsRouteChildren)
 
 interface UsersRouteChildren {
   UsersCreateRoute: typeof UsersCreateRoute
@@ -1334,20 +1645,31 @@ const ResearchTransfersRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
+  CloudRoute: CloudRoute,
   CybersecurityRoute: CybersecurityRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  DevelopmentRoute: DevelopmentRoute,
   DuplicationRoute: DuplicationRoute,
   FeasibilityRoute: FeasibilityRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  InfrastructureRoute: InfrastructureRoute,
   InstitutionRegisterRoute: InstitutionRegisterRoute,
   LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRouteWithChildren,
+  PermissionsRoute: PermissionsRoute,
+  ProjectsRoute: ProjectsRoute,
+  QualityRoute: QualityRoute,
+  RbacRoute: RbacRoute,
   RegistryRoute: RegistryRouteWithChildren,
   ReportsRoute: ReportsRoute,
   RequestsRoute: RequestsRouteWithChildren,
+  SecurityReviewRoute: SecurityReviewRoute,
   ServiceRequestsRoute: ServiceRequestsRoute,
   SettingsRoute: SettingsRoute,
   SurveysRoute: SurveysRoute,
+  TasksRoute: TasksRoute,
+  TicketsRoute: TicketsRouteWithChildren,
+  TrainingRoute: TrainingRoute,
   UsersRoute: UsersRouteWithChildren,
   VendorsRoute: VendorsRouteWithChildren,
   WorkflowsRoute: WorkflowsRoute,

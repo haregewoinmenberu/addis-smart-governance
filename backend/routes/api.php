@@ -14,9 +14,15 @@ use App\Http\Controllers\Api\VendorController;
 use App\Http\Controllers\Api\WorkflowController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\UserRoleController;
+use App\Http\Controllers\Api\RBACStatsController;
+use App\Http\Controllers\Api\RBACDebugController;
+use App\Http\Controllers\Api\RoleBulkController;
 use App\Http\Controllers\Api\ServiceFormSubmissionController;
 use App\Http\Controllers\Api\InstitutionDocumentController;
 use App\Http\Controllers\Api\InstitutionTeamController;
+use App\Http\Controllers\Api\SupportTicketController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -64,14 +70,6 @@ Route::get('/smart-city-requests/track', [SmartCityRequestController::class, 'tr
 Route::prefix('institutions')->group(function () {
     Route::post('/register', [InstitutionController::class, 'register']);
     Route::get('/types', [InstitutionController::class, 'types']);
-    Route::get('/debug', function(Request $request) {
-        return response()->json([
-            'success' => true,
-            'message' => 'Institution routes are working',
-            'request_data' => $request->all(),
-            'headers' => $request->headers->all(),
-        ]);
-    });
 });
 
 // Service Form Submission - Public endpoint (can be called without auth)
@@ -109,44 +107,6 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         Route::get('/primary', [UnifiedDashboardController::class, 'getPrimaryDashboard']);
         Route::get('/permissions', [UnifiedDashboardController::class, 'getPermissions']);
         
-        // Debug endpoint - Shows what user can access (remove in production)
-        Route::get('/debug', function(Request $request) {
-            $user = $request->user();
-            if (!$user) {
-                return response()->json(['error' => 'Not authenticated'], 401);
-            }
-            
-            return response()->json([
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'roles' => $user->roles->pluck('name'),
-                ],
-                'all_permissions' => $user->getAllPermissions(),
-                'dashboard_permissions' => array_filter($user->getAllPermissions(), function($p) {
-                    return strpos($p, 'dashboard') !== false;
-                }),
-                'can_access' => [
-                    'main_dashboard' => $user->hasPermission('view_dashboard'),
-                    'executive' => $user->hasPermission('view_executive_dashboard'),
-                    'auditor' => $user->hasPermission('view_auditor_dashboard'),
-                    'institution' => $user->hasPermission('view_institution_dashboard'),
-                    'research' => $user->hasPermission('view_research_dashboard'),
-                    'licensing' => $user->hasPermission('view_licensing_dashboard'),
-                    'technology_transfer' => $user->hasPermission('view_technology_transfer_dashboard'),
-                ],
-                'recommended_routes' => array_filter([
-                    $user->hasPermission('view_dashboard') ? '/api/dashboard' : null,
-                    $user->hasPermission('view_executive_dashboard') ? '/api/dashboards/executive' : null,
-                    $user->hasPermission('view_auditor_dashboard') ? '/api/dashboards/auditor' : null,
-                    $user->hasPermission('view_institution_dashboard') ? '/api/dashboards/institution' : null,
-                    $user->hasPermission('view_research_dashboard') ? '/api/dashboards/research' : null,
-                    $user->hasPermission('view_licensing_dashboard') ? '/api/dashboards/licensing' : null,
-                    $user->hasPermission('view_technology_transfer_dashboard') ? '/api/dashboards/technology-transfer' : null,
-                ]),
-            ]);
-        });
         
         // Individual Dashboard Endpoints
         Route::get('/executive', [ExecutiveDashboardController::class, 'index'])
@@ -195,11 +155,54 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         ->middleware('permission:manage_settings');
 
     // Roles & Permissions - ITDB Administrator only
-    Route::middleware('role:itdb_administrator')->group(function () {
-        Route::get('roles', [RoleController::class, 'index']);
-        Route::get('roles/{role}', [RoleController::class, 'show']);
-        Route::post('roles/{role}/permissions/update', [RoleController::class, 'updatePermissions']);
-        Route::get('permissions', [RoleController::class, 'permissions']);
+    Route::middleware('permission:manage_roles')->group(function () {
+        // Roles Management
+        Route::prefix('roles')->group(function () {
+            Route::get('/', [RoleController::class, 'index']);
+            Route::post('/', [RoleController::class, 'store']);
+            Route::get('/{id}', [RoleController::class, 'show']);
+            Route::put('/{id}', [RoleController::class, 'update']);
+            Route::post('/{id}/update', [RoleController::class, 'update']);
+            Route::delete('/{id}', [RoleController::class, 'destroy']);
+            Route::post('/{id}/permissions', [RoleController::class, 'assignPermissions']);
+            Route::get('/{id}/users', [RoleController::class, 'users']);
+        });
+        
+        // Permissions Management
+        Route::prefix('permissions')->group(function () {
+            Route::get('/', [PermissionController::class, 'index']);
+            Route::post('/', [PermissionController::class, 'store']);
+            Route::get('/modules', [PermissionController::class, 'modules']);
+            Route::get('/{id}', [PermissionController::class, 'show']);
+            Route::put('/{id}', [PermissionController::class, 'update']);
+            Route::post('/{id}/update', [PermissionController::class, 'update']);
+            Route::delete('/{id}', [PermissionController::class, 'destroy']);
+            Route::get('/{id}/roles', [PermissionController::class, 'roles']);
+        });
+        
+        // RBAC Statistics
+        Route::prefix('rbac/stats')->group(function () {
+            Route::get('/', [RBACStatsController::class, 'index']);
+            Route::get('/permissions', [RBACStatsController::class, 'permissions']);
+            Route::get('/roles', [RBACStatsController::class, 'roles']);
+            Route::get('/users', [RBACStatsController::class, 'users']);
+            Route::post('/clear-cache', [RBACStatsController::class, 'clearCache']);
+        });
+        
+        // RBAC Debug (remove in production)
+        Route::prefix('rbac/debug')->group(function () {
+            Route::get('/', [RBACDebugController::class, 'index']);
+            Route::get('/check-permission/{permission}', [RBACDebugController::class, 'checkPermission']);
+            Route::get('/check-role/{role}', [RBACDebugController::class, 'checkRole']);
+        });
+        
+        // Bulk Operations
+        Route::prefix('rbac/bulk')->group(function () {
+            Route::post('/assign-roles', [RoleBulkController::class, 'bulkAssign']);
+            Route::post('/remove-roles', [RoleBulkController::class, 'bulkRemove']);
+            Route::post('/clone-role/{id}', [RoleBulkController::class, 'cloneRole']);
+            Route::post('/delete-roles', [RoleBulkController::class, 'bulkDelete']);
+        });
     });
 
     // Users - ITDB Administrator can manage all, others can view
@@ -220,6 +223,16 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:edit_users');
         Route::get('/{id}/activity', [UserController::class, 'activityLogs'])
             ->middleware('permission:view_users');
+        
+        // User Role Management
+        Route::get('/{id}/roles', [UserRoleController::class, 'index'])
+            ->middleware('permission:view_users');
+        Route::post('/{id}/roles', [UserRoleController::class, 'assign'])
+            ->middleware('permission:manage_roles');
+        Route::post('/{id}/roles/add', [UserRoleController::class, 'addRole'])
+            ->middleware('permission:manage_roles');
+        Route::delete('/{id}/roles/{roleId}', [UserRoleController::class, 'remove'])
+            ->middleware('permission:manage_roles');
     });
 
     // Technology Requests
@@ -494,6 +507,45 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         Route::post('/{id}/reject', [SmartCityRequestController::class, 'reject'])
             ->middleware('permission:approve_workflows');
     });
+
+    // ====================================================
+    // SUPPORT TICKET MANAGEMENT
+    // ====================================================
+    Route::prefix('support-tickets')->group(function () {
+        // List tickets
+        Route::get('/', [SupportTicketController::class, 'index']);
+        
+        // Create ticket (any authenticated user)
+        Route::post('/', [SupportTicketController::class, 'store']);
+        
+        // Get statistics
+        Route::get('/statistics', [SupportTicketController::class, 'statistics']);
+        
+        // View ticket details
+        Route::get('/{id}', [SupportTicketController::class, 'show']);
+        
+        // Update ticket (support officers)
+        Route::put('/{id}', [SupportTicketController::class, 'update'])
+            ->middleware('permission:update_ticket');
+        
+        // Accept ticket (support officers)
+        Route::post('/{id}/accept', [SupportTicketController::class, 'accept'])
+            ->middleware('permission:accept_ticket');
+        
+        // Resolve ticket (support officers)
+        Route::post('/{id}/resolve', [SupportTicketController::class, 'resolve'])
+            ->middleware('permission:resolve_ticket');
+        
+        // Close ticket (support officers)
+        Route::post('/{id}/close', [SupportTicketController::class, 'close'])
+            ->middleware('permission:close_ticket');
+        
+        // Add message to ticket
+        Route::post('/{id}/messages', [SupportTicketController::class, 'addMessage']);
+    });
+
+    Route::get('/with-roles-permissions', [AuditController::class, 'getAllUserWithRoleAndPermission']);
+
 });
 
 // ====================================================
@@ -849,5 +901,3 @@ Route::middleware(['auth:api', 'log.activity'])->prefix('smart-city/service-requ
     Route::post('/bulk-assign', [\App\Http\Controllers\Api\SmartCityServiceRequestController::class, 'bulkAssign']);
 });
 
-
-Route::get('/with-roles-permissions', [AuditController::class, 'getAllUserWithRoleAndPermission']);

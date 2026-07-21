@@ -22,7 +22,7 @@ function DashboardResolver() {
   }
 
   const target = getDashboardRoute(user);
-  console.log(`[DashboardResolver] Resolving dashboard for user ${user?.email}, target: ${target}`);
+  console.log(`[DashboardResolver] User type: ${user?.user_type}, Resolving dashboard for user ${user?.email}, target: ${target}`);
   
   // Prevent redirect loop - if target is still /dashboard, go to no-access
   if (target === '/dashboard' || target === '/dashboard/') {

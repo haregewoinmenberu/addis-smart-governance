@@ -24,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
+            'permission.any' => \App\Http\Middleware\CheckAnyPermission::class,
+            'permission.all' => \App\Http\Middleware\CheckAllPermissions::class,
+            'ensure.role' => \App\Http\Middleware\EnsureUserHasRole::class,
             'log.activity' => \App\Http\Middleware\LogActivity::class,
         ]);
         

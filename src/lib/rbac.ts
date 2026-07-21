@@ -1,231 +1,259 @@
-// RBAC Utility Functions
-
-import type { User, PermissionName, RoleName } from '@/types/rbac';
+import type { User, RoleName, PermissionName } from "@/types/rbac";
 
 /**
  * Check if user has a specific role
  */
-export function hasRole(user: User | null | undefined, role: RoleName | RoleName[]): boolean {
+export function hasRole(user: User | null, role: RoleName | RoleName[]): boolean {
   if (!user || !user.roles) return false;
-  
-  const roles = Array.isArray(role) ? role : [role];
-  return user.roles.some(r => roles.includes(r.name));
+
+  if (Array.isArray(role)) {
+    return role.some((r) => user.roles?.some((userRole) => userRole.name === r));
+  }
+
+  return user.roles.some((userRole) => userRole.name === role);
 }
 
 /**
  * Check if user has a specific permission
  */
-export function hasPermission(user: User | null | undefined, permission: PermissionName | PermissionName[]): boolean {
-  if (!user) return false;
-  
-  const permissions = Array.isArray(permission) ? permission : [permission];
-  
-  if (user.user_type === 'INSTITUTIONAL') {
-    const implicit = ['view_dashboard', 'view_institution_dashboard', 'view_notifications'];
-    if (permissions.some(p => implicit.includes(p))) {
-      return true;
-    }
-  }
-  
-  if (!user.permissions) return false;
-  return permissions.some(p => user.permissions.includes(p));
-}
-
-/**
- * Check if user has any of the given permissions
- */
-export function hasAnyPermission(user: User | null | undefined, permissions: PermissionName[]): boolean {
-  if (!user) return false;
-  
-  if (user.user_type === 'INSTITUTIONAL') {
-    const implicit = ['view_dashboard', 'view_institution_dashboard', 'view_notifications'];
-    if (permissions.some(p => implicit.includes(p))) {
-      return true;
-    }
-  }
-  
-  if (!user.permissions) return false;
-  return permissions.some(p => user.permissions.includes(p));
-}
-
-/**
- * Check if user has all of the given permissions
- */
-export function hasAllPermissions(user: User | null | undefined, permissions: PermissionName[]): boolean {
-  if (!user) return false;
-  return permissions.every(p => hasPermission(user, p));
-}
-
-/**
- * Check if user is ITDB Administrator
- */
-export function isITDBAdmin(user: User | null | undefined): boolean {
-  return hasRole(user, 'itdb_administrator');
-}
-
-/**
- * Check if user is Auditor
- */
-export function isAuditor(user: User | null | undefined): boolean {
-  return hasRole(user, 'itdb_auditor');
-}
-
-/**
- * Get user's primary role (first role)
- */
-export function getPrimaryRole(user: User | null | undefined): RoleName | null {
-  if (!user || !user.roles || user.roles.length === 0) return null;
-  return user.roles[0].name;
-}
-
-/**
- * Get user's role display name
- */
-export function getRoleDisplayName(user: User | null | undefined): string {
-  if (!user || !user.roles || user.roles.length === 0) return 'No Role';
-  return user.roles[0].display_name;
-}
-
-/**
- * Check if user can view resource
- */
-export function canViewResource(
-  user: User | null | undefined
+export function hasPermission(
+  user: User | null,
+  permission: PermissionName | PermissionName[]
 ): boolean {
-  if (!user) return false;
-  
-  // ITDB Admin and Auditor can view all
-  if (isITDBAdmin(user) || isAuditor(user)) return true;
-  
-  return false;
+  if (!user || !user.permissions) return false;
+
+  if (Array.isArray(permission)) {
+    return permission.some((p) => user.permissions?.includes(p));
+  }
+
+  return user.permissions.includes(permission);
 }
 
 /**
- * Check if user can edit resource (based on ownership)
+ * Check if user has all specified permissions
  */
-export function canEditResource(
-  user: User | null | undefined,
-  resourceOwnerId?: number
+export function hasAllPermissions(
+  user: User | null,
+  permissions: PermissionName[]
 ): boolean {
-  if (!user) return false;
-  
-  // ITDB Admin can edit all
-  if (isITDBAdmin(user)) return true;
-  
-  // Check ownership
-  const ownsResource = resourceOwnerId === user.id;
-  return ownsResource;
+  if (!user || !user.permissions) return false;
+  return permissions.every((p) => user.permissions?.includes(p));
 }
 
 /**
- * Filter navigation items based on user permissions
+ * Check if user has any of the specified permissions
  */
-export function filterNavByPermissions(
-  navItems: Array<{ permission?: PermissionName; role?: RoleName }>,
-  user: User | null | undefined
-): typeof navItems {
-  if (!user) return [];
-  
-  return navItems.filter(item => {
-    if (item.permission && !hasPermission(user, item.permission)) {
-      return false;
-    }
-    if (item.role && !hasRole(user, item.role)) {
-      return false;
-    }
-    return true;
-  });
+export function hasAnyPermission(
+  user: User | null,
+  permissions: PermissionName[]
+): boolean {
+  if (!user || !user.permissions) return false;
+  return permissions.some((p) => user.permissions?.includes(p));
 }
 
 /**
- * Get dashboard route based on user permissions.
- * Resolves the most appropriate dashboard a user is allowed to see.
+ * Get badge color for role
  */
-export function getDashboardRoute(user: User | null | undefined): string {
-  console.log('[getDashboardRoute] Evaluating dashboard for user:', user?.email);
-  
-  if (!user) {
-    console.log('[getDashboardRoute] No user, returning /login');
-    return '/login';
-  }
+export function getRoleBadgeColor(role: RoleName): string {
+  const colorMap: Record<RoleName, string> = {
+    itdb_administrator: "bg-purple-100 text-purple-800 border-purple-300",
+    itdb_auditor: "bg-blue-100 text-blue-800 border-blue-300",
+  };
 
-  console.log('[getDashboardRoute] User permissions:', user.permissions);
-  console.log('[getDashboardRoute] User type:', user.user_type);
-
-  // Priority order: Check specific dashboards first
-  
-  // Executive Dashboard (highest priority - ITDB Admin only)
-  if (hasPermission(user, 'view_executive_dashboard')) {
-    console.log('[getDashboardRoute] Matched: Executive Dashboard');
-    return '/dashboard/executive';
-  }
-  
-  // Auditor Dashboard
-  if (hasPermission(user, 'view_auditor_dashboard')) {
-    console.log('[getDashboardRoute] Matched: Auditor Dashboard');
-    return '/dashboard/auditor';
-  }
-  
-  // Institution Dashboard
-  if (user.user_type === 'INSTITUTIONAL' || hasPermission(user, 'view_institution_dashboard')) {
-    console.log('[getDashboardRoute] Matched: Institution Dashboard');
-    return '/dashboard/institution';
-  }
-  
-  // Research Dashboard (includes Smart City Command Center)
-  if (hasPermission(user, 'view_research_dashboard')) {
-    console.log('[getDashboardRoute] Matched: Research Dashboard');
-    return '/dashboard/research';
-  }
-  
-  // Licensing Dashboard
-  if (hasPermission(user, 'view_licensing_dashboard')) {
-    console.log('[getDashboardRoute] Matched: Licensing Dashboard');
-    return '/dashboard/licensing';
-  }
-  
-  // Technology Transfer Dashboard
-  if (hasPermission(user, 'view_technology_transfer_dashboard')) {
-    console.log('[getDashboardRoute] Matched: Technology Transfer Dashboard');
-    return '/dashboard/technology-transfer';
-  }
-
-  // SubCity Dashboard
-  if (hasPermission(user, 'view_subcity_dashboard')) {
-    console.log('[getDashboardRoute] Matched: SubCity Dashboard');
-    return '/dashboard/subcity';
-  }
-
-  // Main dashboard (for users with view_dashboard permission)
-  if (hasPermission(user, 'view_dashboard')) {
-    console.log('[getDashboardRoute] Matched: Main Dashboard');
-    return '/dashboard/main';
-  }
-
-  // Fallback: No access page for users without any dashboard permissions
-  // This prevents infinite redirect loops
-  console.warn('[getDashboardRoute] No dashboard permissions found, returning /dashboard/no-access');
-  return '/dashboard/no-access';
+  return colorMap[role] || "bg-gray-100 text-gray-800 border-gray-300";
 }
 
 /**
  * Format role name for display
  */
 export function formatRoleName(role: RoleName): string {
-  const roleNames: Record<RoleName, string> = {
-    itdb_administrator: 'ITDB Administrator',
-    itdb_auditor: 'ITDB Auditor',
-  };
-  return roleNames[role] || role;
+  return role
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 /**
- * Get role badge color
+ * Format permission name for display
  */
-export function getRoleBadgeColor(role: RoleName): string {
-  const colors: Record<RoleName, string> = {
-    itdb_administrator: 'bg-purple-100 text-purple-800 border-purple-200',
-    itdb_auditor: 'bg-amber-100 text-amber-800 border-amber-200',
+export function formatPermissionName(permission: PermissionName): string {
+  return permission
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+/**
+ * Group permissions by module
+ */
+export function groupPermissionsByModule(
+  permissions: PermissionName[]
+): Record<string, PermissionName[]> {
+  const grouped: Record<string, PermissionName[]> = {};
+
+  permissions.forEach((permission) => {
+    // Extract module from permission name (e.g., "view_users" -> "users")
+    const parts = permission.split("_");
+    const module = parts.length > 1 ? parts[parts.length - 1] : "general";
+
+    if (!grouped[module]) {
+      grouped[module] = [];
+    }
+    grouped[module].push(permission);
+  });
+
+  return grouped;
+}
+
+/**
+ * Check if user is administrator
+ */
+export function isAdmin(user: User | null): boolean {
+  return hasRole(user, "itdb_administrator");
+}
+
+/**
+ * Check if user is auditor
+ */
+export function isAuditor(user: User | null): boolean {
+  return hasRole(user, "itdb_auditor");
+}
+
+/**
+ * Check if user can manage a specific resource
+ */
+export function canManage(user: User | null, resource: string): boolean {
+  if (isAdmin(user)) return true;
+
+  const managePermissions: PermissionName[] = [
+    `create_${resource}` as PermissionName,
+    `edit_${resource}` as PermissionName,
+    `delete_${resource}` as PermissionName,
+  ];
+
+  return hasAnyPermission(user, managePermissions);
+}
+
+/**
+ * Get user's primary role
+ */
+export function getPrimaryRole(user: User | null): RoleName | null {
+  if (!user || !user.roles || user.roles.length === 0) return null;
+  return user.roles[0].name;
+}
+
+/**
+ * Check if user can access dashboard
+ */
+export function canAccessDashboard(user: User | null, dashboard: string): boolean {
+  const dashboardPermission = `view_${dashboard}_dashboard` as PermissionName;
+  return hasPermission(user, dashboardPermission);
+}
+
+/**
+ * Get the primary dashboard route for user based on their permissions and role
+ */
+export function getDashboardRoute(user: User | null): string {
+  if (!user) return "/login";
+
+  // Check for institutional users - redirect directly to institution dashboard
+  if (user.user_type === "INSTITUTIONAL" && hasPermission(user, "view_institution_dashboard")) {
+    return "/dashboard/institution?tab=my-requests";
+  }
+
+  // Check if user has bureau_head role
+  const isBureauHead = user.roles?.some(role => role.name === "bureau_head");
+  if (isBureauHead && hasPermission(user, "view_executive_dashboard")) {
+    return "/dashboard/bureau-head";
+  }
+
+  // Priority order for dashboard routes (for internal staff)
+  const dashboardChecks = [
+    { permission: "view_executive_dashboard" as PermissionName, route: "/dashboard/executive" },
+    { permission: "view_reports_dashboard" as PermissionName, route: "/reports" },
+    { permission: "view_dashboard" as PermissionName, route: "/dashboard/main" },
+    { permission: "view_auditor_dashboard" as PermissionName, route: "/dashboard/auditor" },
+    { permission: "view_research_dashboard" as PermissionName, route: "/dashboard/research" },
+    { permission: "view_licensing_dashboard" as PermissionName, route: "/dashboard/licensing" },
+    { permission: "view_technology_transfer_dashboard" as PermissionName, route: "/dashboard/technology-transfer" },
+    { permission: "view_subcity_dashboard" as PermissionName, route: "/dashboard/subcity" },
+  ];
+
+  for (const check of dashboardChecks) {
+    if (hasPermission(user, check.permission)) {
+      return check.route;
+    }
+  }
+
+  return "/dashboard/no-access";
+}
+
+/**
+ * Get role display name from user, role object, or role name
+ */
+export function getRoleDisplayName(
+  input: User | { name: RoleName; display_name?: string } | RoleName | null
+): string {
+  if (!input) return "No Role";
+  
+  // If it's a User object with roles
+  if (typeof input === "object" && "roles" in input && input.roles) {
+    if (input.roles.length === 0) return "No Role";
+    const primaryRole = input.roles[0];
+    return primaryRole.display_name || formatRoleName(primaryRole.name);
+  }
+  
+  // If it's a string (role name)
+  if (typeof input === "string") {
+    return formatRoleName(input);
+  }
+  
+  // If it's a role object
+  if (typeof input === "object" && "name" in input) {
+    return input.display_name || formatRoleName(input.name);
+  }
+  
+  return "No Role";
+}
+
+/**
+ * Get all permissions for a user (from both roles and direct permissions)
+ */
+export function getAllPermissions(user: User | null): PermissionName[] {
+  if (!user) return [];
+  return user.permissions || [];
+}
+
+/**
+ * Check if user has access to a specific route
+ */
+export function canAccessRoute(user: User | null, route: string): boolean {
+  if (!user) return false;
+  
+  // Route to permission mapping
+  const routePermissions: Record<string, PermissionName | PermissionName[]> = {
+    "/dashboard": "view_dashboard",
+    "/dashboard/executive": "view_executive_dashboard",
+    "/dashboard/research": "view_research_dashboard",
+    "/users": "view_users",
+    "/requests": "view_requests",
+    "/training": "view_training",
+    "/research": "view_research",
+    "/security-review": "view_security_review",
+    "/projects": "view_projects",
+    "/infrastructure": "view_infrastructure",
+    "/tickets": "view_tickets",
+    "/quality": "view_quality_review",
+    "/reports": "view_reports",
+    "/settings": "manage_settings",
   };
-  return colors[role] || 'bg-gray-100 text-gray-800 border-gray-200';
+
+  const requiredPermission = routePermissions[route];
+  if (!requiredPermission) return true; // Allow access if no specific permission is required
+
+  if (Array.isArray(requiredPermission)) {
+    return hasAnyPermission(user, requiredPermission);
+  }
+
+  return hasPermission(user, requiredPermission);
 }

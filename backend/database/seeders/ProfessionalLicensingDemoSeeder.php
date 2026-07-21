@@ -76,10 +76,12 @@ class ProfessionalLicensingDemoSeeder extends Seeder
     {
         $users = [];
 
-        // Ensure all licensing roles have dashboard permissions
-        $this->ensureDashboardPermissions();
+        /*
+    |--------------------------------------------------------------------------
+    | ITDB Licensing Authority
+    |--------------------------------------------------------------------------
+    */
 
-        // Licensing Authority
         $licensingAuthority = User::firstOrCreate(
             ['email' => 'licensing@gov.et'],
             [
@@ -88,16 +90,20 @@ class ProfessionalLicensingDemoSeeder extends Seeder
                 'is_active' => true,
             ]
         );
-        $role = Role::where('name', 'licensing_authority')->first();
-        if ($role) {
-            DB::table('role_user')->updateOrInsert(
-                ['user_id' => $licensingAuthority->id, 'role_id' => $role->id],
-                ['user_id' => $licensingAuthority->id, 'role_id' => $role->id]
-            );
-        }
+
+        $licensingAuthority->syncRoles([
+            'licensing_authority'
+        ]);
+
         $users['licensing_authority'] = $licensingAuthority;
 
-        // Verification Officer
+
+        /*
+    |--------------------------------------------------------------------------
+    | Verification Officer
+    |--------------------------------------------------------------------------
+    */
+
         $verificationOfficer = User::firstOrCreate(
             ['email' => 'verifier@gov.et'],
             [
@@ -106,16 +112,20 @@ class ProfessionalLicensingDemoSeeder extends Seeder
                 'is_active' => true,
             ]
         );
-        $role = Role::where('name', 'verification_officer')->first();
-        if ($role) {
-            DB::table('role_user')->updateOrInsert(
-                ['user_id' => $verificationOfficer->id, 'role_id' => $role->id],
-                ['user_id' => $verificationOfficer->id, 'role_id' => $role->id]
-            );
-        }
+
+        $verificationOfficer->syncRoles([
+            'verification_officer'
+        ]);
+
         $users['verification_officer'] = $verificationOfficer;
 
-        // Exam Officer
+
+        /*
+    |--------------------------------------------------------------------------
+    | Exam Officer
+    |--------------------------------------------------------------------------
+    */
+
         $examOfficer = User::firstOrCreate(
             ['email' => 'examiner@gov.et'],
             [
@@ -124,16 +134,21 @@ class ProfessionalLicensingDemoSeeder extends Seeder
                 'is_active' => true,
             ]
         );
-        $role = Role::where('name', 'exam_officer')->first();
-        if ($role) {
-            DB::table('role_user')->updateOrInsert(
-                ['user_id' => $examOfficer->id, 'role_id' => $role->id],
-                ['user_id' => $examOfficer->id, 'role_id' => $role->id]
-            );
-        }
+
+        $examOfficer->syncRoles([
+            'exam_officer'
+        ]);
+
         $users['exam_officer'] = $examOfficer;
 
-        // Disciplinary Committee Member
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Disciplinary Committee
+    |--------------------------------------------------------------------------
+    */
+
         $disciplinaryOfficer = User::firstOrCreate(
             ['email' => 'disciplinary@gov.et'],
             [
@@ -142,36 +157,48 @@ class ProfessionalLicensingDemoSeeder extends Seeder
                 'is_active' => true,
             ]
         );
-        $role = Role::where('name', 'disciplinary_committee')->first();
-        if ($role) {
-            DB::table('role_user')->updateOrInsert(
-                ['user_id' => $disciplinaryOfficer->id, 'role_id' => $role->id],
-                ['user_id' => $disciplinaryOfficer->id, 'role_id' => $role->id]
-            );
-        }
+
+        $disciplinaryOfficer->syncRoles([
+            'disciplinary_committee'
+        ]);
+
         $users['disciplinary_officer'] = $disciplinaryOfficer;
 
-        // Professional Applicants
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Professional Applicants
+    |--------------------------------------------------------------------------
+    */
+
         $applicants = [];
+
         for ($i = 1; $i <= 5; $i++) {
+
             $applicant = User::firstOrCreate(
-                ['email' => "applicant{$i}@example.com"],
+                [
+                    'email' => "applicant{$i}@example.com"
+                ],
                 [
                     'name' => "Professional Applicant {$i}",
                     'password' => Hash::make('password123'),
                     'is_active' => true,
                 ]
             );
-            $role = Role::where('name', 'professional_applicant')->first();
-            if ($role) {
-                DB::table('role_user')->updateOrInsert(
-                    ['user_id' => $applicant->id, 'role_id' => $role->id],
-                    ['user_id' => $applicant->id, 'role_id' => $role->id]
-                );
-            }
+
+
+            $applicant->syncRoles([
+                'professional_applicant'
+            ]);
+
+
             $applicants[] = $applicant;
         }
+
+
         $users['applicants'] = $applicants;
+
 
         return $users;
     }

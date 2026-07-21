@@ -1,9 +1,8 @@
-import { useAuth } from "./useAuth";
-import type { PermissionName, RoleName } from "@/types/rbac";
+import { useAuth } from "@/contexts/AuthContext";
+import type { PermissionName } from "@/types/rbac";
 
 /**
- * Permission Hook
- * Provides utilities to check user permissions and roles
+ * Hook to check user permissions
  */
 export function usePermissions() {
   const { user } = useAuth();
@@ -13,83 +12,46 @@ export function usePermissions() {
    */
   const hasPermission = (permission: PermissionName): boolean => {
     if (!user) return false;
-    if (user.user_type === 'INSTITUTIONAL') {
-      if (['view_dashboard', 'view_institution_dashboard', 'view_notifications'].includes(permission)) {
-        return true;
-      }
-    }
-    return user.permissions.includes(permission);
+    return user.permissions?.includes(permission) ?? false;
   };
 
   /**
    * Check if user has any of the specified permissions
    */
   const hasAnyPermission = (permissions: PermissionName[]): boolean => {
-    if (!user) return false;
-    if (user.user_type === 'INSTITUTIONAL') {
-      const implicit = ['view_dashboard', 'view_institution_dashboard', 'view_notifications'];
-      if (permissions.some(p => implicit.includes(p))) {
-        return true;
-      }
-    }
-    return permissions.some((permission) => user.permissions.includes(permission));
+    if (!user || !permissions.length) return false;
+    return permissions.some(permission => user.permissions?.includes(permission));
   };
 
   /**
    * Check if user has all of the specified permissions
    */
   const hasAllPermissions = (permissions: PermissionName[]): boolean => {
-    if (!user) return false;
-    return permissions.every((permission) => hasPermission(permission));
+    if (!user || !permissions.length) return false;
+    return permissions.every(permission => user.permissions?.includes(permission));
   };
 
   /**
-   * Check if user has a specific role
+   * Get all user permissions
    */
-  const hasRole = (role: RoleName): boolean => {
-    if (!user) return false;
-    return user.roles.some((r) => r.name === role);
-  };
-
-  /**
-   * Check if user has any of the specified roles
-   */
-  const hasAnyRole = (roles: RoleName[]): boolean => {
-    if (!user) return false;
-    return roles.some((role) => user.roles.some((r) => r.name === role));
-  };
-
-  /**
-   * Check if user has all of the specified roles
-   */
-  const hasAllRoles = (roles: RoleName[]): boolean => {
-    if (!user) return false;
-    return roles.every((role) => user.roles.some((r) => r.name === role));
+  const getPermissions = (): PermissionName[] => {
+    return user?.permissions ?? [];
   };
 
   /**
    * Check if user is ITDB Administrator
    */
   const isITDBAdmin = (): boolean => {
-    return hasRole('itdb_administrator');
-  };
-
-  /**
-   * Check if user is Auditor
-   */
-  const isAuditor = (): boolean => {
-    return hasAnyRole(['itdb_auditor']);
+    if (!user) return false;
+    return user.roles?.some(role => role.name === 'itdb_administrator') ?? false;
   };
 
   return {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
-    hasRole,
-    hasAnyRole,
-    hasAllRoles,
+    getPermissions,
     isITDBAdmin,
-    isAuditor,
     user,
   };
 }
