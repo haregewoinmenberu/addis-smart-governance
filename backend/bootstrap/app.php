@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission.all' => \App\Http\Middleware\CheckAllPermissions::class,
             'ensure.role' => \App\Http\Middleware\EnsureUserHasRole::class,
             'log.activity' => \App\Http\Middleware\LogActivity::class,
+            'enforce.hierarchy' => \App\Http\Middleware\EnforceHierarchy::class,
         ]);
         
         // Disable redirect for unauthenticated API requests - return 401 instead

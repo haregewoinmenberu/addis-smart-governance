@@ -209,6 +209,10 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index'])
             ->middleware('permission:view_users');
+        Route::get('/manageable-roles', [UserController::class, 'manageableRoles'])
+            ->middleware('permission:view_users');
+        Route::get('/hierarchy-info', [UserController::class, 'hierarchyInfo'])
+            ->middleware('permission:view_users');
         Route::post('/', [UserController::class, 'store'])
             ->middleware('permission:create_users');
         Route::get('/{id}', [UserController::class, 'show'])

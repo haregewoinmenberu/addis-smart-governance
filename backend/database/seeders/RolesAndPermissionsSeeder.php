@@ -266,6 +266,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'description' => 'Manages Smart City sector requests, coordination and strategic technology initiatives.'
             ],
 
+            'smart_city_officer' => [
+                'display_name' => 'Smart City Officer',
+                'description' => 'Implements smart city initiatives and coordinates with stakeholders.'
+            ],
+
 
             // ==================================================
             // CAPACITY BUILDING AND TRAINING
@@ -499,14 +504,35 @@ class RolesAndPermissionsSeeder extends Seeder
                 'change_request_priority',
                 'view_research',
                 'approve_research',
-                'approve_feasibility',
-                'view_projects',
-                'assign_project',
-                'approve_milestone',
+                'approve_feasibility',  
                 'view_reports',
                 'generate_reports',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'  
+            ]
+        );
+
+        /*
+    |--------------------------------------------------------------------------
+    | Smart City Officer
+    |--------------------------------------------------------------------------
+    */
+
+        $this->assignPermissionsToRole(
+            $roles['smart_city_officer'],
+            $permissions,
+            [
+                'view_dashboard',
+                'view_requests',
+                'receive_requests',
+                'view_research',
+                'view_reports',
+                'view_notifications',
+                'send_notifications',
             ]
         );
 
@@ -532,7 +558,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'view_reports',
                 'generate_reports',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -555,7 +585,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'complete_training',
                 'view_reports',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -602,7 +636,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'view_reports',
                 'generate_reports',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -648,7 +686,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'view_reports',
                 'generate_reports',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -691,7 +733,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'close_project',
                 'generate_reports',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -716,7 +762,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'approve_deliverable',
                 'close_project',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -740,7 +790,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'approve_deliverable',
                 'update_project_timeline',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -762,7 +816,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'approve_merge',
                 'approve_release',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -784,7 +842,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'approve_merge',
                 'update_task_status',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -826,7 +888,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'network_configuration',
                 'server_installation',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -868,7 +934,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'approve_maintenance',
                 'generate_reports',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -889,7 +959,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'close_ticket',
                 'approve_maintenance',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -909,7 +983,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'update_ticket',
                 'resolve_ticket',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -950,7 +1028,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'view_infrastructure',
                 'generate_reports',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 
@@ -995,7 +1077,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'reject_quality',
                 'generate_audit_report',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
+                'delete_users'
             ]
         );
 

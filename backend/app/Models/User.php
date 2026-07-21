@@ -31,6 +31,7 @@ class User extends Authenticatable
         'is_active',
         'last_login_at',
         'mfa_enabled',
+        'created_by',
     ];
 
     /**
@@ -66,6 +67,22 @@ class User extends Authenticatable
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * Get the user who created this user.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get users created by this user.
+     */
+    public function createdUsers()
+    {
+        return $this->hasMany(User::class, 'created_by');
     }
 
     /**

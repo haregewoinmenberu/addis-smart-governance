@@ -276,11 +276,21 @@ export interface User {
   department?: string;
   user_type?: 'INTERNAL' | 'INSTITUTIONAL' | 'EXTERNAL';
   institution_id?: number;
+  institution?: {
+    id: number;
+    name: string;
+  };
   is_active: boolean;
   mfa_enabled: boolean;
   last_login_at?: string;
-  roles: Role[];
-  permissions: PermissionName[];
+  roles?: Role[];
+  permissions?: PermissionName[];
+  can_manage?: boolean;
+  created_by?: {
+    id: number;
+    name: string;
+    email: string;
+  };
   created_at: string;
   updated_at: string;
 }

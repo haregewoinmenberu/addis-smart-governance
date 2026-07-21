@@ -32,6 +32,7 @@ const nav: NavItem[] = [
     label: "My Institution",
     icon: Building2,
     sectionLabel: "Institution Portal",
+    permission: "view_institution_dashboard",
     children: [
       {
         to: "/dashboard/institution?tab=my-requests",
@@ -43,12 +44,13 @@ const nav: NavItem[] = [
         to: "/dashboard/institution?tab=notifications",
         label: "My Notifications",
         icon: Bell,
-        permission: "view_notifications",
+        permission: "view_institution_dashboard",
       },
       {
         to: "/tickets",
         label: "Open Support Ticket",
         icon: MessageSquare,
+        permission: "view_institution_dashboard",
         // No permission required - all authenticated users can create tickets
       },
     ],
@@ -79,60 +81,7 @@ const nav: NavItem[] = [
         permission: "view_reports_dashboard",
       },
     ],
-  },
-
-  // ── User Management ────────────────────────────────────────
-  {
-    label: "User Management",
-    icon: Users,
-    sectionLabel: "Management",
-    children: [
-      {
-        to: "/users",
-        label: "Users",
-        icon: Users,
-        permission: "view_users",
-      },
-      {
-        to: "/rbac",
-        label: "Roles & Permissions",
-        icon: ShieldCheck,
-        permission: "manage_roles",
-      },
-      {
-        to: "/users/requests",
-        label: "Access Requests",
-        icon: ClipboardCheck,
-        permission: "view_users",
-      },
-    ],
-  },
-
-  // ── Service Management ─────────────────────────────────────
-  {
-    label: "Service Management",
-    icon: FileStack,
-    children: [
-      {
-        to: "/requests",
-        label: "Requests",
-        icon: FileStack,
-        permission: "view_requests",
-      },
-      {
-        to: "/service-requests",
-        label: "Service Requests",
-        icon: ClipboardList,
-        permission: "receive_requests",
-      },
-      {
-        to: "/requests/approvals",
-        label: "Approval Queue",
-        icon: ClipboardCheck,
-        permission: "approve_requests",
-      },
-    ],
-  },
+  }, 
 
   // ── Training Management ────────────────────────────────────
   {
@@ -165,6 +114,12 @@ const nav: NavItem[] = [
     label: "Research & Innovation",
     icon: Microscope,
     children: [
+      {
+        to: "/service-requests",
+        label: "Service Requests",
+        icon: FileStack,
+        permission: "receive_requests",
+      },
       {
         to: "/research/ideas",
         label: "Research Ideas",
@@ -426,26 +381,43 @@ const nav: NavItem[] = [
     ],
   },
 
-  // ── Communications ─────────────────────────────────────────
+  // User Management ────────────────────────────────────────
   {
-    label: "Communications",
-    icon: Bell,
-    sectionLabel: "Communications",
+    label: "User Management",
+    icon: Users,
+    sectionLabel: "Management",
+    permissions: ["view_users", "create_users"],
+    requireAll: false,
     children: [
       {
-        to: "/notifications",
-        label: "Notifications",
-        icon: Bell,
-        permission: "view_notifications",
+        to: "/users",
+        label: "Users",
+        icon: Users,
+        permission: "view_users",
+      },
+      {
+        to: "/rbac",
+        label: "Roles & Permissions",
+        icon: ShieldCheck,
+        permission: "manage_roles",
       },
     ],
-  },
+  }, 
+
+  // ── Communications ─────────────────────────────────────────
+   {
+      to: "/notifications",
+      label: "Notifications",
+      icon: Bell,
+      permission: "view_notifications",
+    },
 
   // ── Administration ─────────────────────────────────────────
   {
     label: "Administration",
     icon: Settings,
     sectionLabel: "Administration",
+    permission: "manage_roles",
     children: [
       {
         to: "/rbac",

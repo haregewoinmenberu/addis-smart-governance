@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
-import { getUser, updateUser } from "@/lib/api";
+import { usersApi } from "@/lib/api/users";
+import type { UpdateUserData } from "@/lib/api/users";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/users/$id/edit")({
@@ -32,47 +34,80 @@ function Page() {
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ["user", id],
-    queryFn: () => getUser(id),
+    queryFn: () => usersApi.get(parseInt(id)),
   });
 
-  const [formData, setFormData] = useState({
+  const { data: manageableRolesData } = useQuery({
+    queryKey: ["users", "manageable-roles"],
+    queryFn: () => usersApi.getManageableRoles(),
+  });
+
+  const [formData, setFormData] = useState<UpdateUserData>({
     name: "",
     email: "",
     phone: "",
+    position: "",
     department: "",
-    role: "itdb_auditor",
+    roles: [],
   });
 
   useEffect(() => {
     if (userData?.data) {
-      const user = userData.data as any;
+      const user = userData.data;
       setFormData({
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
+        position: user.position || "",
         department: user.department || "",
-        role: user.roles?.[0]?.name || "itdb_auditor",
+        roles: user.roles?.map((r: any) => r.name) || [],
       });
     }
   }, [userData]);
 
   const updateMutation = useMutation({
-    mutationFn: (data: typeof formData) => updateUser(id, data),
+    mutationFn: (data: UpdateUserData) => usersApi.update(parseInt(id), data),
     onSuccess: () => {
       toast.success("User updated successfully");
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["user", id] });
       navigate({ to: "/users" });
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update user");
+    onError: (error: any) => {
+      const message = error.response?.data?.message || "Failed to update user";
+      const errors = error.response?.data?.errors;
+      
+      if (errors && Array.isArray(errors)) {
+        errors.forEach((err: string) => toast.error(err));
+      } else {
+        toast.error(message);
+      }
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.roles && formData.roles.length === 0) {
+      toast.error("Please select at least one role");
+      return;
+    }
+    
     updateMutation.mutate(formData);
   };
+
+  const handleRoleToggle = (roleName: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      roles: prev.roles?.includes(roleName)
+        ? prev.roles.filter((r) => r !== roleName)
+        : [...(prev.roles || []), roleName],
+    }));
+  };
+
+  const manageableRoles = manageableRolesData?.data || [];
+  const user = userData?.data;
+  const canManage = user?.can_manage;
 
   if (isLoading) {
     return (
@@ -84,11 +119,34 @@ function Page() {
     );
   }
 
+  if (!canManage) {
+    return (
+      <AppShell>
+        <PageHeader
+          title="Edit User"
+          subtitle="Update user information"
+          actions={
+            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/users" })}>
+              <ArrowLeft className="h-4 w-4 mr-1.5" />
+              Back to Users
+            </Button>
+          }
+        />
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            You do not have permission to manage this user. You can only manage users that are one level below your position in the organizational hierarchy.
+          </AlertDescription>
+        </Alert>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <PageHeader
         title="Edit User"
-        subtitle="Update user information and permissions"
+        subtitle={`Update ${user?.name}'s information`}
         actions={
           <Button variant="outline" size="sm" onClick={() => navigate({ to: "/users" })}>
             <ArrowLeft className="h-4 w-4 mr-1.5" />
@@ -100,31 +158,33 @@ function Page() {
       <Card className="max-w-2xl">
         <CardHeader>
           <CardTitle>User Information</CardTitle>
-          <CardDescription>Update the user's details</CardDescription>
+          <CardDescription>Update user details and role assignments</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="John Doe"
-                required
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="john@example.com"
-                required
-              />
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="john@example.com"
+                  required
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -139,39 +199,69 @@ function Page() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="department">Department</Label>
+                <Label htmlFor="position">Position</Label>
                 <Input
-                  id="department"
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  placeholder="IT Department"
+                  id="position"
+                  value={formData.position}
+                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                  placeholder="Senior Officer"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Role *</Label>
-              <Select
-                value={formData.role}
-                onValueChange={(value) => setFormData({ ...formData, role: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="itdb_administrator">ITDB Administrator</SelectItem>
-                  <SelectItem value="itdb_auditor">ITDB Auditor</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="department">Department</Label>
+              <Input
+                id="department"
+                value={formData.department}
+                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                placeholder="Department"
+              />
             </div>
+
+            <div className="space-y-2">
+              <Label>Roles * (Select at least one)</Label>
+              <div className="border rounded-md p-4 space-y-3 max-h-64 overflow-y-auto bg-muted/30">
+                {manageableRoles.map((role) => (
+                  <div key={role.id} className="flex items-start gap-3">
+                    <Checkbox
+                      id={`role-${role.id}`}
+                      checked={formData.roles?.includes(role.name)}
+                      onCheckedChange={() => handleRoleToggle(role.name)}
+                    />
+                    <div className="flex-1">
+                      <label
+                        htmlFor={`role-${role.id}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        {role.display_name}
+                      </label>
+                      {role.description && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {role.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                You can only assign roles within your management scope
+              </p>
+            </div>
+
             <div className="flex gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate({ to: "/users" })} >
+                onClick={() => navigate({ to: "/users" })}
+              >
                 Cancel
-              </Button> 
-              <Button type="submit" disabled={updateMutation.isPending}>
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={updateMutation.isPending || (formData.roles && formData.roles.length === 0)}
+              >
                 {updateMutation.isPending ? "Updating..." : "Update User"}
               </Button>
             </div>

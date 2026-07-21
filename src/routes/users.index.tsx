@@ -8,12 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { PermissionGuard } from "@/components/auth/PermissionGuard";
 import { usePermissions } from "@/hooks/usePermissions";
-import { Users, ShieldCheck, KeyRound, Plus, Search, Edit, Trash2, MoreVertical, UserX, UserCheck } from "lucide-react";
+import { Users, ShieldCheck, KeyRound, Plus, Search, Edit, Trash2, MoreVertical, UserX, UserCheck, Building2, AlertCircle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUsers, deleteUser, toggleUserActive } from "@/lib/api";
+import { usersApi } from "@/lib/api/users";
 import { useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "User Management & RBAC — STRP" }] }),
@@ -26,13 +27,20 @@ function Page() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Fetch users with hierarchy filtering
   const { data: usersData, isLoading } = useQuery({
     queryKey: ["users", searchQuery],
-    queryFn: () => getUsers({ search: searchQuery }),
+    queryFn: () => usersApi.list({ search: searchQuery || undefined }),
+  });
+
+  // Fetch hierarchy info
+  const { data: hierarchyInfo } = useQuery({
+    queryKey: ["users", "hierarchy-info"],
+    queryFn: () => usersApi.getHierarchyInfo(),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteUser,
+    mutationFn: usersApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({
@@ -40,28 +48,28 @@ function Page() {
         description: "User deleted successfully",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.response?.data?.message || "Failed to delete user",
         variant: "destructive",
       });
     },
   });
 
   const toggleActiveMutation = useMutation({
-    mutationFn: toggleUserActive,
-    onSuccess: () => {
+    mutationFn: usersApi.toggleActive,
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({
         title: "Success",
-        description: "User status updated successfully",
+        description: data.message,
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.response?.data?.message || "Failed to update user status",
         variant: "destructive",
       });
     },
@@ -78,25 +86,49 @@ function Page() {
   };
 
   const users = usersData?.data || [];
-  const totalUsers = usersData?.total || 0;
+  const canCreateUsers = usersData?.meta?.can_create_users || false;
+  const manageableRoles = usersData?.meta?.manageable_roles || [];
+  const totalUsers = users.length;
   const activeUsers = users.filter((u: any) => u.is_active).length;
+
+  // Only show Add User button if user has manageable roles
+  const showAddUserButton = canCreateUsers && manageableRoles.length > 0;
 
   return (
     <AppShell>
       <PageHeader
-        title="User Management & RBAC"
-        subtitle="Role-based access for ITDB Administrators and Auditors."
+        title="User Management"
+        subtitle="Manage users within your organizational hierarchy"
         actions={
-          <PermissionGuard permission="create_users">
+          showAddUserButton && (
             <Link to="/users/create">
               <Button size="sm" className="gap-1.5 bg-gradient-primary text-primary-foreground shadow-glow">
                 <Plus className="h-4 w-4" />
-                Create User
+                Add User
               </Button>
             </Link>
-          </PermissionGuard>
+          )
         }
       />
+
+      {/* Hierarchy Info Alert */}
+      {hierarchyInfo && (
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <div className="flex flex-col gap-1">
+              <div className="font-medium">Your Management Scope</div>
+              <div className="text-sm text-muted-foreground">
+                Department: {hierarchyInfo.user.department || "Not assigned"} • 
+                Can manage: {hierarchyInfo.capabilities.can_manage_count} user(s)
+                {manageableRoles.length > 0 && (
+                  <span> • Manageable roles: {manageableRoles.join(", ").replace(/_/g, " ")}</span>
+                )}
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total users" value={totalUsers.toString()} icon={Users} accent="primary" />
@@ -156,6 +188,9 @@ function Page() {
                           <div>
                             <p className="font-medium text-[#1a202c]">{user.name}</p>
                             <p className="text-xs text-muted-foreground">{user.email}</p>
+                            {user.position && (
+                              <p className="text-xs text-muted-foreground">{user.position}</p>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -168,7 +203,17 @@ function Page() {
                           ))}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-[#4a5568]">{user.department || "—"}</td>
+                      <td className="px-6 py-4 text-sm text-[#4a5568]">
+                        <div>
+                          {user.department || "—"}
+                          {user.institution && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                              <Building2 className="h-3 w-3" />
+                              {user.institution.name}
+                            </div>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-sm text-[#4a5568]">
                         <Badge
                           variant="secondary"
@@ -182,47 +227,51 @@ function Page() {
                         </Badge>
                       </td>
                       <td className="px-6 py-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <PermissionGuard permission="edit_users">
-                            <Link to={`/users/${user.id}/edit`}>
-                              <DropdownMenuItem>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
+                      {user.can_manage ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <PermissionGuard permission="edit_users">
+                              <Link to={`/users/${user.id}/edit`}>
+                                <DropdownMenuItem>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit
+                                </DropdownMenuItem>
+                              </Link>
+                            </PermissionGuard>
+                            <PermissionGuard permission="edit_users">
+                              <DropdownMenuItem onClick={() => handleToggleActive(user.id)}>
+                                {user.is_active ? (
+                                  <>
+                                    <UserX className="h-4 w-4 mr-2" />
+                                    Deactivate
+                                  </>
+                                ) : (
+                                  <>
+                                    <UserCheck className="h-4 w-4 mr-2" />
+                                    Activate
+                                  </>
+                                )}
                               </DropdownMenuItem>
-                            </Link>
-                          </PermissionGuard>
-                          <PermissionGuard permission="edit_users">
-                            <DropdownMenuItem onClick={() => handleToggleActive(user.id)}>
-                              {user.is_active ? (
-                                <>
-                                  <UserX className="h-4 w-4 mr-2" />
-                                  Deactivate
-                                </>
-                              ) : (
-                                <>
-                                  <UserCheck className="h-4 w-4 mr-2" />
-                                  Activate
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                          </PermissionGuard>
-                          <PermissionGuard permission="delete_users">
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(user.id)}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </PermissionGuard>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            </PermissionGuard>
+                            <PermissionGuard permission="delete_users">
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(user.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </PermissionGuard>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No access</span>
+                      )}
                     </td>
                   </tr>
                 ))
