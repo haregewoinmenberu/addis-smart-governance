@@ -305,6 +305,11 @@ class RolesAndPermissionsSeeder extends Seeder
                 'description' => 'Manages innovation research, feasibility studies and technology recommendations.'
             ],
 
+            'research_team_leader' => [
+                'display_name' => 'Research Team Leader',
+                'description' => 'Coordinates research officers, assigns research tasks and monitors progress.'
+            ],
+
             'research_officer' => [
                 'display_name' => 'Research Officer',
                 'description' => 'Conducts feasibility studies, technology assessment and research documentation.'
@@ -655,6 +660,29 @@ class RolesAndPermissionsSeeder extends Seeder
                 'create_users',
                 'edit_users',
                 'delete_users'
+            ]
+        );
+
+    /**
+     * research_team_leader role permissions
+     */
+
+        $this->assignPermissionsToRole(
+            $roles['research_team_leader'],
+            $permissions,
+            [
+                'view_research',
+                'create_research_ideas',
+                'edit_research_ideas',
+                'submit_research_ideas',
+                'assign_research',
+                'conduct_research',
+                'technology_assessment',
+                'cost_benefit_analysis',
+                'risk_analysis',
+                'submit_feasibility',
+                'view_notifications',
+                'send_notifications'
             ]
         );
 

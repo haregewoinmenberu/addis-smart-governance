@@ -61,6 +61,7 @@ import { Route as ResearchProjectsRouteImport } from './routes/research.projects
 import { Route as ResearchIdeasRouteImport } from './routes/research.ideas'
 import { Route as ResearchEvaluationsRouteImport } from './routes/research.evaluations'
 import { Route as RequestsCreateRouteImport } from './routes/requests.create'
+import { Route as RequestsAssignedRouteImport } from './routes/requests.assigned'
 import { Route as RegistryCreateRouteImport } from './routes/registry.create'
 import { Route as DocumentsIdRouteImport } from './routes/documents.$id'
 import { Route as DashboardTechnologyTransferRouteImport } from './routes/dashboard.technology-transfer'
@@ -76,6 +77,7 @@ import { Route as DashboardAuditorRouteImport } from './routes/dashboard.auditor
 import { Route as ResearchIdeasIndexRouteImport } from './routes/research.ideas.index'
 import { Route as UsersIdEditRouteImport } from './routes/users.$id.edit'
 import { Route as ResearchProjectsIdRouteImport } from './routes/research.projects.$id'
+import { Route as ResearchIdeasDirectorRouteImport } from './routes/research.ideas.director'
 import { Route as ResearchIdeasCreateRouteImport } from './routes/research.ideas.create'
 import { Route as ResearchIdeasIdRouteImport } from './routes/research.ideas.$id'
 import { Route as RequestsIdEditRouteImport } from './routes/requests.$id.edit'
@@ -85,6 +87,7 @@ import { Route as ResearchTransfersCreateProjectIdRouteImport } from './routes/r
 import { Route as ResearchScreeningsCreateIdeaIdRouteImport } from './routes/research.screenings.create.$ideaId'
 import { Route as ResearchProjectsCreateIdeaIdRouteImport } from './routes/research.projects.create.$ideaId'
 import { Route as ResearchIdeasIdEditRouteImport } from './routes/research.ideas.$id.edit'
+import { Route as ResearchIdeasIdDirectorRouteImport } from './routes/research.ideas.$id.director'
 import { Route as ResearchEvaluationsCreateProjectIdRouteImport } from './routes/research.evaluations.create.$projectId'
 
 const WorkflowsRoute = WorkflowsRouteImport.update({
@@ -347,6 +350,11 @@ const RequestsCreateRoute = RequestsCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => RequestsRoute,
 } as any)
+const RequestsAssignedRoute = RequestsAssignedRouteImport.update({
+  id: '/assigned',
+  path: '/assigned',
+  getParentRoute: () => RequestsRoute,
+} as any)
 const RegistryCreateRoute = RegistryCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -423,6 +431,11 @@ const ResearchProjectsIdRoute = ResearchProjectsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ResearchProjectsRoute,
 } as any)
+const ResearchIdeasDirectorRoute = ResearchIdeasDirectorRouteImport.update({
+  id: '/director',
+  path: '/director',
+  getParentRoute: () => ResearchIdeasRoute,
+} as any)
 const ResearchIdeasCreateRoute = ResearchIdeasCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -469,6 +482,11 @@ const ResearchProjectsCreateIdeaIdRoute =
 const ResearchIdeasIdEditRoute = ResearchIdeasIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
+  getParentRoute: () => ResearchIdeasIdRoute,
+} as any)
+const ResearchIdeasIdDirectorRoute = ResearchIdeasIdDirectorRouteImport.update({
+  id: '/director',
+  path: '/director',
   getParentRoute: () => ResearchIdeasIdRoute,
 } as any)
 const ResearchEvaluationsCreateProjectIdRoute =
@@ -521,6 +539,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/technology-transfer': typeof DashboardTechnologyTransferRoute
   '/documents/$id': typeof DocumentsIdRoute
   '/registry/create': typeof RegistryCreateRoute
+  '/requests/assigned': typeof RequestsAssignedRoute
   '/requests/create': typeof RequestsCreateRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
   '/research/ideas': typeof ResearchIdeasRouteWithChildren
@@ -547,10 +566,12 @@ export interface FileRoutesByFullPath {
   '/requests/$id/edit': typeof RequestsIdEditRoute
   '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
+  '/research/ideas/director': typeof ResearchIdeasDirectorRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
   '/users/$id/edit': typeof UsersIdEditRoute
   '/research/ideas/': typeof ResearchIdeasIndexRoute
   '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
+  '/research/ideas/$id/director': typeof ResearchIdeasIdDirectorRoute
   '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
   '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
@@ -592,6 +613,7 @@ export interface FileRoutesByTo {
   '/dashboard/technology-transfer': typeof DashboardTechnologyTransferRoute
   '/documents/$id': typeof DocumentsIdRoute
   '/registry/create': typeof RegistryCreateRoute
+  '/requests/assigned': typeof RequestsAssignedRoute
   '/requests/create': typeof RequestsCreateRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
   '/research/projects': typeof ResearchProjectsRouteWithChildren
@@ -616,10 +638,12 @@ export interface FileRoutesByTo {
   '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
+  '/research/ideas/director': typeof ResearchIdeasDirectorRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
   '/users/$id/edit': typeof UsersIdEditRoute
   '/research/ideas': typeof ResearchIdeasIndexRoute
   '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
+  '/research/ideas/$id/director': typeof ResearchIdeasIdDirectorRoute
   '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
   '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
@@ -670,6 +694,7 @@ export interface FileRoutesById {
   '/dashboard/technology-transfer': typeof DashboardTechnologyTransferRoute
   '/documents/$id': typeof DocumentsIdRoute
   '/registry/create': typeof RegistryCreateRoute
+  '/requests/assigned': typeof RequestsAssignedRoute
   '/requests/create': typeof RequestsCreateRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
   '/research/ideas': typeof ResearchIdeasRouteWithChildren
@@ -696,10 +721,12 @@ export interface FileRoutesById {
   '/requests/$id/edit': typeof RequestsIdEditRoute
   '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
+  '/research/ideas/director': typeof ResearchIdeasDirectorRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
   '/users/$id/edit': typeof UsersIdEditRoute
   '/research/ideas/': typeof ResearchIdeasIndexRoute
   '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
+  '/research/ideas/$id/director': typeof ResearchIdeasIdDirectorRoute
   '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
   '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
@@ -751,6 +778,7 @@ export interface FileRouteTypes {
     | '/dashboard/technology-transfer'
     | '/documents/$id'
     | '/registry/create'
+    | '/requests/assigned'
     | '/requests/create'
     | '/research/evaluations'
     | '/research/ideas'
@@ -777,10 +805,12 @@ export interface FileRouteTypes {
     | '/requests/$id/edit'
     | '/research/ideas/$id'
     | '/research/ideas/create'
+    | '/research/ideas/director'
     | '/research/projects/$id'
     | '/users/$id/edit'
     | '/research/ideas/'
     | '/research/evaluations/create/$projectId'
+    | '/research/ideas/$id/director'
     | '/research/ideas/$id/edit'
     | '/research/projects/create/$ideaId'
     | '/research/screenings/create/$ideaId'
@@ -822,6 +852,7 @@ export interface FileRouteTypes {
     | '/dashboard/technology-transfer'
     | '/documents/$id'
     | '/registry/create'
+    | '/requests/assigned'
     | '/requests/create'
     | '/research/evaluations'
     | '/research/projects'
@@ -846,10 +877,12 @@ export interface FileRouteTypes {
     | '/registry/$id/edit'
     | '/requests/$id/edit'
     | '/research/ideas/create'
+    | '/research/ideas/director'
     | '/research/projects/$id'
     | '/users/$id/edit'
     | '/research/ideas'
     | '/research/evaluations/create/$projectId'
+    | '/research/ideas/$id/director'
     | '/research/ideas/$id/edit'
     | '/research/projects/create/$ideaId'
     | '/research/screenings/create/$ideaId'
@@ -899,6 +932,7 @@ export interface FileRouteTypes {
     | '/dashboard/technology-transfer'
     | '/documents/$id'
     | '/registry/create'
+    | '/requests/assigned'
     | '/requests/create'
     | '/research/evaluations'
     | '/research/ideas'
@@ -925,10 +959,12 @@ export interface FileRouteTypes {
     | '/requests/$id/edit'
     | '/research/ideas/$id'
     | '/research/ideas/create'
+    | '/research/ideas/director'
     | '/research/projects/$id'
     | '/users/$id/edit'
     | '/research/ideas/'
     | '/research/evaluations/create/$projectId'
+    | '/research/ideas/$id/director'
     | '/research/ideas/$id/edit'
     | '/research/projects/create/$ideaId'
     | '/research/screenings/create/$ideaId'
@@ -1344,6 +1380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RequestsCreateRouteImport
       parentRoute: typeof RequestsRoute
     }
+    '/requests/assigned': {
+      id: '/requests/assigned'
+      path: '/assigned'
+      fullPath: '/requests/assigned'
+      preLoaderRoute: typeof RequestsAssignedRouteImport
+      parentRoute: typeof RequestsRoute
+    }
     '/registry/create': {
       id: '/registry/create'
       path: '/create'
@@ -1449,6 +1492,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResearchProjectsIdRouteImport
       parentRoute: typeof ResearchProjectsRoute
     }
+    '/research/ideas/director': {
+      id: '/research/ideas/director'
+      path: '/director'
+      fullPath: '/research/ideas/director'
+      preLoaderRoute: typeof ResearchIdeasDirectorRouteImport
+      parentRoute: typeof ResearchIdeasRoute
+    }
     '/research/ideas/create': {
       id: '/research/ideas/create'
       path: '/create'
@@ -1510,6 +1560,13 @@ declare module '@tanstack/react-router' {
       path: '/edit'
       fullPath: '/research/ideas/$id/edit'
       preLoaderRoute: typeof ResearchIdeasIdEditRouteImport
+      parentRoute: typeof ResearchIdeasIdRoute
+    }
+    '/research/ideas/$id/director': {
+      id: '/research/ideas/$id/director'
+      path: '/director'
+      fullPath: '/research/ideas/$id/director'
+      preLoaderRoute: typeof ResearchIdeasIdDirectorRouteImport
       parentRoute: typeof ResearchIdeasIdRoute
     }
     '/research/evaluations/create/$projectId': {
@@ -1583,12 +1640,14 @@ const RegistryRouteWithChildren = RegistryRoute._addFileChildren(
 )
 
 interface RequestsRouteChildren {
+  RequestsAssignedRoute: typeof RequestsAssignedRoute
   RequestsCreateRoute: typeof RequestsCreateRoute
   RequestsIndexRoute: typeof RequestsIndexRoute
   RequestsIdEditRoute: typeof RequestsIdEditRoute
 }
 
 const RequestsRouteChildren: RequestsRouteChildren = {
+  RequestsAssignedRoute: RequestsAssignedRoute,
   RequestsCreateRoute: RequestsCreateRoute,
   RequestsIndexRoute: RequestsIndexRoute,
   RequestsIdEditRoute: RequestsIdEditRoute,
@@ -1667,11 +1726,13 @@ const ResearchEvaluationsRouteWithChildren =
   ResearchEvaluationsRoute._addFileChildren(ResearchEvaluationsRouteChildren)
 
 interface ResearchIdeasIdRouteChildren {
+  ResearchIdeasIdDirectorRoute: typeof ResearchIdeasIdDirectorRoute
   ResearchIdeasIdEditRoute: typeof ResearchIdeasIdEditRoute
   ResearchIdeasIdIndexRoute: typeof ResearchIdeasIdIndexRoute
 }
 
 const ResearchIdeasIdRouteChildren: ResearchIdeasIdRouteChildren = {
+  ResearchIdeasIdDirectorRoute: ResearchIdeasIdDirectorRoute,
   ResearchIdeasIdEditRoute: ResearchIdeasIdEditRoute,
   ResearchIdeasIdIndexRoute: ResearchIdeasIdIndexRoute,
 }
@@ -1683,12 +1744,14 @@ const ResearchIdeasIdRouteWithChildren = ResearchIdeasIdRoute._addFileChildren(
 interface ResearchIdeasRouteChildren {
   ResearchIdeasIdRoute: typeof ResearchIdeasIdRouteWithChildren
   ResearchIdeasCreateRoute: typeof ResearchIdeasCreateRoute
+  ResearchIdeasDirectorRoute: typeof ResearchIdeasDirectorRoute
   ResearchIdeasIndexRoute: typeof ResearchIdeasIndexRoute
 }
 
 const ResearchIdeasRouteChildren: ResearchIdeasRouteChildren = {
   ResearchIdeasIdRoute: ResearchIdeasIdRouteWithChildren,
   ResearchIdeasCreateRoute: ResearchIdeasCreateRoute,
+  ResearchIdeasDirectorRoute: ResearchIdeasDirectorRoute,
   ResearchIdeasIndexRoute: ResearchIdeasIndexRoute,
 }
 

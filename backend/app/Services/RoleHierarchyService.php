@@ -48,6 +48,10 @@ class RoleHierarchyService
 
         // LEVEL 3: Research Director - manages Research Officer directly
         'research_director' => [
+            'research_team_leader',
+        ],
+
+        'research_team_leader' => [
             'research_officer',
         ],
 

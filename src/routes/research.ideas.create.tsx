@@ -34,6 +34,7 @@ import {
 } from "@/lib/research-schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import {
   ArrowLeft,
   Save,
@@ -128,6 +129,7 @@ function CreateResearchIdeaPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [attachments, setAttachments] = useState<File[]>([]);
 
   const form = useForm<ResearchIdeaFormData>({
@@ -204,7 +206,14 @@ function CreateResearchIdeaPage() {
         description:
           "Your idea has been created and assigned to the Smart City Command Center.",
       });
-      navigate({ to: "/research/ideas" });
+      
+      // Check if user is Research Director and redirect accordingly
+      const isResearchDirector = user?.roles?.some(role => role.name === "research_director");
+      if (isResearchDirector) {
+        navigate({ to: "/research/ideas/director", search: { tab: "created" } });
+      } else {
+        navigate({ to: "/research/ideas" });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -231,6 +240,11 @@ function CreateResearchIdeaPage() {
   const filledCount = fields.filter((f) => f && String(f).length > 0).length;
   const progressPct = Math.round((filledCount / fields.length) * 100);
 
+  // Determine back route based on user role
+  const backRoute = user?.roles?.some(role => role.name === "research_director")
+    ? "/research/ideas/director"
+    : "/research/ideas";
+
   return (
     <AppShell>
       <PageHeader
@@ -241,7 +255,7 @@ function CreateResearchIdeaPage() {
             id="back-to-ideas-btn"
             variant="outline"
             size="sm"
-            onClick={() => navigate({ to: "/research/ideas" })}
+            onClick={() => navigate({ to: backRoute })}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Ideas
@@ -627,7 +641,7 @@ function CreateResearchIdeaPage() {
               type="button"
               variant="outline"
               className="h-12 px-6"
-              onClick={() => navigate({ to: "/research/ideas" })}
+              onClick={() => navigate({ to: backRoute })}
               disabled={createIdea.isPending}
             >
               Cancel

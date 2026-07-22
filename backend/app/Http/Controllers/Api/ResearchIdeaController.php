@@ -23,9 +23,14 @@ class ResearchIdeaController extends Controller
         
         // Filter based on user access:
         // 1. Users with management access see ALL ideas (they can assign to others)
-        // 2. Users without management access see ONLY ideas assigned to them
+        // 2. Users without management access see:
+        //    - Ideas assigned to them
+        //    - Ideas they created themselves
         if (!$hasManagementAccess) {
-            $query->where('assigned_to_director', $user->id);
+            $query->where(function($q) use ($user) {
+                $q->where('assigned_to_director', $user->id)
+                  ->orWhere('submitted_by', $user->id);
+            });
         }
         // If user has management access, no filtering needed - they see all
 

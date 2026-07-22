@@ -19,6 +19,7 @@ export const Route = createFileRoute("/documents/$id")({
       returnTo: (search.returnTo as string) || "/",
       type: (search.type as string) || "service-form", // 'service-form' or 'research-idea'
       attachmentId: (search.attachmentId as string) || "",
+      fileType: (search.fileType as string) || "",
     };
   },
 });
@@ -128,13 +129,101 @@ function DocumentViewerPage() {
     );
   }
 
+  // Check if file is PDF
+  const isPdf = search.fileType === 'application/pdf' || 
+                search.name.toLowerCase().endsWith('.pdf');
+
+  // Check if file is an image
+  const isImage = search.fileType?.startsWith('image/') ||
+                  /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(search.name);
+
   return (
     <AppShell>
-      <PdfReaderLayout
-        fileUrl={fileUrl}
-        fileName={search.name || "document.pdf"}
-        onClose={handleClose}
-      />
+      {isPdf ? (
+        <PdfReaderLayout
+          fileUrl={fileUrl}
+          fileName={search.name || "document.pdf"}
+          onClose={handleClose}
+        />
+      ) : isImage ? (
+        <div className="flex flex-col h-full bg-slate-50">
+          {/* Image Viewer Toolbar */}
+          <div className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
+            <div className="flex items-center justify-between px-4 py-3 gap-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleClose}
+                  className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 rounded-md"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
+                <div className="h-6 w-px bg-border" />
+                <span className="text-sm font-semibold">{search.name}</span>
+              </div>
+              <a
+                href={fileUrl}
+                download={search.name}
+                className="px-3 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              >
+                Download
+              </a>
+            </div>
+          </div>
+          {/* Image Display */}
+          <div className="flex-1 overflow-auto bg-slate-100 p-6 flex items-center justify-center">
+            <img
+              src={fileUrl}
+              alt={search.name}
+              className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+            />
+          </div>
+        </div>
+      ) : (
+        // Other file types - show download option
+        <div className="flex flex-col h-full bg-slate-50">
+          <div className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
+            <div className="flex items-center justify-between px-4 py-3 gap-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleClose}
+                  className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 rounded-md"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg className="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">{search.name}</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                This file type cannot be previewed in the browser
+              </p>
+              <a
+                href={fileUrl}
+                download={search.name}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download File
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }

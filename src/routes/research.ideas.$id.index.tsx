@@ -182,8 +182,8 @@ function ResearchIdeaDetailPage() {
     }
   };
 
-  const viewFile = (attachmentId: number, fileName: string) => {
-    // Navigate to the dedicated PDF viewer route for research ideas
+  const viewFile = (attachmentId: number, fileName: string, fileType: string) => {
+    // Always navigate to the documents viewer (it will handle PDFs, images, and other files)
     navigate({
       to: "/documents/$id",
       params: { id: String(id) },
@@ -191,6 +191,7 @@ function ResearchIdeaDetailPage() {
         type: "research-idea",
         attachmentId: String(attachmentId),
         name: fileName,
+        fileType: fileType,
         returnTo: `/research/ideas/${id}`,
       },
     });
@@ -465,7 +466,7 @@ function ResearchIdeaDetailPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => viewFile(attachment.id, attachment.file_name)}
+                        onClick={() => viewFile(attachment.id, attachment.file_name, attachment.file_type)}
                         title="View file"
                       >
                         <Eye className="h-4 w-4 text-blue-600" />

@@ -56,6 +56,83 @@ const nav: NavItem[] = [
     ],
   },
 
+  // ── Research Director Portal (for research_director role only) ──────
+  {
+    to: "/dashboard/main",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    sectionLabel: "Research Director",
+    permission: "view_research",
+  },
+  
+  {
+    label: "Research",
+    icon: Microscope,
+    sectionLabel: "Research Director",
+    children: [
+      {
+        to: "/research/ideas/director",
+        label: "Research Ideas",
+        icon: Lightbulb,
+        permission: "view_research",
+      },
+      {
+        to: "/requests/assigned",
+        label: "Assigned Requests",
+        icon: Target,
+        permission: "view_research",
+      },
+      {
+        to: "/research/reports",
+        label: "Research Reports",
+        icon: FileText,
+        permission: "view_research",
+      },
+    ],
+  },
+  
+  {
+    label: "Analytics & Reports",
+    icon: BarChart3,
+    sectionLabel: "Research Director",
+    children: [
+      {
+        to: "/reports",
+        label: "Reports",
+        icon: BarChart3,
+        permission: "view_reports",
+      },
+    ],
+  },
+  
+  {
+    label: "Management",
+    icon: Settings,
+    sectionLabel: "Research Director",
+    children: [
+      {
+        to: "/users",
+        label: "User Management",
+        icon: Users,
+        permission: "view_users",
+        children: [
+          {
+            to: "/users",
+            label: "Users",
+            icon: Users,
+            permission: "view_users",
+          },
+        ],
+      },
+      {
+        to: "/notifications",
+        label: "Notifications",
+        icon: Bell,
+        permission: "view_notifications",
+      },
+    ],
+  },
+
   // ── Dashboards ──────────────────────────────────────────────
   {
     label: "Dashboards",
@@ -504,14 +581,12 @@ const CollapsibleSection = memo(
       () => {
         if (!item.children) return [];
         
+        console.log('[CollapsibleSection]', item.label, 'has', item.children.length, 'children');
+        
         // For institutional users, show all Institution Portal children
-        // (individual permission checks will happen in each child's rendering)
         if (user?.user_type === "INSTITUTIONAL" && item.sectionLabel === "Institution Portal") {
-          // Show all children for institutional users - they'll be filtered by permission
           return item.children.filter(child => {
-            // "Open Support Ticket" has no permission requirement
             if (!child.permission && !child.permissions) return true;
-            // Check permission
             if (child.permission) return hasPermission(child.permission);
             if (child.permissions) {
               return child.requireAll
@@ -522,10 +597,29 @@ const CollapsibleSection = memo(
           });
         }
         
+        // For Research Director, check children permissions directly
+        const isResearchDirector = user?.roles?.some(role => role.name === "research_director");
+        if (isResearchDirector && item.sectionLabel === "Research Director") {
+          const filtered = item.children.filter(child => {
+            // Check permission
+            if (child.permission) return hasPermission(child.permission);
+            if (child.permissions) {
+              return child.requireAll
+                ? hasAllPermissions(child.permissions)
+                : hasAnyPermission(child.permissions);
+            }
+            return true; // No permission required
+          });
+          console.log('[CollapsibleSection]', item.label, 'Research Director visible children:', filtered.length, filtered.map(c => c.label));
+          return filtered;
+        }
+        
         // For other users, use the standard hasAccess filter
-        return item.children.filter(hasAccess);
+        const filtered = item.children.filter(hasAccess);
+        console.log('[CollapsibleSection]', item.label, 'visible children:', filtered.length, filtered.map(c => c.label));
+        return filtered;
       },
-      [item.children, item.sectionLabel, hasAccess, user]
+      [item.children, item.sectionLabel, item.label, hasAccess, user, hasPermission, hasAllPermissions]
     );
 
     if (visibleChildren.length === 0) return null;
@@ -626,6 +720,24 @@ export const Sidebar = memo(function Sidebar() {
         return false;
       }
 
+      // For Research Director role, show items from Research Director section
+      const isResearchDirector = user?.roles?.some(role => role.name === "research_director");
+      if (isResearchDirector) {
+        // Show items with Research Director section label
+        if (item.sectionLabel === "Research Director") {
+          // Check permission if specified
+          if (item.permission) return hasPermission(item.permission);
+          if (item.permissions) {
+            return item.requireAll
+              ? hasAllPermissions(item.permissions)
+              : hasAnyPermission(item.permissions);
+          }
+          return true;
+        }
+        // Hide everything else for research directors
+        return false;
+      }
+
       // For admin only items
       if (item.adminOnly) return isITDBAdmin();
       
@@ -635,6 +747,11 @@ export const Sidebar = memo(function Sidebar() {
         if (hasLowLevelPermissions) {
           return false;
         }
+      }
+      
+      // Hide Research Director section from other users
+      if (item.sectionLabel === "Research Director") {
+        return false;
       }
       
       // Standard permission check for internal staff
@@ -650,20 +767,39 @@ export const Sidebar = memo(function Sidebar() {
 
   const visibleNavItems = useMemo(
     () => {
+      console.log('[Sidebar] Computing visible items for user:', user?.email, 'roles:', user?.roles);
+      
       // For institutional users, ONLY show Institution Portal section
       if (user?.user_type === "INSTITUTIONAL") {
         const institutionPortalItem = nav.find(item => item.sectionLabel === "Institution Portal");
         return institutionPortalItem ? [institutionPortalItem] : [];
       }
       
+      // For Research Director, ONLY show Research Director section items
+      const isResearchDirector = user?.roles?.some(role => role.name === "research_director");
+      console.log('[Sidebar] Is research director:', isResearchDirector);
+      
+      if (isResearchDirector) {
+        const researchDirectorItems = nav.filter(item => item.sectionLabel === "Research Director");
+        console.log('[Sidebar] Research Director items found:', researchDirectorItems.length);
+        console.log('[Sidebar] Items:', researchDirectorItems.map(i => i.label));
+        
+        // Apply hasAccess filter
+        const accessibleItems = researchDirectorItems.filter(hasAccess);
+        console.log('[Sidebar] Accessible items after hasAccess filter:', accessibleItems.length);
+        console.log('[Sidebar] Accessible:', accessibleItems.map(i => i.label));
+        
+        return accessibleItems;
+      }
+      
       // For low-level workers (less than 10 permissions), hide Dashboards section
       const hasLowLevelPermissions = (user?.permissions?.length || 0) < 10;
       if (hasLowLevelPermissions) {
-        return nav.filter(item => item.sectionLabel !== "Dashboards").filter(hasAccess);
+        return nav.filter(item => item.sectionLabel !== "Dashboards" && item.sectionLabel !== "Research Director").filter(hasAccess);
       }
       
-      // For all other users, show all accessible items
-      return nav.filter(hasAccess);
+      // For all other users, show all accessible items (exclude Research Director section)
+      return nav.filter(item => item.sectionLabel !== "Research Director").filter(hasAccess);
     },
     [hasAccess, user]
   );
@@ -709,12 +845,14 @@ export const Sidebar = memo(function Sidebar() {
         {visibleNavItems.map((item, index) => {
           const prevItem = visibleNavItems[index - 1];
           const isInstitutionalUser = user?.user_type === "INSTITUTIONAL";
+          const isResearchDirector = user?.roles?.some(role => role.name === "research_director");
           
-          // Never show section labels for institutional users
+          // Never show section labels for institutional users or research directors
           const showSectionLabel =
             !collapsed &&
             item.sectionLabel &&
             !isInstitutionalUser &&
+            !isResearchDirector &&
             (index === 0 || prevItem?.sectionLabel !== item.sectionLabel);
 
           // If item has children, render as collapsible section

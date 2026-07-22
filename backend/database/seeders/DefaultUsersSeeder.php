@@ -71,6 +71,14 @@ class DefaultUsersSeeder extends Seeder
             ],
 
             [
+                'name' => 'Bethlehem Worku',
+                'email' => 'researchtl@itdb.gov.et',
+                'phone' => '+251911000004',
+                'department' => 'Innovation and Technology Research Directorate',
+                'role' => 'research_team_leader',
+            ],
+
+            [
                 'name' => 'Tigist Abebe',
                 'email' => 'researcher1@itdb.gov.et',
                 'phone' => '+251911000007',
