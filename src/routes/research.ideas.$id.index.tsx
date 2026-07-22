@@ -20,7 +20,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { ArrowLeft, Edit, CheckCircle, XCircle, Clock, Trash2, UserPlus, ClipboardCheck, User, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit, CheckCircle, XCircle, Clock, Trash2, UserPlus, ClipboardCheck, User, Loader2, FileText, Upload, Download, Eye } from "lucide-react";
 import { researchCategoryLabels, priorityLabels } from "@/lib/research-schema";
 
 export const Route = createFileRoute("/research/ideas/$id/")({
@@ -43,6 +43,7 @@ function ResearchIdeaDetailPage() {
   const [assignNote, setAssignNote] = useState("");
   const [newStatus, setNewStatus] = useState("");
   const [statusNote, setStatusNote] = useState("");
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const { data: idea, isLoading } = useQuery({
     queryKey: ["research-idea", id],
@@ -133,6 +134,67 @@ function ResearchIdeaDetailPage() {
       toast({ title: "Error", description: "Could not delete the idea.", variant: "destructive" });
     },
   });
+
+  const uploadAttachment = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`/api/research-ideas/${id}/attachments`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Failed to upload file");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "✅ Uploaded", description: "File uploaded successfully." });
+      queryClient.invalidateQueries({ queryKey: ["research-idea", id] });
+      setUploadingFile(false);
+    },
+    onError: (e: Error) => {
+      toast({ title: "Upload Failed", description: e.message, variant: "destructive" });
+      setUploadingFile(false);
+    },
+  });
+
+  const deleteAttachment = useMutation({
+    mutationFn: async (attachmentId: number) => {
+      const res = await fetch(`/api/research-ideas/${id}/attachments/${attachmentId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
+      if (!res.ok) throw new Error("Failed to delete attachment");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Deleted", description: "Attachment deleted successfully." });
+      queryClient.invalidateQueries({ queryKey: ["research-idea", id] });
+    },
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadingFile(true);
+      uploadAttachment.mutate(file);
+    }
+  };
+
+  const viewFile = (attachmentId: number, fileName: string) => {
+    // Navigate to the dedicated PDF viewer route for research ideas
+    navigate({
+      to: "/documents/$id",
+      params: { id: String(id) },
+      search: {
+        type: "research-idea",
+        attachmentId: String(attachmentId),
+        name: fileName,
+        returnTo: `/research/ideas/${id}`,
+      },
+    });
+  };
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -243,9 +305,7 @@ function ResearchIdeaDetailPage() {
                   <p className="text-sm text-muted-foreground">Assigned To</p>
                   <p className="font-medium text-blue-700 flex items-center gap-1">
                     <User className="h-3.5 w-3.5" />
-                    {typeof idea?.data?.assignedToDirector === 'object' 
-                      ? idea?.data?.assignedToDirector?.name 
-                      : `User #${idea?.data?.assigned_to_director}`}
+                    {idea?.data?.assigned_director_name || `User #${idea?.data?.assigned_to_director}`}
                   </p>
                 </div>
               )}
@@ -337,6 +397,102 @@ function ResearchIdeaDetailPage() {
               <p className="text-sm text-muted-foreground mb-2">Expected Outcome</p>
               <p className="text-sm leading-relaxed whitespace-pre-wrap">{idea?.data?.expected_outcome}</p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Attachments */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  Supporting Documents
+                </CardTitle>
+                <CardDescription>
+                  Uploaded files and attachments
+                </CardDescription>
+              </div>
+              <div>
+                <input
+                  type="file"
+                  id="file-upload-input"
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={handleFileUpload}
+                  disabled={uploadingFile}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById("file-upload-input")?.click()}
+                  disabled={uploadingFile}
+                >
+                  {uploadingFile ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload File
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {idea?.data?.attachments && idea.data.attachments.length > 0 ? (
+              <div className="space-y-2">
+                {idea.data.attachments.map((attachment: any) => (
+                  <div
+                    key={attachment.id}
+                    className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  >
+                    <FileText className="h-5 w-5 text-blue-600 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {attachment.file_name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {(attachment.file_size / 1024).toFixed(0)} KB •{" "}
+                        {new Date(attachment.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => viewFile(attachment.id, attachment.file_name)}
+                        title="View file"
+                      >
+                        <Eye className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm(`Delete "${attachment.file_name}"?`)) {
+                            deleteAttachment.mutate(attachment.id);
+                          }
+                        }}
+                        title="Delete file"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                <p className="text-sm">No attachments uploaded yet</p>
+                <p className="text-xs mt-1">Click "Upload File" to add supporting documents</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

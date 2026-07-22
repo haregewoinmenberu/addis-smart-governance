@@ -713,6 +713,86 @@ class ServiceFormSubmissionController extends Controller
     }
 
     /**
+     * Download a file attachment from a service request
+     */
+    public function downloadFile(Request $request, $id)
+    {
+        $user = $request->user();
+        $submission = ServiceFormSubmission::findOrFail($id);
+
+        // Check access permissions
+        $canAccess = false;
+
+        // Submitter can download their own files
+        if ($submission->submitted_by && $submission->submitted_by === $user->id) {
+            $canAccess = true;
+        }
+
+        // Assigned reviewer can download
+        if ($submission->reviewed_by && $submission->reviewed_by === $user->id) {
+            $canAccess = true;
+        }
+
+        // Managers can download based on hierarchy
+        $manageableRoles = \App\Services\RoleHierarchyService::getManageableRoles($user);
+        if (!empty($manageableRoles)) {
+            $canAccess = true;
+        }
+
+        if (!$canAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to this file',
+            ], 403);
+        }
+
+        // Get file path from query parameter
+        $filePath = $request->query('path');
+        
+        if (!$filePath) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File path not specified',
+            ], 400);
+        }
+
+        // Verify file exists in storage
+        if (!\Storage::disk('public')->exists($filePath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File not found',
+            ], 404);
+        }
+
+        // Get original filename from form_data attachments
+        $originalName = basename($filePath);
+        $mimeType = \Storage::disk('public')->mimeType($filePath);
+        $attachments = $submission->form_data['attachments'] ?? [];
+        
+        // Find the original filename
+        if (isset($attachments['supportingLetter']) && $attachments['supportingLetter']['path'] === $filePath) {
+            $originalName = $attachments['supportingLetter']['original_name'];
+        } elseif (isset($attachments['officialLetter']) && $attachments['officialLetter']['path'] === $filePath) {
+            $originalName = $attachments['officialLetter']['original_name'];
+        } elseif (isset($attachments['documents'])) {
+            foreach ($attachments['documents'] as $doc) {
+                if ($doc['path'] === $filePath) {
+                    $originalName = $doc['original_name'];
+                    break;
+                }
+            }
+        }
+
+        // Return file with inline content-disposition for viewing (not forcing download)
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $originalName . '"',
+        ];
+
+        return response()->file(\Storage::disk('public')->path($filePath), $headers);
+    }
+
+    /**
      * Delete a submission (only if pending)
      */
     public function destroy(Request $request, $id)

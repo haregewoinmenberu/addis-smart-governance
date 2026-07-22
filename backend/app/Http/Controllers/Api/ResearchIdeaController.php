@@ -307,4 +307,56 @@ class ResearchIdeaController extends Controller
 
         return response()->json(['message' => 'Attachment deleted successfully']);
     }
+
+    /**
+     * Download an attachment from a research idea
+     */
+    public function downloadAttachment(Request $request, ResearchIdea $researchIdea, $attachmentId)
+    {
+        $user = $request->user();
+        
+        // Check access permissions
+        $canAccess = false;
+
+        // Submitter can download their own files
+        if ($researchIdea->submitted_by && $researchIdea->submitted_by === $user->id) {
+            $canAccess = true;
+        }
+
+        // Assigned user can download
+        if ($researchIdea->assigned_to_director && $researchIdea->assigned_to_director === $user->id) {
+            $canAccess = true;
+        }
+
+        // Managers can download based on hierarchy
+        $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
+        if ($hasManagementAccess) {
+            $canAccess = true;
+        }
+
+        if (!$canAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to this file',
+            ], 403);
+        }
+
+        $attachment = $researchIdea->attachments()->findOrFail($attachmentId);
+
+        // Verify file exists in storage
+        if (!Storage::disk('public')->exists($attachment->file_path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File not found',
+            ], 404);
+        }
+
+        return response()->file(
+            storage_path('app/public/' . $attachment->file_path),
+            [
+                'Content-Type' => $attachment->file_type,
+                'Content-Disposition' => 'inline; filename="' . $attachment->file_name . '"'
+            ]
+        );
+    }
 }

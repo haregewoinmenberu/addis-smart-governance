@@ -43,6 +43,13 @@ class ResearchIdea extends Model
         'director_assigned_at' => 'datetime',
     ];
 
+    protected $appends = ['assigned_director_name'];
+
+    public function getAssignedDirectorNameAttribute()
+    {
+        return $this->assignedToDirector?->name;
+    }
+
     public function submitter()
     {
         return $this->belongsTo(User::class, 'submitted_by');

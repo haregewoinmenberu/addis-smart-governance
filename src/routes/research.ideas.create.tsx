@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { getAuthToken } from "@/lib/api";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -31,7 +32,7 @@ import {
   priorityLabels,
   type ResearchIdeaFormData,
 } from "@/lib/research-schema";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
@@ -43,6 +44,9 @@ import {
   TrendingUp,
   CheckCircle2,
   AlertCircle,
+  Upload,
+  FileText,
+  Trash2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/research/ideas/create")({
@@ -123,6 +127,8 @@ function CharCounter({
 function CreateResearchIdeaPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const form = useForm<ResearchIdeaFormData>({
     resolver: zodResolver(researchIdeaSchema),
@@ -158,7 +164,41 @@ function CreateResearchIdeaPage() {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (response: any) => {
+      const ideaId = response?.data?.id || response?.id;
+      
+      // Upload attachments if any
+      if (attachments.length > 0 && ideaId) {
+        try {
+          await Promise.all(
+            attachments.map(async (file) => {
+              const formData = new FormData();
+              formData.append("file", file);
+              
+              const uploadResponse = await fetch(
+                `/api/research-ideas/${ideaId}/attachments`,
+                {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${getAuthToken()}`,
+                  },
+                  body: formData,
+                }
+              );
+              
+              if (!uploadResponse.ok) {
+                console.error("Failed to upload attachment:", file.name);
+              }
+            })
+          );
+        } catch (error) {
+          console.error("Error uploading attachments:", error);
+        }
+      }
+      
+      // Invalidate research ideas list query to refetch
+      queryClient.invalidateQueries({ queryKey: ["research-ideas"] });
+      
       toast({
         title: "✅ Research Idea Submitted",
         description:
@@ -540,6 +580,28 @@ function CreateResearchIdeaPage() {
             </CardContent>
           </Card>
 
+          {/* ─── Section 4: Attachments ─── */}
+          <Card className="border-border/60 shadow-sm">
+            <CardHeader className="pb-4 border-b border-border/40">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <FileText className="h-5 w-5 text-blue-500" />
+                Supporting Documents
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Upload supporting documents, research proposals, or any relevant files (optional)
+              </p>
+            </CardHeader>
+            <CardContent className="pt-5 space-y-4">
+              <FileUploadBox
+                id="research-attachments"
+                label="Upload Documents"
+                description="PDF, Word, or image files — supporting materials for your research idea"
+                files={attachments}
+                onChange={setAttachments}
+              />
+            </CardContent>
+          </Card>
+
           {/* ─── Submit Actions ─── */}
           <div className="flex flex-col sm:flex-row gap-3 pb-4">
             <Button
@@ -579,5 +641,94 @@ function CreateResearchIdeaPage() {
         </form>
       </Form>
     </AppShell>
+  );
+}
+
+/**
+ * Multi-file upload component with drag-and-drop style interface
+ */
+function FileUploadBox({
+  id,
+  label,
+  description,
+  files,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  description?: string;
+  files: File[];
+  onChange: (files: File[]) => void;
+}) {
+  const addFiles = (newFiles: FileList | null) => {
+    if (!newFiles) return;
+    const filesArray = Array.from(newFiles);
+    onChange([...files, ...filesArray]);
+  };
+
+  const removeFile = (index: number) => {
+    onChange(files.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold">{label}</span>
+        {files.length > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {files.length} file{files.length > 1 ? "s" : ""} selected
+          </span>
+        )}
+      </div>
+
+      {/* Show selected files */}
+      {files.length > 0 && (
+        <div className="space-y-2">
+          {files.map((file, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-2 rounded-lg border bg-muted/50 p-3"
+            >
+              <FileText className="h-4 w-4 shrink-0 text-primary" />
+              <span className="truncate text-sm flex-1">{file.name}</span>
+              <span className="text-xs text-muted-foreground">
+                ({(file.size / 1024).toFixed(0)} KB)
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeFile(index)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upload area */}
+      <label
+        htmlFor={id}
+        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-center transition-colors hover:border-primary hover:bg-primary/5"
+      >
+        <Upload className="h-6 w-6 text-muted-foreground" />
+        <span className="text-sm font-medium">
+          {files.length > 0 ? "Click to add more files" : "Click to upload files"}
+        </span>
+        {description && (
+          <span className="text-xs text-muted-foreground">{description}</span>
+        )}
+      </label>
+
+      <Input
+        id={id}
+        type="file"
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+        multiple
+        className="hidden"
+        onChange={(e) => addFiles(e.target.files)}
+      />
+    </div>
   );
 }

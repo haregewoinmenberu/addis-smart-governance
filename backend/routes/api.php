@@ -415,6 +415,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         Route::post('/{id}/assign', [ServiceFormSubmissionController::class, 'assign']);
         Route::post('/{id}/review', [ServiceFormSubmissionController::class, 'review']);
         Route::get('/{id}', [ServiceFormSubmissionController::class, 'show']);
+        Route::get('/{id}/download-file', [ServiceFormSubmissionController::class, 'downloadFile']);
         Route::put('/{id}', [ServiceFormSubmissionController::class, 'update']);
         Route::patch('/{id}', [ServiceFormSubmissionController::class, 'update']);
         Route::delete('/{id}', [ServiceFormSubmissionController::class, 'destroy']);
@@ -747,6 +748,12 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         Route::post('/{researchIdea}/assign', [ResearchIdeaController::class, 'assign'])
             ->middleware('permission:assign_research');
         Route::post('/{researchIdea}/update-status', [ResearchIdeaController::class, 'updateStatus'])
+            ->middleware('permission:view_research');
+        Route::post('/{researchIdea}/attachments', [ResearchIdeaController::class, 'uploadAttachment'])
+            ->middleware('permission:view_research');
+        Route::get('/{researchIdea}/attachments/{attachmentId}/download', [ResearchIdeaController::class, 'downloadAttachment'])
+            ->middleware('permission:view_research');
+        Route::delete('/{researchIdea}/attachments/{attachmentId}', [ResearchIdeaController::class, 'deleteAttachment'])
             ->middleware('permission:view_research');
     });
 

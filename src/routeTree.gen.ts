@@ -62,6 +62,7 @@ import { Route as ResearchIdeasRouteImport } from './routes/research.ideas'
 import { Route as ResearchEvaluationsRouteImport } from './routes/research.evaluations'
 import { Route as RequestsCreateRouteImport } from './routes/requests.create'
 import { Route as RegistryCreateRouteImport } from './routes/registry.create'
+import { Route as DocumentsIdRouteImport } from './routes/documents.$id'
 import { Route as DashboardTechnologyTransferRouteImport } from './routes/dashboard.technology-transfer'
 import { Route as DashboardSubcityRouteImport } from './routes/dashboard.subcity'
 import { Route as DashboardResearchRouteImport } from './routes/dashboard.research'
@@ -351,6 +352,11 @@ const RegistryCreateRoute = RegistryCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => RegistryRoute,
 } as any)
+const DocumentsIdRoute = DocumentsIdRouteImport.update({
+  id: '/documents/$id',
+  path: '/documents/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardTechnologyTransferRoute =
   DashboardTechnologyTransferRouteImport.update({
     id: '/technology-transfer',
@@ -513,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/research': typeof DashboardResearchRoute
   '/dashboard/subcity': typeof DashboardSubcityRoute
   '/dashboard/technology-transfer': typeof DashboardTechnologyTransferRoute
+  '/documents/$id': typeof DocumentsIdRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
@@ -583,6 +590,7 @@ export interface FileRoutesByTo {
   '/dashboard/research': typeof DashboardResearchRoute
   '/dashboard/subcity': typeof DashboardSubcityRoute
   '/dashboard/technology-transfer': typeof DashboardTechnologyTransferRoute
+  '/documents/$id': typeof DocumentsIdRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
@@ -660,6 +668,7 @@ export interface FileRoutesById {
   '/dashboard/research': typeof DashboardResearchRoute
   '/dashboard/subcity': typeof DashboardSubcityRoute
   '/dashboard/technology-transfer': typeof DashboardTechnologyTransferRoute
+  '/documents/$id': typeof DocumentsIdRoute
   '/registry/create': typeof RegistryCreateRoute
   '/requests/create': typeof RequestsCreateRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
@@ -740,6 +749,7 @@ export interface FileRouteTypes {
     | '/dashboard/research'
     | '/dashboard/subcity'
     | '/dashboard/technology-transfer'
+    | '/documents/$id'
     | '/registry/create'
     | '/requests/create'
     | '/research/evaluations'
@@ -810,6 +820,7 @@ export interface FileRouteTypes {
     | '/dashboard/research'
     | '/dashboard/subcity'
     | '/dashboard/technology-transfer'
+    | '/documents/$id'
     | '/registry/create'
     | '/requests/create'
     | '/research/evaluations'
@@ -886,6 +897,7 @@ export interface FileRouteTypes {
     | '/dashboard/research'
     | '/dashboard/subcity'
     | '/dashboard/technology-transfer'
+    | '/documents/$id'
     | '/registry/create'
     | '/requests/create'
     | '/research/evaluations'
@@ -955,6 +967,7 @@ export interface RootRouteChildren {
   UsersRoute: typeof UsersRouteWithChildren
   VendorsRoute: typeof VendorsRouteWithChildren
   WorkflowsRoute: typeof WorkflowsRoute
+  DocumentsIdRoute: typeof DocumentsIdRoute
   ResearchEvaluationsRoute: typeof ResearchEvaluationsRouteWithChildren
   ResearchIdeasRoute: typeof ResearchIdeasRouteWithChildren
   ResearchProjectsRoute: typeof ResearchProjectsRouteWithChildren
@@ -1337,6 +1350,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/registry/create'
       preLoaderRoute: typeof RegistryCreateRouteImport
       parentRoute: typeof RegistryRoute
+    }
+    '/documents/$id': {
+      id: '/documents/$id'
+      path: '/documents/$id'
+      fullPath: '/documents/$id'
+      preLoaderRoute: typeof DocumentsIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dashboard/technology-transfer': {
       id: '/dashboard/technology-transfer'
@@ -1742,6 +1762,7 @@ const rootRouteChildren: RootRouteChildren = {
   UsersRoute: UsersRouteWithChildren,
   VendorsRoute: VendorsRouteWithChildren,
   WorkflowsRoute: WorkflowsRoute,
+  DocumentsIdRoute: DocumentsIdRoute,
   ResearchEvaluationsRoute: ResearchEvaluationsRouteWithChildren,
   ResearchIdeasRoute: ResearchIdeasRouteWithChildren,
   ResearchProjectsRoute: ResearchProjectsRouteWithChildren,

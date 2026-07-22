@@ -317,7 +317,7 @@ function ResearchIdeasPage() {
                         {idea.assigned_to_director && (
                           <Badge variant="outline" className="text-[11px] text-blue-700 border-blue-200">
                             <User className="h-3 w-3 mr-1" />
-                            {typeof idea.assignedToDirector === 'object' ? idea.assignedToDirector?.name : `User #${idea.assigned_to_director}`}
+                            {idea.assigned_director_name || `User #${idea.assigned_to_director}`}
                           </Badge>
                         )}
                       </div>
