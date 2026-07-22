@@ -1,10 +1,11 @@
 <?php
+
 use App\Http\Controllers\Api\AuditController;
-use App\Http\Controllers\Api\CybersecurityIssueController; 
+use App\Http\Controllers\Api\CybersecurityIssueController;
 use App\Http\Controllers\Api\DuplicationCaseController;
 use App\Http\Controllers\Api\FeasibilityStudyController;
 use App\Http\Controllers\Api\InstitutionController;
-use App\Http\Controllers\Api\ModuleController; 
+use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\RequestItemController;
 use App\Http\Controllers\Api\SurveyController;
@@ -42,7 +43,7 @@ use App\Http\Controllers\Api\TechnologyTransferController;
 use App\Http\Controllers\Api\ResearchMilestoneController;
 use App\Http\Controllers\Api\ResearchTaskController;
 use App\Http\Controllers\Api\ResearchTeamController;
-use App\Http\Controllers\Api\ProposalReviewController; 
+use App\Http\Controllers\Api\ProposalReviewController;
 use App\Http\Controllers\Api\LicenseApplicationController;
 use App\Http\Controllers\Api\LicensingDashboardController;
 use App\Http\Controllers\Api\LicenseController;
@@ -84,7 +85,7 @@ Route::get('health', function () {
 
 // Protected routes
 Route::middleware(['auth:api', 'log.activity'])->group(function () {
-        
+
     // Auth routes
     Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
@@ -100,37 +101,37 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     // ====================================================
     // UNIFIED DASHBOARD ROUTES - Permission-based Access
     // ====================================================
-    
+
     // Unified Dashboard - Get available dashboards and permissions
     Route::prefix('dashboards')->group(function () {
         Route::get('/available', [UnifiedDashboardController::class, 'getAvailableDashboards']);
         Route::get('/primary', [UnifiedDashboardController::class, 'getPrimaryDashboard']);
         Route::get('/permissions', [UnifiedDashboardController::class, 'getPermissions']);
-        
-        
+
+
         // Individual Dashboard Endpoints
         Route::get('/executive', [ExecutiveDashboardController::class, 'index'])
             ->middleware('permission:view_executive_dashboard');
-        
+
         Route::get('/auditor', [AuditorDashboardController::class, 'index'])
             ->middleware('permission:view_auditor_dashboard');
-        
+
         Route::get('/institution', [InstitutionDashboardController::class, 'index'])
             ->middleware('permission:view_institution_dashboard');
-        
+
         Route::get('/research', [ResearchDashboardController::class, 'index'])
             ->middleware('permission:view_research_dashboard');
-        
+
         Route::get('/licensing', [LicensingDashboardController::class, 'index'])
             ->middleware('permission:view_licensing_dashboard');
-        
+
         Route::get('/technology-transfer', [TechnologyTransferDashboardController::class, 'index'])
             ->middleware('permission:view_technology_transfer_dashboard');
-        
+
         Route::get('/main', [DashboardController::class, 'index'])
             ->middleware('permission:view_dashboard');
     });
-    
+
     // Legacy Dashboard Routes (Backward Compatibility)
     Route::get('dashboard', [DashboardController::class, 'index'])
         ->middleware('permission:view_dashboard');
@@ -138,7 +139,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         ->middleware('permission:view_licensing_dashboard');
     Route::get('technology-transfer/dashboard', [TechnologyTransferDashboardController::class, 'index'])
         ->middleware('permission:view_technology_transfer_dashboard');
-    
+
     // Modules - All authenticated users
     Route::get('modules/{key}', [ModuleController::class, 'show']);
 
@@ -167,7 +168,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             Route::post('/{id}/permissions', [RoleController::class, 'assignPermissions']);
             Route::get('/{id}/users', [RoleController::class, 'users']);
         });
-        
+
         // Permissions Management
         Route::prefix('permissions')->group(function () {
             Route::get('/', [PermissionController::class, 'index']);
@@ -179,7 +180,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             Route::delete('/{id}', [PermissionController::class, 'destroy']);
             Route::get('/{id}/roles', [PermissionController::class, 'roles']);
         });
-        
+
         // RBAC Statistics
         Route::prefix('rbac/stats')->group(function () {
             Route::get('/', [RBACStatsController::class, 'index']);
@@ -188,14 +189,14 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             Route::get('/users', [RBACStatsController::class, 'users']);
             Route::post('/clear-cache', [RBACStatsController::class, 'clearCache']);
         });
-        
+
         // RBAC Debug (remove in production)
         Route::prefix('rbac/debug')->group(function () {
             Route::get('/', [RBACDebugController::class, 'index']);
             Route::get('/check-permission/{permission}', [RBACDebugController::class, 'checkPermission']);
             Route::get('/check-role/{role}', [RBACDebugController::class, 'checkRole']);
         });
-        
+
         // Bulk Operations
         Route::prefix('rbac/bulk')->group(function () {
             Route::post('/assign-roles', [RoleBulkController::class, 'bulkAssign']);
@@ -227,7 +228,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:edit_users');
         Route::get('/{id}/activity', [UserController::class, 'activityLogs'])
             ->middleware('permission:view_users');
-        
+
         // User Role Management
         Route::get('/{id}/roles', [UserRoleController::class, 'index'])
             ->middleware('permission:view_users');
@@ -403,11 +404,12 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:view_surveys');
         Route::post('/{id}/respond', [SurveyController::class, 'respond'])
             ->middleware('permission:participate_surveys');
-    }); 
+    });
     // Service Form Submissions - Protected routes
     Route::prefix('service-forms')->group(function () {
         Route::get('/', [ServiceFormSubmissionController::class, 'index']);
         Route::get('/my-submissions', [ServiceFormSubmissionController::class, 'listUserSubmissions']);
+        Route::get('/assignable-users', [ServiceFormSubmissionController::class, 'getAssignableUsers']);
         Route::post('/', [ServiceFormSubmissionController::class, 'store']);
         Route::post('/track', [ServiceFormSubmissionController::class, 'trackByReference']);
         Route::post('/{id}/assign', [ServiceFormSubmissionController::class, 'assign']);
@@ -422,20 +424,20 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     Route::prefix('institutions')->group(function () {
         // My institution (institutional users)
         Route::get('/my-institution', [InstitutionController::class, 'myInstitution']);
-        
+
         // All institutions (admin)
         Route::get('/', [InstitutionController::class, 'index']);
         Route::get('/statistics', [InstitutionController::class, 'statistics']);
-        
+
         // Single institution
         Route::get('/{id}', [InstitutionController::class, 'show']);
         Route::post('/{id}/update', [InstitutionController::class, 'update']);
         Route::post('/{id}/verify', [InstitutionController::class, 'verify']);
         Route::post('/{id}/change-status', [InstitutionController::class, 'changeStatus']);
-        
+
         // Institution service requests
         Route::get('/{id}/requests', [InstitutionController::class, 'requests']);
-        
+
         // Institution documents
         Route::get('/{id}/documents', [InstitutionDocumentController::class, 'index']);
         Route::post('/{id}/documents', [InstitutionDocumentController::class, 'store']);
@@ -443,7 +445,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         Route::get('/{id}/documents/{documentId}', [InstitutionDocumentController::class, 'show']);
         Route::get('/{id}/documents/{documentId}/download', [InstitutionDocumentController::class, 'download']);
         Route::post('/{id}/documents/{documentId}/delete', [InstitutionDocumentController::class, 'destroy']);
-        
+
         // Institution team members
         Route::get('/{id}/team', [InstitutionTeamController::class, 'index']);
         Route::post('/{id}/team', [InstitutionTeamController::class, 'store']);
@@ -453,7 +455,7 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         Route::post('/{id}/team/{memberId}/delete', [InstitutionTeamController::class, 'destroy']);
         Route::post('/{id}/team/{memberId}/resend-invitation', [InstitutionTeamController::class, 'resendInvitation']);
     });
-    
+
     // Team invitation acceptance
     Route::post('/team/accept-invitation', [InstitutionTeamController::class, 'acceptInvitation']);
 
@@ -494,11 +496,11 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:view_dashboard');
         Route::get('/{id}', [SmartCityRequestController::class, 'show'])
             ->middleware('permission:view_requests');
-        
+
         // Create Request (Internal/Institutional Users)
         Route::post('/', [SmartCityRequestController::class, 'store'])
             ->middleware('permission:create_requests');
-        
+
         // Smart City Command Center Operations
         Route::post('/{id}/assign', [SmartCityRequestController::class, 'assign'])
             ->middleware('permission:manage_command_center');
@@ -518,38 +520,37 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     Route::prefix('support-tickets')->group(function () {
         // List tickets
         Route::get('/', [SupportTicketController::class, 'index']);
-        
+
         // Create ticket (any authenticated user)
         Route::post('/', [SupportTicketController::class, 'store']);
-        
+
         // Get statistics
         Route::get('/statistics', [SupportTicketController::class, 'statistics']);
-        
+
         // View ticket details
         Route::get('/{id}', [SupportTicketController::class, 'show']);
-        
+
         // Update ticket (support officers)
         Route::put('/{id}', [SupportTicketController::class, 'update'])
             ->middleware('permission:update_ticket');
-        
+
         // Accept ticket (support officers)
         Route::post('/{id}/accept', [SupportTicketController::class, 'accept'])
             ->middleware('permission:accept_ticket');
-        
+
         // Resolve ticket (support officers)
         Route::post('/{id}/resolve', [SupportTicketController::class, 'resolve'])
             ->middleware('permission:resolve_ticket');
-        
+
         // Close ticket (support officers)
         Route::post('/{id}/close', [SupportTicketController::class, 'close'])
             ->middleware('permission:close_ticket');
-        
+
         // Add message to ticket
         Route::post('/{id}/messages', [SupportTicketController::class, 'addMessage']);
     });
 
     Route::get('/with-roles-permissions', [AuditController::class, 'getAllUserWithRoleAndPermission']);
-
 });
 
 // ====================================================
@@ -710,37 +711,43 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     // Smart City Research Requests - Command Center ↔ Research Director
     Route::prefix('smart-city-research-requests')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\SmartCityResearchRequestController::class, 'index'])
-            ->middleware('permission:view-research-ideas');
+            ->middleware('permission:view_research');
         Route::post('/', [\App\Http\Controllers\Api\SmartCityResearchRequestController::class, 'store'])
-            ->middleware('permission:create-research-ideas');
+            ->middleware('permission:create_research_ideas');
         Route::get('/{smartCityResearchRequest}', [\App\Http\Controllers\Api\SmartCityResearchRequestController::class, 'show'])
-            ->middleware('permission:view-research-ideas');
+            ->middleware('permission:view_research');
         Route::put('/{smartCityResearchRequest}', [\App\Http\Controllers\Api\SmartCityResearchRequestController::class, 'update'])
-            ->middleware('permission:edit-research-ideas');
+            ->middleware('permission:edit_research_ideas');
         Route::post('/{smartCityResearchRequest}/assign', [\App\Http\Controllers\Api\SmartCityResearchRequestController::class, 'assign'])
             ->middleware('permission:manage-research-projects');
         Route::post('/{smartCityResearchRequest}/complete', [\App\Http\Controllers\Api\SmartCityResearchRequestController::class, 'complete'])
             ->middleware('permission:manage-research-projects');
         Route::get('/{smartCityResearchRequest}/communications', [\App\Http\Controllers\Api\SmartCityResearchRequestController::class, 'communications'])
-            ->middleware('permission:view-research-ideas');
+            ->middleware('permission:view_research');
         Route::post('/{smartCityResearchRequest}/send-communication', [\App\Http\Controllers\Api\SmartCityResearchRequestController::class, 'sendCommunication'])
-            ->middleware('permission:view-research-ideas');
+            ->middleware('permission:view_research');
     });
 
     // Research Ideas
     Route::prefix('research-ideas')->group(function () {
         Route::get('/', [ResearchIdeaController::class, 'index'])
-            ->middleware('permission:view-research-ideas');
+            ->middleware('permission:view_research');
+        Route::get('/assignable-users', [ResearchIdeaController::class, 'getAssignableUsers'])
+            ->middleware('permission:assign_research');
         Route::post('/', [ResearchIdeaController::class, 'store'])
-            ->middleware('permission:create-research-ideas');
+            ->middleware('permission:create_research_ideas');
         Route::get('/{researchIdea}', [ResearchIdeaController::class, 'show'])
-            ->middleware('permission:view-research-ideas');
+            ->middleware('permission:view_research');
         Route::put('/{researchIdea}', [ResearchIdeaController::class, 'update'])
-            ->middleware('permission:edit-research-ideas');
+            ->middleware('permission:edit_research_ideas');
         Route::delete('/{researchIdea}', [ResearchIdeaController::class, 'destroy'])
-            ->middleware('permission:delete-research-ideas');
+            ->middleware('permission:delete_research_ideas');
         Route::post('/{researchIdea}/submit', [ResearchIdeaController::class, 'submit'])
-            ->middleware('permission:submit-research-ideas');
+            ->middleware('permission:submit_research_ideas');
+        Route::post('/{researchIdea}/assign', [ResearchIdeaController::class, 'assign'])
+            ->middleware('permission:assign_research');
+        Route::post('/{researchIdea}/update-status', [ResearchIdeaController::class, 'updateStatus'])
+            ->middleware('permission:view_research');
     });
 
     // Research Screening - Review Committee
@@ -904,4 +911,3 @@ Route::middleware(['auth:api', 'log.activity'])->prefix('smart-city/service-requ
     Route::post('/{id}/reject', [\App\Http\Controllers\Api\SmartCityServiceRequestController::class, 'reject']);
     Route::post('/bulk-assign', [\App\Http\Controllers\Api\SmartCityServiceRequestController::class, 'bulkAssign']);
 });
-

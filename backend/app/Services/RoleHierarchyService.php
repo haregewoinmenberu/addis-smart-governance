@@ -286,6 +286,30 @@ class RoleHierarchyService
     }
 
     /**
+     * Get all users that a manager can assign tasks/requests to.
+     * Returns users with roles one level below the manager.
+     */
+    public static function getManageableUsers(User $manager): array
+    {
+        $manageableRoles = self::getManageableRoles($manager);
+        
+        if (empty($manageableRoles)) {
+            return [];
+        }
+
+        // Get all users with these roles
+        $users = User::whereHas('roles', function ($query) use ($manageableRoles) {
+            $query->whereIn('name', $manageableRoles);
+        })
+        ->with('roles')
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get();
+
+        return $users->toArray();
+    }
+
+    /**
      * Get all roles with their manageable children.
      */
     public static function getFullHierarchyMap(): array

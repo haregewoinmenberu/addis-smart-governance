@@ -131,19 +131,7 @@ const nav: NavItem[] = [
         label: "Idea Screening",
         icon: Target,
         permission: "conduct_research",
-      },
-      {
-        to: "/research/projects",
-        label: "Research Projects",
-        icon: FlaskConical,
-        permission: "view_research",
-      },
-      {
-        to: "/research/evaluations",
-        label: "Research Evaluations",
-        icon: TrendingUp,
-        permission: "technology_assessment",
-      },
+      }, 
       {
         to: "/research/transfers",
         label: "Technology Transfer",

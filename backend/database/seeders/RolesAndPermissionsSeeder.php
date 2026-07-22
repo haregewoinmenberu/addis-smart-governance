@@ -83,6 +83,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Research
             'research' => [
                 ['name' => 'view_research', 'display_name' => 'View Research'],
+                ['name' => 'create_research_ideas', 'display_name' => 'Create Research Ideas'],
+                ['name' => 'edit_research_ideas', 'display_name' => 'Edit Research Ideas'],
+                ['name' => 'delete_research_ideas', 'display_name' => 'Delete Research Ideas'],
                 ['name' => 'assign_research', 'display_name' => 'Assign Research'],
                 ['name' => 'conduct_research', 'display_name' => 'Conduct Research'],
                 ['name' => 'technology_assessment', 'display_name' => 'Technology Assessment'],
@@ -512,7 +515,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'view_users',
                 'create_users',
                 'edit_users',
-                'delete_users'  
+                'delete_users',
             ]
         );
 
@@ -626,6 +629,9 @@ class RolesAndPermissionsSeeder extends Seeder
             $permissions,
             [
                 'view_research',
+                'create_research_ideas',
+                'edit_research_ideas',
+                'delete_research_ideas',
                 'assign_research',
                 'approve_research',
                 'approve_feasibility',
@@ -656,6 +662,8 @@ class RolesAndPermissionsSeeder extends Seeder
             $permissions,
             [
                 'view_research',
+                'create_research_ideas',
+                'edit_research_ideas',
                 'conduct_research',
                 'technology_assessment',
                 'cost_benefit_analysis',

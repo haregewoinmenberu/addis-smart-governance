@@ -182,9 +182,23 @@ class ServiceFormSubmissionController extends Controller
      */
     public function index(Request $request)
     {
+        $user = $request->user();
+        
         $query = ServiceFormSubmission::query()
             ->with(['submittedBy', 'reviewedBy', 'institution']);
 
+        // Check if user has management capabilities (can assign to others)
+        $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
+        
+        // Filter based on user access:
+        // 1. Users with management access see ALL submissions (they can assign to others)
+        // 2. Users without management access see ONLY submissions assigned to them
+        if (!$hasManagementAccess) {
+            $query->where('reviewed_by', $user->id);
+        }
+        // If user has management access, no filtering needed - they see all
+
+        // Apply additional filters
         if ($request->has('service_type') && $request->service_type) {
             $query->byServiceType($request->service_type);
         }
@@ -274,18 +288,32 @@ class ServiceFormSubmissionController extends Controller
             ], 422);
         }
 
+        $user = $request->user();
         $submission = ServiceFormSubmission::findOrFail($id);
+        
+        // Check if user has permission to review:
+        // 1. Users with management access can review any submission
+        // 2. Users assigned to the submission can review it
+        $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
+        $isAssignedToSubmission = $submission->reviewed_by == $user->id;
+        
+        if (!$hasManagementAccess && !$isAssignedToSubmission) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to review this submission',
+            ], 403);
+        }
+        
         $submission->update([
             'status'       => $request->status,
             'review_notes' => $request->review_notes,
-            'reviewed_by'  => $request->user()?->id,
             'reviewed_at'  => now(),
         ]);
 
         \Log::info('Submission reviewed', [
             'submission_id' => $id,
             'status'        => $request->status,
-            'reviewed_by'   => $request->user()?->id,
+            'reviewed_by'   => $user->id,
         ]);
 
         return response()->json([
@@ -345,17 +373,21 @@ class ServiceFormSubmissionController extends Controller
     {
         $user = $request->user();
         
-        $submission = ServiceFormSubmission::with(['submittedBy', 'reviewedBy'])
-            ->where('id', $id)
-            ->where(function($q) use ($user) {
-                $q->where('submitted_by', $user->id)
-                  ->orWhere('submitted_email', $user->email);
-                  
-                if ($user->institution_id) {
-                    $q->orWhere('institution_id', $user->institution_id);
-                }
-            })
-            ->first();
+        // Check if user has management capabilities (can assign service requests)
+        $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
+        
+        // If user has management access, they can view any submission
+        if ($hasManagementAccess) {
+            $submission = ServiceFormSubmission::with(['submittedBy', 'reviewedBy'])
+                ->where('id', $id)
+                ->first();
+        } else {
+            // Users without management access can only view submissions assigned to them
+            $submission = ServiceFormSubmission::with(['submittedBy', 'reviewedBy'])
+                ->where('id', $id)
+                ->where('reviewed_by', $user->id)
+                ->first();
+        }
 
         if (!$submission) {
             return response()->json([
@@ -722,6 +754,48 @@ class ServiceFormSubmissionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Submission deleted successfully'
+        ]);
+    }
+
+    /**
+     * Get assignable users based on current user's hierarchy
+     */
+    public function getAssignableUsers(Request $request)
+    {
+        $currentUser = $request->user();
+        
+        // Get manageable roles from hierarchy service
+        $manageableRoles = \App\Services\RoleHierarchyService::getManageableRoles($currentUser);
+        
+        if (empty($manageableRoles)) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+                'message' => 'No assignable users in your hierarchy'
+            ]);
+        }
+        
+        // Get users with manageable roles
+        $users = \App\Models\User::whereHas('roles', function ($query) use ($manageableRoles) {
+            $query->whereIn('name', $manageableRoles);
+        })
+        ->where('is_active', true)
+        ->with('roles')
+        ->orderBy('name')
+        ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $users->map(fn($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'department' => $user->department,
+                'roles' => $user->roles->map(fn($role) => [
+                    'name' => $role->name,
+                    'display_name' => $role->display_name,
+                ]),
+            ]),
         ]);
     }
 

@@ -7,6 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -14,7 +24,7 @@ import {
 import {
   Plus, Search, Eye, Edit, Trash2, FlaskConical,
   FileText, Clock, CheckCircle2, XCircle, AlertCircle,
-  RefreshCw, Calendar, User, Hash,
+  RefreshCw, Calendar, User, Hash, UserPlus, ClipboardCheck, MoreVertical, Loader2,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -66,6 +76,12 @@ function ResearchIdeasPage() {
   const [search,       setSearch]       = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; title: string } | null>(null);
+  const [assignTarget, setAssignTarget] = useState<any | null>(null);
+  const [statusTarget, setStatusTarget] = useState<any | null>(null);
+  const [assignUserId, setAssignUserId] = useState("");
+  const [assignNote,   setAssignNote]   = useState("");
+  const [newStatus,    setNewStatus]    = useState("");
+  const [statusNote,   setStatusNote]   = useState("");
 
   // Research ideas list
   const { data: ideasData, isLoading: ideasLoading } = useQuery({
@@ -94,6 +110,70 @@ function ResearchIdeasPage() {
     },
   });
 
+  // Get assignable users based on hierarchy
+  const { data: assignableUsersData } = useQuery({
+    queryKey: ["research-assignable-users"],
+    queryFn: async () => {
+      const res = await fetch(`/api/research-ideas/assignable-users`, {
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch assignable users");
+      return res.json();
+    },
+  });
+
+  const ideas: any[]       = ideasData?.data ?? [];
+  const submissions: any[] = submissionsData?.data ?? [];
+  const assignableUsers: any[] = assignableUsersData?.data ?? [];
+  const hasHierarchyAccess = assignableUsers.length > 0;
+  
+  // Check if user is assigned reviewer (can update status but not reassign)
+  const isAssignedReviewer = !hasHierarchyAccess && ideas.some((idea: any) => idea.assigned_to_director === user?.id);
+
+  // Assign mutation
+  const assignMutation = useMutation({
+    mutationFn: async ({ id, userId, note }: { id: number; userId: string; note: string }) => {
+      const res = await fetch(`/api/research-ideas/${id}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAuthToken()}` },
+        body: JSON.stringify({ assigned_to: Number(userId), notes: note }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Assignment failed");
+      return json;
+    },
+    onSuccess: () => {
+      toast({ title: "✅ Assigned", description: "Research idea assigned successfully." });
+      queryClient.invalidateQueries({ queryKey: ["research-ideas"] });
+      setAssignTarget(null);
+      setAssignUserId("");
+      setAssignNote("");
+    },
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  // Status update mutation
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, status, notes }: { id: number; status: string; notes: string }) => {
+      const res = await fetch(`/api/research-ideas/${id}/update-status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAuthToken()}` },
+        body: JSON.stringify({ status, notes }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Status update failed");
+      return json;
+    },
+    onSuccess: () => {
+      toast({ title: "✅ Updated", description: "Status updated successfully." });
+      queryClient.invalidateQueries({ queryKey: ["research-ideas"] });
+      setStatusTarget(null);
+      setNewStatus("");
+      setStatusNote("");
+    },
+    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
   // Delete idea mutation
   const deleteIdea = useMutation({
     mutationFn: async (id: number) => {
@@ -114,9 +194,6 @@ function ResearchIdeasPage() {
       setDeleteTarget(null);
     },
   });
-
-  const ideas: any[]       = ideasData?.data ?? [];
-  const submissions: any[] = submissionsData?.data ?? [];
 
   return (
     <AppShell>
@@ -237,6 +314,12 @@ function ResearchIdeasPage() {
                         {idea.government_sector && (
                           <Badge variant="outline" className="text-[11px]">{idea.government_sector}</Badge>
                         )}
+                        {idea.assigned_to_director && (
+                          <Badge variant="outline" className="text-[11px] text-blue-700 border-blue-200">
+                            <User className="h-3 w-3 mr-1" />
+                            {typeof idea.assignedToDirector === 'object' ? idea.assignedToDirector?.name : `User #${idea.assigned_to_director}`}
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <Button
@@ -265,6 +348,63 @@ function ResearchIdeasPage() {
                           >
                             <Trash2 className="h-3 w-3 mr-1" /> Delete
                           </Button>
+                        )}
+                        {hasHierarchyAccess && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button id={`actions-${idea.id}`} variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-52">
+                              <DropdownMenuItem onClick={() => navigate({ to: `/research/ideas/${idea.id}` })}>
+                                <Eye className="h-4 w-4 mr-2" /> View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setAssignTarget(idea);
+                                  setAssignUserId(String(idea.assigned_to_director ?? ""));
+                                  setAssignNote("");
+                                }}
+                              >
+                                <UserPlus className="h-4 w-4 mr-2" /> Assign to User
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setStatusTarget(idea);
+                                  setNewStatus(idea.status);
+                                  setStatusNote("");
+                                }}
+                              >
+                                <ClipboardCheck className="h-4 w-4 mr-2" /> Update Status
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                        {!hasHierarchyAccess && isAssignedReviewer && idea.assigned_to_director === user?.id && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button id={`actions-${idea.id}`} variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-52">
+                              <DropdownMenuItem onClick={() => navigate({ to: `/research/ideas/${idea.id}` })}>
+                                <Eye className="h-4 w-4 mr-2" /> View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setStatusTarget(idea);
+                                  setNewStatus(idea.status);
+                                  setStatusNote("");
+                                }}
+                              >
+                                <ClipboardCheck className="h-4 w-4 mr-2" /> Update Status
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                       </div>
                     </div>
@@ -407,6 +547,170 @@ function ResearchIdeasPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Assign Dialog */}
+      <Dialog open={!!assignTarget} onOpenChange={(o) => !o && setAssignTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-primary" /> Assign to User
+            </DialogTitle>
+            <DialogDescription>
+              Assign <span className="font-mono font-bold text-foreground">{assignTarget?.title}</span> to a staff member
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="text-sm font-semibold block mb-1.5">
+                Assign To <span className="text-red-500">*</span>
+              </label>
+              <Select value={assignUserId} onValueChange={setAssignUserId}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select a staff member" />
+                </SelectTrigger>
+                <SelectContent>
+                  {assignableUsers.map((u: any) => (
+                    <SelectItem key={u.id} value={String(u.id)}>
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[11px] font-bold text-primary shrink-0">
+                          {u.name?.charAt(0)?.toUpperCase()}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm">{u.name}</span>
+                          <span className="text-xs text-muted-foreground">{u.email}</span>
+                          {u.roles && u.roles.length > 0 && (
+                            <span className="text-[10px] text-blue-600">
+                              {u.roles[0].display_name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {assignableUsers.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Showing {assignableUsers.length} user(s) in your management hierarchy
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-semibold block mb-1.5">
+                Note <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+              </label>
+              <Textarea
+                placeholder="Assignment instructions or context…"
+                rows={3}
+                value={assignNote}
+                onChange={(e) => setAssignNote(e.target.value)}
+                className="resize-none text-sm"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <Button
+                className="flex-1 bg-gradient-primary text-primary-foreground"
+                disabled={!assignUserId || assignMutation.isPending}
+                onClick={() => assignTarget && assignMutation.mutate({ id: assignTarget.id, userId: assignUserId, note: assignNote })}
+              >
+                {assignMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Assigning…
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Assign
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setAssignTarget(null)}
+                disabled={assignMutation.isPending}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Update Dialog */}
+      <Dialog open={!!statusTarget} onOpenChange={(o) => !o && setStatusTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5 text-primary" /> Update Status
+            </DialogTitle>
+            <DialogDescription>
+              Change status of <span className="font-mono font-bold text-foreground">{statusTarget?.title}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="text-sm font-semibold block mb-1.5">
+                New Status <span className="text-red-500">*</span>
+              </label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select new status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    { v: "draft", l: "Draft" },
+                    { v: "submitted", l: "Submitted" },
+                    { v: "under_review", l: "Under Review" },
+                    { v: "approved", l: "Approved" },
+                    { v: "rejected", l: "Rejected" },
+                  ].map(({ v, l }) => (
+                    <SelectItem key={v} value={v}>
+                      {l}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-semibold block mb-1.5">Notes</label>
+              <Textarea
+                placeholder="Add notes about this status change…"
+                rows={4}
+                value={statusNote}
+                onChange={(e) => setStatusNote(e.target.value)}
+                className="resize-none text-sm"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <Button
+                className="flex-1 bg-gradient-primary text-primary-foreground"
+                disabled={!newStatus || statusMutation.isPending}
+                onClick={() => statusTarget && statusMutation.mutate({ id: statusTarget.id, status: newStatus, notes: statusNote })}
+              >
+                {statusMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <ClipboardCheck className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setStatusTarget(null)}
+                disabled={statusMutation.isPending}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

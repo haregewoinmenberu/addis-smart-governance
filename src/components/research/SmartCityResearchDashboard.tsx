@@ -125,7 +125,7 @@ export function SmartCityResearchDashboard() {
 
   // Fetch research ideas
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['smart-city-research-ideas', search, filterStatus, filterPriority, filterAssignment],
+    queryKey: ['smart-city_research_ideas', search, filterStatus, filterPriority, filterAssignment],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (search) params.append('search', search);
@@ -176,7 +176,7 @@ export function SmartCityResearchDashboard() {
     },
     onSuccess: () => {
       toast.success('Research idea assigned to Research Director successfully');
-      queryClient.invalidateQueries({ queryKey: ['smart-city-research-ideas'] });
+      queryClient.invalidateQueries({ queryKey: ['smart-city_research_ideas'] });
       setShowAssignDialog(false);
       setAssignForm({ director_id: '', smart_city_notes: '', priority: '' });
     },
@@ -195,7 +195,7 @@ export function SmartCityResearchDashboard() {
     },
     onSuccess: () => {
       toast.success('Status updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['smart-city-research-ideas'] });
+      queryClient.invalidateQueries({ queryKey: ['smart-city_research_ideas'] });
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to update status');

@@ -14,7 +14,20 @@ class ResearchIdeaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ResearchIdea::with(['submitter', 'attachments']);
+        $user = $request->user();
+        
+        $query = ResearchIdea::with(['submitter', 'attachments', 'assignedToDirector']);
+
+        // Check if user has management capabilities
+        $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
+        
+        // Filter based on user access:
+        // 1. Users with management access see ALL ideas (they can assign to others)
+        // 2. Users without management access see ONLY ideas assigned to them
+        if (!$hasManagementAccess) {
+            $query->where('assigned_to_director', $user->id);
+        }
+        // If user has management access, no filtering needed - they see all
 
         if ($request->status) {
             $query->where('status', $request->status);
@@ -74,12 +87,26 @@ class ResearchIdeaController extends Controller
 
     public function show(ResearchIdea $researchIdea)
     {
+        $user = auth()->user();
+        
+        // Check if user has management capabilities
+        $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
+        
+        // If user doesn't have management access, they can only view ideas assigned to them
+        if (!$hasManagementAccess && $researchIdea->assigned_to_director != $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Research idea not found or access denied',
+            ], 404);
+        }
+        
         return response()->json([
             'data' => $researchIdea->load([
                 'submitter',
                 'attachments',
                 'screenings.evaluator',
-                'project'
+                'project',
+                'assignedToDirector'
             ])
         ]);
     }
@@ -137,6 +164,118 @@ class ResearchIdeaController extends Controller
         ResearchActivityLog::log('submitted', $researchIdea, null, null, 'Research idea submitted to Smart City Command Center for review');
 
         return response()->json($researchIdea->load('assignedToSmartCity'));
+    }
+
+    /**
+     * Get assignable users based on hierarchy
+     */
+    public function getAssignableUsers(Request $request)
+    {
+        $user = $request->user();
+        $assignableUsers = \App\Services\RoleHierarchyService::getManageableUsers($user);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $assignableUsers
+        ]);
+    }
+
+    /**
+     * Assign research idea to a user for review/handling
+     */
+    public function assign(Request $request, ResearchIdea $researchIdea)
+    {
+        $validator = validator($request->all(), [
+            'assigned_to' => 'required|integer|exists:users,id',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $researchIdea->update([
+            'assigned_to_director' => $request->assigned_to,
+            'director_assigned_at' => now(),
+            'director_notes' => $request->notes 
+                ? ($researchIdea->director_notes ? $researchIdea->director_notes . "\n" . $request->notes : $request->notes)
+                : $researchIdea->director_notes,
+            'assignment_status' => 'assigned_to_director',
+        ]);
+
+        ResearchActivityLog::log(
+            'assigned', 
+            $researchIdea, 
+            null, 
+            ['assigned_to' => $request->assigned_to], 
+            'Research idea assigned to user'
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Research idea assigned successfully',
+            'data' => $researchIdea->fresh()->load(['submitter', 'assignedToDirector']),
+        ]);
+    }
+
+    /**
+     * Update research idea status
+     */
+    public function updateStatus(Request $request, ResearchIdea $researchIdea)
+    {
+        $validator = validator($request->all(), [
+            'status' => 'required|string',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+        
+        // Check if user has permission to update status:
+        // 1. Users with management access can update any idea
+        // 2. Users assigned to the idea can update it
+        $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
+        $isAssignedToIdea = $researchIdea->assigned_to_director == $user->id;
+        
+        if (!$hasManagementAccess && !$isAssignedToIdea) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to update this research idea status',
+            ], 403);
+        }
+
+        $oldStatus = $researchIdea->status;
+        $researchIdea->update([
+            'status' => $request->status,
+            'director_notes' => $request->notes
+                ? ($researchIdea->director_notes ? $researchIdea->director_notes . "\n" . $request->notes : $request->notes)
+                : $researchIdea->director_notes,
+        ]);
+
+        ResearchActivityLog::log(
+            'status_updated', 
+            $researchIdea, 
+            ['status' => $oldStatus], 
+            ['status' => $request->status], 
+            "Status changed from {$oldStatus} to {$request->status}"
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Research idea status updated successfully',
+            'data' => $researchIdea->fresh()->load(['submitter', 'assignedToDirector']),
+        ]);
     }
 
     public function uploadAttachment(Request $request, ResearchIdea $researchIdea)

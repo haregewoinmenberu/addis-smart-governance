@@ -42,6 +42,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendorsIndexRouteImport } from './routes/vendors.index'
 import { Route as UsersIndexRouteImport } from './routes/users.index'
 import { Route as TicketsIndexRouteImport } from './routes/tickets.index'
+import { Route as ServiceRequestsIndexRouteImport } from './routes/service-requests.index'
 import { Route as RequestsIndexRouteImport } from './routes/requests.index'
 import { Route as RegistryIndexRouteImport } from './routes/registry.index'
 import { Route as ProfileIndexRouteImport } from './routes/profile.index'
@@ -52,6 +53,7 @@ import { Route as UsersCreateRouteImport } from './routes/users.create'
 import { Route as TicketsCreateRouteImport } from './routes/tickets.create'
 import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
 import { Route as ServicesServiceSlugRouteImport } from './routes/services.$serviceSlug'
+import { Route as ServiceRequestsIdRouteImport } from './routes/service-requests.$id'
 import { Route as ResearchTransfersRouteImport } from './routes/research.transfers'
 import { Route as ResearchScreeningsRouteImport } from './routes/research.screenings'
 import { Route as ResearchReportsRouteImport } from './routes/research.reports'
@@ -77,6 +79,7 @@ import { Route as ResearchIdeasCreateRouteImport } from './routes/research.ideas
 import { Route as ResearchIdeasIdRouteImport } from './routes/research.ideas.$id'
 import { Route as RequestsIdEditRouteImport } from './routes/requests.$id.edit'
 import { Route as RegistryIdEditRouteImport } from './routes/registry.$id.edit'
+import { Route as ResearchIdeasIdIndexRouteImport } from './routes/research.ideas.$id.index'
 import { Route as ResearchTransfersCreateProjectIdRouteImport } from './routes/research.transfers.create.$projectId'
 import { Route as ResearchScreeningsCreateIdeaIdRouteImport } from './routes/research.screenings.create.$ideaId'
 import { Route as ResearchProjectsCreateIdeaIdRouteImport } from './routes/research.projects.create.$ideaId'
@@ -248,6 +251,11 @@ const TicketsIndexRoute = TicketsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TicketsRoute,
 } as any)
+const ServiceRequestsIndexRoute = ServiceRequestsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ServiceRequestsRoute,
+} as any)
 const RequestsIndexRoute = RequestsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -297,6 +305,11 @@ const ServicesServiceSlugRoute = ServicesServiceSlugRouteImport.update({
   id: '/services/$serviceSlug',
   path: '/services/$serviceSlug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ServiceRequestsIdRoute = ServiceRequestsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ServiceRequestsRoute,
 } as any)
 const ResearchTransfersRoute = ResearchTransfersRouteImport.update({
   id: '/research/transfers',
@@ -424,6 +437,11 @@ const RegistryIdEditRoute = RegistryIdEditRouteImport.update({
   path: '/$id/edit',
   getParentRoute: () => RegistryRoute,
 } as any)
+const ResearchIdeasIdIndexRoute = ResearchIdeasIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ResearchIdeasIdRoute,
+} as any)
 const ResearchTransfersCreateProjectIdRoute =
   ResearchTransfersCreateProjectIdRouteImport.update({
     id: '/create/$projectId',
@@ -476,7 +494,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
   '/security-review': typeof SecurityReviewRoute
-  '/service-requests': typeof ServiceRequestsRoute
+  '/service-requests': typeof ServiceRequestsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/surveys': typeof SurveysRoute
   '/tasks': typeof TasksRoute
@@ -503,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/research/reports': typeof ResearchReportsRoute
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
+  '/service-requests/$id': typeof ServiceRequestsIdRoute
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/create': typeof TicketsCreateRoute
@@ -513,6 +532,7 @@ export interface FileRoutesByFullPath {
   '/profile/': typeof ProfileIndexRoute
   '/registry/': typeof RegistryIndexRoute
   '/requests/': typeof RequestsIndexRoute
+  '/service-requests/': typeof ServiceRequestsIndexRoute
   '/tickets/': typeof TicketsIndexRoute
   '/users/': typeof UsersIndexRoute
   '/vendors/': typeof VendorsIndexRoute
@@ -528,6 +548,7 @@ export interface FileRoutesByFullPath {
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
   '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
   '/research/transfers/create/$projectId': typeof ResearchTransfersCreateProjectIdRoute
+  '/research/ideas/$id/': typeof ResearchIdeasIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -547,7 +568,6 @@ export interface FileRoutesByTo {
   '/rbac': typeof RbacRoute
   '/reports': typeof ReportsRoute
   '/security-review': typeof SecurityReviewRoute
-  '/service-requests': typeof ServiceRequestsRoute
   '/settings': typeof SettingsRoute
   '/surveys': typeof SurveysRoute
   '/tasks': typeof TasksRoute
@@ -570,6 +590,7 @@ export interface FileRoutesByTo {
   '/research/reports': typeof ResearchReportsRoute
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
+  '/service-requests/$id': typeof ServiceRequestsIdRoute
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/create': typeof TicketsCreateRoute
@@ -580,12 +601,12 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileIndexRoute
   '/registry': typeof RegistryIndexRoute
   '/requests': typeof RequestsIndexRoute
+  '/service-requests': typeof ServiceRequestsIndexRoute
   '/tickets': typeof TicketsIndexRoute
   '/users': typeof UsersIndexRoute
   '/vendors': typeof VendorsIndexRoute
   '/registry/$id/edit': typeof RegistryIdEditRoute
   '/requests/$id/edit': typeof RequestsIdEditRoute
-  '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
   '/users/$id/edit': typeof UsersIdEditRoute
@@ -595,6 +616,7 @@ export interface FileRoutesByTo {
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
   '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
   '/research/transfers/create/$projectId': typeof ResearchTransfersCreateProjectIdRoute
+  '/research/ideas/$id': typeof ResearchIdeasIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -619,7 +641,7 @@ export interface FileRoutesById {
   '/reports': typeof ReportsRoute
   '/requests': typeof RequestsRouteWithChildren
   '/security-review': typeof SecurityReviewRoute
-  '/service-requests': typeof ServiceRequestsRoute
+  '/service-requests': typeof ServiceRequestsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/surveys': typeof SurveysRoute
   '/tasks': typeof TasksRoute
@@ -646,6 +668,7 @@ export interface FileRoutesById {
   '/research/reports': typeof ResearchReportsRoute
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
+  '/service-requests/$id': typeof ServiceRequestsIdRoute
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/create': typeof TicketsCreateRoute
@@ -656,6 +679,7 @@ export interface FileRoutesById {
   '/profile/': typeof ProfileIndexRoute
   '/registry/': typeof RegistryIndexRoute
   '/requests/': typeof RequestsIndexRoute
+  '/service-requests/': typeof ServiceRequestsIndexRoute
   '/tickets/': typeof TicketsIndexRoute
   '/users/': typeof UsersIndexRoute
   '/vendors/': typeof VendorsIndexRoute
@@ -671,6 +695,7 @@ export interface FileRoutesById {
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
   '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
   '/research/transfers/create/$projectId': typeof ResearchTransfersCreateProjectIdRoute
+  '/research/ideas/$id/': typeof ResearchIdeasIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -723,6 +748,7 @@ export interface FileRouteTypes {
     | '/research/reports'
     | '/research/screenings'
     | '/research/transfers'
+    | '/service-requests/$id'
     | '/services/$serviceSlug'
     | '/tickets/$id'
     | '/tickets/create'
@@ -733,6 +759,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/registry/'
     | '/requests/'
+    | '/service-requests/'
     | '/tickets/'
     | '/users/'
     | '/vendors/'
@@ -748,6 +775,7 @@ export interface FileRouteTypes {
     | '/research/projects/create/$ideaId'
     | '/research/screenings/create/$ideaId'
     | '/research/transfers/create/$projectId'
+    | '/research/ideas/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -767,7 +795,6 @@ export interface FileRouteTypes {
     | '/rbac'
     | '/reports'
     | '/security-review'
-    | '/service-requests'
     | '/settings'
     | '/surveys'
     | '/tasks'
@@ -790,6 +817,7 @@ export interface FileRouteTypes {
     | '/research/reports'
     | '/research/screenings'
     | '/research/transfers'
+    | '/service-requests/$id'
     | '/services/$serviceSlug'
     | '/tickets/$id'
     | '/tickets/create'
@@ -800,12 +828,12 @@ export interface FileRouteTypes {
     | '/profile'
     | '/registry'
     | '/requests'
+    | '/service-requests'
     | '/tickets'
     | '/users'
     | '/vendors'
     | '/registry/$id/edit'
     | '/requests/$id/edit'
-    | '/research/ideas/$id'
     | '/research/ideas/create'
     | '/research/projects/$id'
     | '/users/$id/edit'
@@ -815,6 +843,7 @@ export interface FileRouteTypes {
     | '/research/projects/create/$ideaId'
     | '/research/screenings/create/$ideaId'
     | '/research/transfers/create/$projectId'
+    | '/research/ideas/$id'
   id:
     | '__root__'
     | '/'
@@ -865,6 +894,7 @@ export interface FileRouteTypes {
     | '/research/reports'
     | '/research/screenings'
     | '/research/transfers'
+    | '/service-requests/$id'
     | '/services/$serviceSlug'
     | '/tickets/$id'
     | '/tickets/create'
@@ -875,6 +905,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/registry/'
     | '/requests/'
+    | '/service-requests/'
     | '/tickets/'
     | '/users/'
     | '/vendors/'
@@ -890,6 +921,7 @@ export interface FileRouteTypes {
     | '/research/projects/create/$ideaId'
     | '/research/screenings/create/$ideaId'
     | '/research/transfers/create/$projectId'
+    | '/research/ideas/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -914,7 +946,7 @@ export interface RootRouteChildren {
   ReportsRoute: typeof ReportsRoute
   RequestsRoute: typeof RequestsRouteWithChildren
   SecurityReviewRoute: typeof SecurityReviewRoute
-  ServiceRequestsRoute: typeof ServiceRequestsRoute
+  ServiceRequestsRoute: typeof ServiceRequestsRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   SurveysRoute: typeof SurveysRoute
   TasksRoute: typeof TasksRoute
@@ -1166,6 +1198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TicketsIndexRouteImport
       parentRoute: typeof TicketsRoute
     }
+    '/service-requests/': {
+      id: '/service-requests/'
+      path: '/'
+      fullPath: '/service-requests/'
+      preLoaderRoute: typeof ServiceRequestsIndexRouteImport
+      parentRoute: typeof ServiceRequestsRoute
+    }
     '/requests/': {
       id: '/requests/'
       path: '/'
@@ -1235,6 +1274,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/services/$serviceSlug'
       preLoaderRoute: typeof ServicesServiceSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/service-requests/$id': {
+      id: '/service-requests/$id'
+      path: '/$id'
+      fullPath: '/service-requests/$id'
+      preLoaderRoute: typeof ServiceRequestsIdRouteImport
+      parentRoute: typeof ServiceRequestsRoute
     }
     '/research/transfers': {
       id: '/research/transfers'
@@ -1411,6 +1457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegistryIdEditRouteImport
       parentRoute: typeof RegistryRoute
     }
+    '/research/ideas/$id/': {
+      id: '/research/ideas/$id/'
+      path: '/'
+      fullPath: '/research/ideas/$id/'
+      preLoaderRoute: typeof ResearchIdeasIdIndexRouteImport
+      parentRoute: typeof ResearchIdeasIdRoute
+    }
     '/research/transfers/create/$projectId': {
       id: '/research/transfers/create/$projectId'
       path: '/create/$projectId'
@@ -1525,6 +1578,20 @@ const RequestsRouteWithChildren = RequestsRoute._addFileChildren(
   RequestsRouteChildren,
 )
 
+interface ServiceRequestsRouteChildren {
+  ServiceRequestsIdRoute: typeof ServiceRequestsIdRoute
+  ServiceRequestsIndexRoute: typeof ServiceRequestsIndexRoute
+}
+
+const ServiceRequestsRouteChildren: ServiceRequestsRouteChildren = {
+  ServiceRequestsIdRoute: ServiceRequestsIdRoute,
+  ServiceRequestsIndexRoute: ServiceRequestsIndexRoute,
+}
+
+const ServiceRequestsRouteWithChildren = ServiceRequestsRoute._addFileChildren(
+  ServiceRequestsRouteChildren,
+)
+
 interface TicketsRouteChildren {
   TicketsIdRoute: typeof TicketsIdRoute
   TicketsCreateRoute: typeof TicketsCreateRoute
@@ -1581,10 +1648,12 @@ const ResearchEvaluationsRouteWithChildren =
 
 interface ResearchIdeasIdRouteChildren {
   ResearchIdeasIdEditRoute: typeof ResearchIdeasIdEditRoute
+  ResearchIdeasIdIndexRoute: typeof ResearchIdeasIdIndexRoute
 }
 
 const ResearchIdeasIdRouteChildren: ResearchIdeasIdRouteChildren = {
   ResearchIdeasIdEditRoute: ResearchIdeasIdEditRoute,
+  ResearchIdeasIdIndexRoute: ResearchIdeasIdIndexRoute,
 }
 
 const ResearchIdeasIdRouteWithChildren = ResearchIdeasIdRoute._addFileChildren(
@@ -1664,7 +1733,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsRoute: ReportsRoute,
   RequestsRoute: RequestsRouteWithChildren,
   SecurityReviewRoute: SecurityReviewRoute,
-  ServiceRequestsRoute: ServiceRequestsRoute,
+  ServiceRequestsRoute: ServiceRequestsRouteWithChildren,
   SettingsRoute: SettingsRoute,
   SurveysRoute: SurveysRoute,
   TasksRoute: TasksRoute,
