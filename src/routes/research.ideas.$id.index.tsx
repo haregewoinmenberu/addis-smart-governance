@@ -239,10 +239,10 @@ function ResearchIdeaDetailPage() {
                   id={`edit-idea-${id}-btn`}
                   size="sm"
                   className="bg-gradient-primary text-primary-foreground shadow-glow"
-                  onClick={() => navigate({ to: `/research/ideas/${id}/edit` })}
+                  onClick={() => navigate({ to: `/research/ideas/${id}/workspace` })}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                  <Edit className="mr-2 h-4 w-4" />
+                  Open Workspace
                 </Button>
                 <Button
                   id={`delete-idea-${id}-btn`}

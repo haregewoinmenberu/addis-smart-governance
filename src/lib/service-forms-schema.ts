@@ -7,7 +7,7 @@ export const researchSchema = z.object({
   phone: z.string().min(10, "Valid phone number is required"),
   institution: z.string().min(2, "Institution is required"),
   researchTitle: z.string().min(10, "Research title must be at least 10 characters"),
-  category: z.enum(["AI & Data", "Smart City", "Cybersecurity", "Public Sector Innovation", "Other"]),
+  category: z.enum(["System Request", "Infrastructure Request", "Security Related Request", "Other"]),
   abstract: z.string().min(20, "Abstract must be at least 20 characters"),
   estimatedBudget: z.string().optional(),
   durationMonths: z.number().min(1).max(60),
@@ -17,6 +17,38 @@ export const researchSchema = z.object({
 
 export type ResearchFormData = z.infer<typeof researchSchema>;
 
+ export const typeOfAgency = [
+  "BUREAU",
+  "AUTHORITY",
+  "COMMISSION",
+  "AGENCY",
+  "OFFICE",
+  "SUB_CITY",
+  "WOREDA",
+  "PUBLIC_ENTERPRISE",
+  "UNIVERSITY",
+  "COLLEGE",
+  "TVET",
+  "SCHOOL",
+  "HOSPITAL",
+  "HEALTH_CENTER",
+  "HEALTH_OFFICE",
+  "RESEARCH_INSTITUTE",
+  "COURT",
+  "SECURITY",
+  "UTILITY",
+  "NGO",
+  "COOPERATIVE",
+  "ASSOCIATION",
+  "MANUFACTURING",
+  "FINANCIAL_INSTITUTION",
+  "PRIVATE_COMPANY",
+  "STARTUP",
+  "RELIGIOUS_INSTITUTION",
+  "OTHER_GOVERNMENT",
+  "OTHER",
+] as const;
+
 // Technology Transformation form schema
 export const transformationSchema = z.object({
   agencyName: z.string().min(2, "Agency name is required"),
@@ -24,7 +56,7 @@ export const transformationSchema = z.object({
   position: z.string().min(2, "Position is required"),
   email: z.string().email("Valid email is required"),
   phone: z.string().min(10, "Valid phone number is required"),
-  agencyType: z.enum(["Bureau", "Sub-city", "Public Enterprise", "Other"]),
+  agencyType: z.enum(typeOfAgency),
   currentMaturity: z.enum(["Initial", "Developing", "Established", "Advanced"]),
   scope: z.string().min(20, "Please describe the scope (at least 20 characters)"),
   expectedStart: z.string().min(1, "Expected start date is required"),

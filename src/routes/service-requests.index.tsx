@@ -247,9 +247,9 @@ function ServiceRequestsPage() {
         title="Service Form Requests"
         subtitle={
           hasHierarchyAccess 
-            ? "All submitted service forms — view, assign reviewers and manage statuses"
+            ? "Service requests assigned to you and your team — manage assignments and track progress"
             : isAssignedReviewer
-            ? "Service requests assigned to you — view and update status"
+            ? "Service requests assigned to you — review and update status"
             : "All submitted service forms — view, edit, assign reviewers and manage statuses"
         }
         actions={
@@ -430,8 +430,8 @@ function ServiceRequestsPage() {
                     <Button
                       id={`view-sub-${sub.id}`}
                       variant="ghost" size="sm" className="h-7 w-7 p-0"
-                      title="View details"
-                      onClick={() => navigate({ to: `/service-requests/${sub.id}` })}
+                      title="Open workspace"
+                      onClick={() => navigate({ to: `/service-requests/${sub.id}/workspace` })}
                     >
                       <Eye className="h-3.5 w-3.5" />
                     </Button>
@@ -465,8 +465,8 @@ function ServiceRequestsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52">
-                      <DropdownMenuItem onClick={() => navigate({ to: `/service-requests/${sub.id}` })}>
-                        <Eye className="h-4 w-4 mr-2" /> View Details
+                      <DropdownMenuItem onClick={() => navigate({ to: `/service-requests/${sub.id}/workspace` })}>
+                        <Eye className="h-4 w-4 mr-2" /> Open Workspace
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       {hasHierarchyAccess && (

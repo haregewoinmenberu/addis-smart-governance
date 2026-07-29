@@ -35,7 +35,7 @@ export default function ResearchIdeaForm({ onSubmit, initialData, isEditing }: R
       await onSubmit(formData);
       toast({
         title: 'Success',
-        description: `Research idea ${isEditing ? 'updated' : 'created'} successfully`,
+        description: `Technology Request ${isEditing ? 'updated' : 'submitted'} successfully`,
       });
     } catch (error: any) {
       toast({
@@ -51,86 +51,102 @@ export default function ResearchIdeaForm({ onSubmit, initialData, isEditing }: R
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEditing ? 'Edit' : 'Submit'} Research Idea</CardTitle>
+        <CardTitle>{isEditing ? 'Edit' : 'Submit'} Technology Request</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">Request Title *</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="e.g. Smart Transport Management System Development"
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="summary">Summary *</Label>
+            <Label htmlFor="summary">Executive Summary *</Label>
             <Textarea
               id="summary"
               value={formData.summary}
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
               rows={3}
+              placeholder="High-level overview of the requested technology..."
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="problem_statement">Problem Statement *</Label>
+            <Label htmlFor="problem_statement">Business Requirement & Justification *</Label>
             <Textarea
               id="problem_statement"
               value={formData.problem_statement}
               onChange={(e) => setFormData({ ...formData, problem_statement: e.target.value })}
               rows={4}
+              placeholder="Detail current operational situation, pain points, and why this ICT request is needed..."
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="objectives">Objectives *</Label>
+            <Label htmlFor="objectives">Expected Technical Scope & Objectives *</Label>
             <Textarea
               id="objectives"
               value={formData.objectives}
               onChange={(e) => setFormData({ ...formData, objectives: e.target.value })}
               rows={4}
+              placeholder="Define specific technical objectives, modules, capacity, or deliverables..."
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="expected_outcome">Expected Outcome *</Label>
+            <Label htmlFor="expected_outcome">Expected Business Impact & Deliverables *</Label>
             <Textarea
               id="expected_outcome"
               value={formData.expected_outcome}
               onChange={(e) => setFormData({ ...formData, expected_outcome: e.target.value })}
               rows={3}
+              placeholder="Anticipated improvements, integration outcomes, and service metrics..."
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="research_category">Research Category *</Label>
+              <Label htmlFor="research_category">Evaluation Category *</Label>
               <Select
                 value={formData.research_category}
                 onValueChange={(value) => setFormData({ ...formData, research_category: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Select Request Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ResearchCategory.BASIC_RESEARCH}>Basic Research</SelectItem>
-                  <SelectItem value={ResearchCategory.APPLIED_RESEARCH}>Applied Research</SelectItem>
-                  <SelectItem value={ResearchCategory.EXPERIMENTAL_DEVELOPMENT}>Experimental Development</SelectItem>
-                  <SelectItem value={ResearchCategory.INNOVATION}>Innovation</SelectItem>
-                  <SelectItem value={ResearchCategory.PILOT_PROJECT}>Pilot Project</SelectItem>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 rounded-sm">
+                    SYSTEM REQUESTS
+                  </div>
+                  <SelectItem value={ResearchCategory.SYSTEM_NEW}>New System Development Request</SelectItem>
+                  <SelectItem value={ResearchCategory.SYSTEM_TRANSFER}>Existing System Transfer/Adoption Request</SelectItem>
+                  <SelectItem value={ResearchCategory.SYSTEM_UPGRADE}>Existing System Upgrade Request</SelectItem>
+
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 rounded-sm mt-1">
+                    INFRASTRUCTURE REQUESTS
+                  </div>
+                  <SelectItem value={ResearchCategory.INFRASTRUCTURE_CLOUD}>Cloud Infrastructure Request</SelectItem>
+                  <SelectItem value={ResearchCategory.INFRASTRUCTURE_SERVER}>Server Infrastructure Request</SelectItem>
+                  <SelectItem value={ResearchCategory.INFRASTRUCTURE_NETWORK}>Network Infrastructure Request</SelectItem>
+                  <SelectItem value={ResearchCategory.INFRASTRUCTURE_STORAGE}>Storage Infrastructure Request</SelectItem>
+                  <SelectItem value={ResearchCategory.INFRASTRUCTURE_SECURITY}>Security Infrastructure Request</SelectItem>
+                  <SelectItem value={ResearchCategory.INFRASTRUCTURE_DATA_CENTER}>Data Center Infrastructure Request</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority">Urgency & Priority</Label>
               <Select
                 value={formData.priority}
                 onValueChange={(value) => setFormData({ ...formData, priority: value })}
@@ -149,17 +165,18 @@ export default function ResearchIdeaForm({ onSubmit, initialData, isEditing }: R
           </div>
 
           <div>
-            <Label htmlFor="government_sector">Government Sector</Label>
+            <Label htmlFor="government_sector">Requesting Entity / Sector</Label>
             <Input
               id="government_sector"
               value={formData.government_sector}
               onChange={(e) => setFormData({ ...formData, government_sector: e.target.value })}
+              placeholder="e.g. Bureau of Health, Transport Authority"
             />
           </div>
 
           <div className="flex gap-2">
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : isEditing ? 'Update Idea' : 'Submit Idea'}
+              {loading ? 'Submitting...' : isEditing ? 'Update Technology Request' : 'Submit Technology Request'}
             </Button>
           </div>
         </form>
@@ -167,3 +184,4 @@ export default function ResearchIdeaForm({ onSubmit, initialData, isEditing }: R
     </Card>
   );
 }
+

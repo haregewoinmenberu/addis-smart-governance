@@ -93,15 +93,7 @@ const SECTION_ICONS = {
   outcome: <TrendingUp className="h-5 w-5 text-green-500" />,
 };
 
-function CharCounter({
-  value = "",
-  min,
-  label,
-}: {
-  value?: string;
-  min: number;
-  label: string;
-}) {
+function CharCounter({ value = "", min, label }: { value?: string; min: number; label: string }) {
   const len = value?.length ?? 0;
   const ok = len >= min;
   return (
@@ -109,11 +101,7 @@ function CharCounter({
       <span
         className={`text-xs flex items-center gap-1 ${ok ? "text-green-600" : "text-muted-foreground"}`}
       >
-        {ok ? (
-          <CheckCircle2 className="h-3 w-3" />
-        ) : (
-          <AlertCircle className="h-3 w-3" />
-        )}
+        {ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
         {ok ? `${label} requirement met` : `Minimum ${min} characters required`}
       </span>
       <span
@@ -168,7 +156,7 @@ function CreateResearchIdeaPage() {
     },
     onSuccess: async (response: any) => {
       const ideaId = response?.data?.id || response?.id;
-      
+
       // Upload attachments if any
       if (attachments.length > 0 && ideaId) {
         try {
@@ -176,39 +164,35 @@ function CreateResearchIdeaPage() {
             attachments.map(async (file) => {
               const formData = new FormData();
               formData.append("file", file);
-              
-              const uploadResponse = await fetch(
-                `/api/research-ideas/${ideaId}/attachments`,
-                {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${getAuthToken()}`,
-                  },
-                  body: formData,
-                }
-              );
-              
+
+              const uploadResponse = await fetch(`/api/research-ideas/${ideaId}/attachments`, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${getAuthToken()}`,
+                },
+                body: formData,
+              });
+
               if (!uploadResponse.ok) {
                 console.error("Failed to upload attachment:", file.name);
               }
-            })
+            }),
           );
         } catch (error) {
           console.error("Error uploading attachments:", error);
         }
       }
-      
+
       // Invalidate research ideas list query to refetch
       queryClient.invalidateQueries({ queryKey: ["research-ideas"] });
-      
+
       toast({
         title: "✅ Research Idea Submitted",
-        description:
-          "Your idea has been created and assigned to the Smart City Command Center.",
+        description: "Your idea has been created and assigned to the Smart City Command Center.",
       });
-      
+
       // Check if user is Research Director and redirect accordingly
-      const isResearchDirector = user?.roles?.some(role => role.name === "research_director");
+      const isResearchDirector = user?.roles?.some((role) => role.name === "research_director");
       if (isResearchDirector) {
         navigate({ to: "/research/ideas/director", search: { tab: "created" } });
       } else {
@@ -241,7 +225,7 @@ function CreateResearchIdeaPage() {
   const progressPct = Math.round((filledCount / fields.length) * 100);
 
   // Determine back route based on user role
-  const backRoute = user?.roles?.some(role => role.name === "research_director")
+  const backRoute = user?.roles?.some((role) => role.name === "research_director")
     ? "/research/ideas/director"
     : "/research/ideas";
 
@@ -266,9 +250,7 @@ function CreateResearchIdeaPage() {
       {/* Progress bar */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-muted-foreground">
-            Form completion
-          </span>
+          <span className="text-sm text-muted-foreground">Form completion</span>
           <span
             className={`text-sm font-semibold ${progressPct === 100 ? "text-green-600" : "text-primary"}`}
           >
@@ -284,11 +266,7 @@ function CreateResearchIdeaPage() {
       </div>
 
       <Form {...form}>
-        <form
-          id="create-research-idea-form"
-          onSubmit={onSubmit}
-          className="space-y-6"
-        >
+        <form id="create-research-idea-form" onSubmit={onSubmit} className="space-y-6">
           {/* ─── Section 1: Basic Information ─── */}
           <Card className="border-border/60 shadow-sm">
             <CardHeader className="pb-4 border-b border-border/40">
@@ -315,11 +293,7 @@ function CreateResearchIdeaPage() {
                         className="h-11"
                       />
                     </FormControl>
-                    <CharCounter
-                      value={field.value}
-                      min={10}
-                      label="Title"
-                    />
+                    <CharCounter value={field.value} min={10} label="Title" />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -333,29 +307,23 @@ function CreateResearchIdeaPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-semibold">
-                        Research Category{" "}
-                        <span className="text-red-500">*</span>
+                        Research Category <span className="text-red-500">*</span>
                       </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger id="idea-category" className="h-11">
                             <SelectValue placeholder="Select a category" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {Object.entries(researchCategoryLabels).map(
-                            ([value, label]) => (
-                              <SelectItem key={value} value={value}>
-                                <div className="flex items-center gap-2">
-                                  <FlaskConical className="h-3.5 w-3.5 text-muted-foreground" />
-                                  {label}
-                                </div>
-                              </SelectItem>
-                            )
-                          )}
+                          {Object.entries(researchCategoryLabels).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              <div className="flex items-center gap-2">
+                                <FlaskConical className="h-3.5 w-3.5 text-muted-foreground" />
+                                {label}
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -368,40 +336,29 @@ function CreateResearchIdeaPage() {
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-semibold">
-                        Priority Level
-                      </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
+                      <FormLabel className="text-sm font-semibold">Priority Level</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger id="idea-priority" className="h-11">
                             <SelectValue placeholder="Select priority" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {Object.entries(priorityLabels).map(
-                            ([value, label]) => (
-                              <SelectItem key={value} value={value}>
-                                <div className="flex items-center gap-2">
-                                  <Badge
-                                    className={`text-xs py-0 ${PRIORITY_STYLES[value]}`}
-                                  >
-                                    {label}
-                                  </Badge>
-                                </div>
-                              </SelectItem>
-                            )
-                          )}
+                          {Object.entries(priorityLabels).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              <div className="flex items-center gap-2">
+                                <Badge className={`text-xs py-0 ${PRIORITY_STYLES[value]}`}>
+                                  {label}
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       {selectedPriority && (
                         <p className="text-xs text-muted-foreground mt-1">
                           Selected:{" "}
-                          <Badge
-                            className={`text-xs py-0 ${PRIORITY_STYLES[selectedPriority]}`}
-                          >
+                          <Badge className={`text-xs py-0 ${PRIORITY_STYLES[selectedPriority]}`}>
                             {priorityLabels[selectedPriority as keyof typeof priorityLabels]}
                           </Badge>
                         </p>
@@ -420,14 +377,9 @@ function CreateResearchIdeaPage() {
                   <FormItem>
                     <FormLabel className="text-sm font-semibold">
                       Government Sector{" "}
-                      <span className="text-muted-foreground font-normal text-xs">
-                        (optional)
-                      </span>
+                      <span className="text-muted-foreground font-normal text-xs">(optional)</span>
                     </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger id="idea-sector" className="h-11">
                           <SelectValue placeholder="Select a sector or leave blank" />
@@ -453,8 +405,7 @@ function CreateResearchIdeaPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-semibold">
-                      Executive Summary{" "}
-                      <span className="text-red-500">*</span>
+                      Executive Summary <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Textarea
@@ -465,11 +416,7 @@ function CreateResearchIdeaPage() {
                         className="resize-none"
                       />
                     </FormControl>
-                    <CharCounter
-                      value={field.value}
-                      min={50}
-                      label="Summary"
-                    />
+                    <CharCounter value={field.value} min={50} label="Summary" />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -493,11 +440,11 @@ function CreateResearchIdeaPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-semibold">
-                      Problem Statement{" "}
-                      <span className="text-red-500">*</span>
+                      Problem Statement <span className="text-red-500">*</span>
                     </FormLabel>
                     <p className="text-xs text-muted-foreground -mt-1 mb-2">
-                      Clearly describe the problem or gap this research will address. Include context, affected stakeholders, and current limitations.
+                      Clearly describe the problem or gap this research will address. Include
+                      context, affected stakeholders, and current limitations.
                     </p>
                     <FormControl>
                       <Textarea
@@ -508,11 +455,7 @@ function CreateResearchIdeaPage() {
                         className="resize-none"
                       />
                     </FormControl>
-                    <CharCounter
-                      value={field.value}
-                      min={100}
-                      label="Problem statement"
-                    />
+                    <CharCounter value={field.value} min={100} label="Problem statement" />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -525,11 +468,11 @@ function CreateResearchIdeaPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-semibold">
-                      Research Objectives{" "}
-                      <span className="text-red-500">*</span>
+                      Research Objectives <span className="text-red-500">*</span>
                     </FormLabel>
                     <p className="text-xs text-muted-foreground -mt-1 mb-2">
-                      List specific, measurable objectives. Use bullet points or numbered items for clarity.
+                      List specific, measurable objectives. Use bullet points or numbered items for
+                      clarity.
                     </p>
                     <FormControl>
                       <Textarea
@@ -540,11 +483,7 @@ function CreateResearchIdeaPage() {
                         className="resize-none font-mono text-sm"
                       />
                     </FormControl>
-                    <CharCounter
-                      value={field.value}
-                      min={50}
-                      label="Objectives"
-                    />
+                    <CharCounter value={field.value} min={50} label="Objectives" />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -567,11 +506,11 @@ function CreateResearchIdeaPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-semibold">
-                      Expected Outcome{" "}
-                      <span className="text-red-500">*</span>
+                      Expected Outcome <span className="text-red-500">*</span>
                     </FormLabel>
                     <p className="text-xs text-muted-foreground -mt-1 mb-2">
-                      Describe the tangible deliverables, anticipated results, and the impact this research will have on the city and its residents.
+                      Describe the tangible deliverables, anticipated results, and the impact this
+                      research will have on the city and its residents.
                     </p>
                     <FormControl>
                       <Textarea
@@ -582,11 +521,7 @@ function CreateResearchIdeaPage() {
                         className="resize-none"
                       />
                     </FormControl>
-                    <CharCounter
-                      value={field.value}
-                      min={50}
-                      label="Expected outcome"
-                    />
+                    <CharCounter value={field.value} min={50} label="Expected outcome" />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -699,21 +634,13 @@ function FileUploadBox({
       {files.length > 0 && (
         <div className="space-y-2">
           {files.map((file, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-2 rounded-lg border bg-muted/50 p-3"
-            >
+            <div key={index} className="flex items-center gap-2 rounded-lg border bg-muted/50 p-3">
               <FileText className="h-4 w-4 shrink-0 text-primary" />
               <span className="truncate text-sm flex-1">{file.name}</span>
               <span className="text-xs text-muted-foreground">
                 ({(file.size / 1024).toFixed(0)} KB)
               </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => removeFile(index)}
-              >
+              <Button type="button" variant="ghost" size="sm" onClick={() => removeFile(index)}>
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
             </div>
@@ -730,9 +657,7 @@ function FileUploadBox({
         <span className="text-sm font-medium">
           {files.length > 0 ? "Click to add more files" : "Click to upload files"}
         </span>
-        {description && (
-          <span className="text-xs text-muted-foreground">{description}</span>
-        )}
+        {description && <span className="text-xs text-muted-foreground">{description}</span>}
       </label>
 
       <Input

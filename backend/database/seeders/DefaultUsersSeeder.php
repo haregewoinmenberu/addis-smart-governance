@@ -71,9 +71,9 @@ class DefaultUsersSeeder extends Seeder
             ],
 
             [
-                'name' => 'Bethlehem Worku',
+                'name' => 'Sara Gebrehiwot',
                 'email' => 'researchtl@itdb.gov.et',
-                'phone' => '+251911000004',
+                'phone' => '+251911000025',
                 'department' => 'Innovation and Technology Research Directorate',
                 'role' => 'research_team_leader',
             ],

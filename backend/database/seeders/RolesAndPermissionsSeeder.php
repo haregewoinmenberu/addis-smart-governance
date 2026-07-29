@@ -80,22 +80,47 @@ class RolesAndPermissionsSeeder extends Seeder
             ],
 
 
-            // Research
+            // Research / Technology Evaluation
             'research' => [
-                ['name' => 'view_research', 'display_name' => 'View Research'],
-                ['name' => 'create_research_ideas', 'display_name' => 'Create Research Ideas'],
-                ['name' => 'edit_research_ideas', 'display_name' => 'Edit Research Ideas'],
-                ['name' => 'delete_research_ideas', 'display_name' => 'Delete Research Ideas'],
-                ['name' => 'submit_research_ideas', 'display_name' => 'Submit Research Ideas'],
-                ['name' => 'assign_research', 'display_name' => 'Assign Research'],
-                ['name' => 'conduct_research', 'display_name' => 'Conduct Research'],
+                ['name' => 'view_research', 'display_name' => 'View Research / Evaluation'],
+                ['name' => 'create_research_ideas', 'display_name' => 'Create Research / Technology Requests'],
+                ['name' => 'edit_research_ideas', 'display_name' => 'Edit Research / Technology Requests'],
+                ['name' => 'delete_research_ideas', 'display_name' => 'Delete Research / Technology Requests'],
+                ['name' => 'submit_research_ideas', 'display_name' => 'Submit Research / Technology Requests'],
+                ['name' => 'assign_research', 'display_name' => 'Assign Research / Evaluation'],
+                ['name' => 'conduct_research', 'display_name' => 'Conduct Technical Assessment'],
                 ['name' => 'technology_assessment', 'display_name' => 'Technology Assessment'],
                 ['name' => 'cost_benefit_analysis', 'display_name' => 'Cost Benefit Analysis'],
                 ['name' => 'risk_analysis', 'display_name' => 'Risk Analysis'],
                 ['name' => 'submit_feasibility', 'display_name' => 'Submit Feasibility Study'],
-                ['name' => 'approve_research', 'display_name' => 'Approve Research'],
+                ['name' => 'approve_research', 'display_name' => 'Approve Research / Evaluation'],
                 ['name' => 'approve_feasibility', 'display_name' => 'Approve Feasibility Study'],
                 ['name' => 'forward_project', 'display_name' => 'Forward Project'],
+                ['name' => 'assign_team_leader', 'display_name' => 'Assign Evaluation Team Leader'],
+                ['name' => 'assign_officer', 'display_name' => 'Assign Technical Evaluation Officer'],
+                ['name' => 'manage_research_workflow', 'display_name' => 'Manage Evaluation Process'],
+                ['name' => 'view_assigned_research', 'display_name' => 'View Assigned Evaluation'],
+                ['name' => 'update_research_progress', 'display_name' => 'Update Evaluation Progress'],
+                ['name' => 'submit_research_stage', 'display_name' => 'Submit Evaluation Stage'],
+                ['name' => 'review_research_stage', 'display_name' => 'Review Evaluation Stage'],
+                ['name' => 'approve_research_stage', 'display_name' => 'Approve Evaluation Stage'],
+                ['name' => 'forward_to_smart_city', 'display_name' => 'Forward Evaluation to Smart City'],
+                ['name' => 'view_research_reports', 'display_name' => 'View Evaluation Reports'],
+                ['name' => 'generate_research_reports', 'display_name' => 'Generate Evaluation Reports'],
+                // Specific Evaluation Permissions
+                ['name' => 'view_evaluations', 'display_name' => 'View Technology Evaluations'],
+                ['name' => 'review_evaluation', 'display_name' => 'Review Technology Evaluation'],
+                ['name' => 'approve_evaluation', 'display_name' => 'Approve Technology Evaluation'],
+                ['name' => 'reject_evaluation', 'display_name' => 'Reject Technology Evaluation'],
+                ['name' => 'issue_clearance', 'display_name' => 'Issue Technology Clearance Certificate'],
+                ['name' => 'view_assigned_evaluation', 'display_name' => 'View Assigned Evaluation'],
+                ['name' => 'update_evaluation', 'display_name' => 'Update Evaluation'],
+                ['name' => 'review_assessment', 'display_name' => 'Review Technical Assessment'],
+                ['name' => 'submit_report', 'display_name' => 'Submit Evaluation Report'],
+                ['name' => 'view_assigned_task', 'display_name' => 'View Assigned Technical Task'],
+                ['name' => 'update_assessment', 'display_name' => 'Update Technical Assessment'],
+                ['name' => 'upload_documents', 'display_name' => 'Upload Evaluation Documents'],
+                ['name' => 'submit_assessment', 'display_name' => 'Submit Technical Assessment'],
             ],
 
 
@@ -633,7 +658,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         /*
     |--------------------------------------------------------------------------
-    | Research Director
+    | Research / Evaluation Director
     |--------------------------------------------------------------------------
     */
 
@@ -652,6 +677,19 @@ class RolesAndPermissionsSeeder extends Seeder
                 'technology_assessment',
                 'cost_benefit_analysis',
                 'risk_analysis',
+                'assign_team_leader',
+                'manage_research_workflow',
+                'review_research_stage',
+                'approve_research_stage',
+                'forward_to_smart_city',
+                'view_research_reports',
+                'generate_research_reports',
+                // Evaluation specific permissions
+                'view_evaluations',
+                'review_evaluation',
+                'approve_evaluation',
+                'reject_evaluation',
+                'issue_clearance',
                 'view_reports',
                 'generate_reports',
                 'view_notifications',
@@ -681,15 +719,29 @@ class RolesAndPermissionsSeeder extends Seeder
                 'cost_benefit_analysis',
                 'risk_analysis',
                 'submit_feasibility',
+                'assign_officer',
+                'view_assigned_research',
+                'update_research_progress',
+                'submit_research_stage',
+                'review_research_stage',
+                'manage_research_workflow',
+                // Evaluation specific permissions
+                'view_assigned_evaluation',
+                'update_evaluation',
+                'review_assessment',
+                'submit_report',
                 'view_notifications',
-                'send_notifications'
+                'send_notifications',
+                'view_users',
+                'create_users',
+                'edit_users',
             ]
         );
 
 
         /*
     |--------------------------------------------------------------------------
-    | Research Officer
+    | Research / Evaluation Officer
     |--------------------------------------------------------------------------
     */
 
@@ -700,12 +752,16 @@ class RolesAndPermissionsSeeder extends Seeder
                 'view_research',
                 'create_research_ideas',
                 'edit_research_ideas',
-                'submit_research_ideas',
                 'conduct_research',
                 'technology_assessment',
-                'cost_benefit_analysis',
-                'risk_analysis',
-                'submit_feasibility',
+                'view_assigned_research',
+                'update_research_progress',
+                'submit_research_stage',
+                // Evaluation specific permissions
+                'view_assigned_task',
+                'update_assessment',
+                'upload_documents',
+                'submit_assessment',
                 'view_notifications',
                 'send_notifications'
             ]

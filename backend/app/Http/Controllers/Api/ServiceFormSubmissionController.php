@@ -15,11 +15,12 @@ class ServiceFormSubmissionController extends Controller
      */
     public function submitForm(Request $request)
     {
-        try {
+
+        try {  
             $serviceType = $request->input('serviceType');
             $formDataJson = $request->input('formData');
             $formData = is_string($formDataJson) ? json_decode($formDataJson, true) : $formDataJson;
-
+ 
             // Validate service type
             $validServiceTypes = ['research', 'transformation', 'licensing', 'lms'];
             if (!in_array($serviceType, $validServiceTypes)) {
@@ -46,6 +47,7 @@ class ServiceFormSubmissionController extends Controller
                     'size' => $file->getSize(),
                     'mime_type' => $file->getMimeType(),
                 ];
+                \Log::info('Supporting letter uploaded', ['path' => $path]);
             }
             
             // Single file upload for transformation (officialLetter)
@@ -58,6 +60,7 @@ class ServiceFormSubmissionController extends Controller
                     'size' => $file->getSize(),
                     'mime_type' => $file->getMimeType(),
                 ];
+                \Log::info('Official letter uploaded', ['path' => $path]);
             }
             
             // Multiple file upload for licensing (documents)
@@ -76,6 +79,7 @@ class ServiceFormSubmissionController extends Controller
                     ];
                     $documentIndex++;
                 }
+                \Log::info('Documents uploaded', ['count' => count($fileAttachments['documents'])]);
             }
 
             // Merge file attachments with form data
@@ -106,20 +110,11 @@ class ServiceFormSubmissionController extends Controller
                 'submission_timestamp' => now(),
             ]);
 
-            // Log the submission for audit trail (simplified without Spatie package)
-            \Log::info('Service form submitted', [
+            \Log::info('Service form submitted successfully', [
                 'service_type' => $serviceType,
                 'reference_number' => $referenceNumber,
-                'submitted_by' => auth()->user()?->id,
-                'submitted_email' => $formData['email'] ?? null,
+                'submission_id' => $submission->id,
             ]);
-
-            // Send confirmation email
-            // TODO: Implement email notification
-            // Mail::send(new ServiceFormSubmissionConfirmation($submission));
-
-            // Queue background job for processing if needed
-            // TODO: Dispatch job to process the form based on service type
 
             return response()->json([
                 'success' => true,
@@ -132,6 +127,10 @@ class ServiceFormSubmissionController extends Controller
             ], 201);
 
         } catch (ValidationException $e) {
+            \Log::warning('Service form validation failed', [
+                'errors' => $e->errors(),
+                'service_type' => $request->input('serviceType'),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -139,7 +138,10 @@ class ServiceFormSubmissionController extends Controller
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Service form submission error: ' . $e->getMessage(), [
-                'exception' => $e,
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'service_type' => $request->input('serviceType'),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -147,6 +149,7 @@ class ServiceFormSubmissionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while submitting your form. Please try again.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
@@ -192,9 +195,17 @@ class ServiceFormSubmissionController extends Controller
         
         // Filter based on user access:
         // 1. Users with management access see ALL submissions (they can assign to others)
-        // 2. Users without management access see ONLY submissions assigned to them
+        // 2. Users without management access see:
+        //    - Submissions assigned to them via reviewed_by
+        //    - Submissions where they have assignments (team leader or officer)
         if (!$hasManagementAccess) {
-            $query->where('reviewed_by', $user->id);
+            $query->where(function($q) use ($user) {
+                $q->where('reviewed_by', $user->id)
+                  ->orWhereHas('assignments', function($assignQuery) use ($user) {
+                      $assignQuery->where('assigned_to', $user->id)
+                                  ->whereIn('status', ['pending', 'accepted', 'in_progress']);
+                  });
+            });
         }
         // If user has management access, no filtering needed - they see all
 
@@ -911,7 +922,7 @@ class ServiceFormSubmissionController extends Controller
             'email' => 'required|email',
             'phone' => 'required|string|max:20',
             'researchTitle' => 'required|string|max:255',
-            'category' => 'required|string|in:AI & Data,Smart City,Cybersecurity,Public Sector Innovation,Other',
+            'category' => 'required|string|in:System Request, Infrastructure Request, Security Related Request, Other',
             'abstract' => 'required|string|min:20|max:2000',
             'estimatedBudget' => 'nullable|string',
             'durationMonths' => 'required|integer|min:1|max:60',

@@ -52,6 +52,24 @@ class ServiceFormSubmission extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    public function assignments()
+    {
+        return $this->hasMany(ServiceRequestAssignment::class, 'service_request_id');
+    }
+
+    public function teamLeaderAssignment()
+    {
+        return $this->hasOne(ServiceRequestAssignment::class, 'service_request_id')
+            ->where('assignment_type', 'team_leader')
+            ->latest();
+    }
+
+    public function officerAssignments()
+    {
+        return $this->hasMany(ServiceRequestAssignment::class, 'service_request_id')
+            ->where('assignment_type', 'officer');
+    }
+
     public function scopeByServiceType($query, $serviceType)
     {
         return $query->where('service_type', $serviceType);

@@ -15,19 +15,19 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'oauth/*', 'oauth/token'],
+    'paths' => ['api/*', 'oauth/*', 'oauth/token', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:5173'],
+    'allowed_origins' => ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:8080'],
 
     'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => ['Authorization'],
+    'exposed_headers' => ['Authorization', 'X-Requested-With'],
 
-    'max_age' => 86400, // 24 hours
+    'max_age' => 0,
 
     'supports_credentials' => true,
 

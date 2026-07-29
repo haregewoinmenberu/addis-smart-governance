@@ -57,10 +57,11 @@ function AssignedRequestsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
-  // Fetch service requests
+  // Fetch service requests and their assignments
   const { data: requestsData, isLoading } = useQuery({
-    queryKey: ["service-requests", searchQuery, filterStatus],
+    queryKey: ["assigned-service-requests", searchQuery, filterStatus],
     queryFn: async () => {
+      // Get all service requests
       const params = new URLSearchParams();
       if (searchQuery) params.append("search", searchQuery);
       if (filterStatus) params.append("status", filterStatus);
@@ -69,19 +70,44 @@ function AssignedRequestsPage() {
         headers: { Authorization: `Bearer ${getAuthToken()}` },
       });
       if (!res.ok) throw new Error("Failed to fetch requests");
-      return res.json();
+      const data = await res.json();
+      
+      const requests = data.data || [];
+      
+      // For each request, fetch assignments to check if user is assigned
+      const assignedRequests = [];
+      
+      for (const request of requests) {
+        try {
+          const assignResponse = await fetch(`/api/service-request-workflow/requests/${request.id}/assignments`, {
+            headers: { Authorization: `Bearer ${getAuthToken()}` },
+          });
+          
+          if (assignResponse.ok) {
+            const assignData = await assignResponse.json();
+            const userAssignments = (assignData.data || []).filter((a: any) => 
+              a.assigned_to && 
+              typeof a.assigned_to === 'object' && 
+              a.assigned_to.id === user?.id
+            );
+            
+            if (userAssignments.length > 0) {
+              assignedRequests.push({
+                ...request,
+                myAssignments: userAssignments,
+              });
+            }
+          }
+        } catch (err) {
+          console.error(`Error fetching assignments for request ${request.id}:`, err);
+        }
+      }
+      
+      return { ...data, data: assignedRequests, assignedCount: assignedRequests.length };
     },
   });
 
   const requests: any[] = requestsData?.data ?? [];
-  
-  // Filter only requests assigned to the current user
-  const assignedRequests = requests.filter((req) => {
-    const reviewedById = typeof req.reviewed_by === 'object' 
-      ? req.reviewed_by?.id 
-      : req.reviewed_by;
-    return reviewedById === user?.id;
-  });
 
   return (
     <AppShell>
@@ -130,7 +156,7 @@ function AssignedRequestsPage() {
             </Card>
           ))}
         </div>
-      ) : assignedRequests.length === 0 ? (
+      ) : requests.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -140,13 +166,19 @@ function AssignedRequestsPage() {
               No assigned requests yet
             </h3>
             <p className="text-sm text-muted-foreground">
-              Service requests assigned to you from Smart City will appear here
+              Service requests assigned to you will appear here
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
-          {assignedRequests.map((request: any) => (
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-muted-foreground">
+              Showing {requests.length} assigned request{requests.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          
+          {requests.map((request: any) => (
             <Card
               key={request.id}
               className="hover:shadow-md transition-all border-border/60"
@@ -210,6 +242,30 @@ function AssignedRequestsPage() {
                   </p>
                 )}
 
+                {/* Show user's assignments */}
+                {request.myAssignments && request.myAssignments.length > 0 && (
+                  <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-xs font-semibold text-blue-900 mb-1">Your Assignments:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {request.myAssignments.map((assignment: any) => (
+                        <Badge 
+                          key={assignment.id}
+                          className={
+                            assignment.status === 'pending' ? 'bg-yellow-500' :
+                            assignment.status === 'accepted' ? 'bg-blue-500' :
+                            assignment.status === 'in_progress' ? 'bg-purple-500' :
+                            assignment.status === 'completed' ? 'bg-green-500' :
+                            'bg-red-500'
+                          }
+                        >
+                          {assignment.assignment_type === 'team_leader' ? '👨‍💼' : '👨‍🔬'} 
+                          {assignment.assignment_type.replace(/_/g, ' ')} - {assignment.status.replace(/_/g, ' ')}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Review Notes */}
                 {request.review_notes && (
                   <p className="text-xs text-muted-foreground bg-muted rounded px-2 py-1 mb-3 line-clamp-2">
@@ -223,21 +279,15 @@ function AssignedRequestsPage() {
                     size="sm"
                     className="h-7 px-2 text-xs"
                     onClick={() =>
-                      navigate({ to: `/service-requests/${request.id}` })
+                      navigate({ to: `/service-requests/${request.id}/workspace` })
                     }
                   >
-                    <Eye className="h-3 w-3 mr-1" /> View Details
+                    <Eye className="h-3 w-3 mr-1" /> Open Workspace
                   </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
-
-          {requestsData?.total > requestsData?.per_page && (
-            <p className="text-center text-xs text-muted-foreground py-1">
-              Showing {assignedRequests.length} of {requestsData.total} requests
-            </p>
-          )}
         </div>
       )}
     </AppShell>

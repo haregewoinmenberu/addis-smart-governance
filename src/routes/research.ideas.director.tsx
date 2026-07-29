@@ -141,9 +141,9 @@ function ResearchDirectorIdeasPage() {
             variant="ghost"
             size="sm"
             className="h-7 px-2 text-xs"
-            onClick={() => navigate({ to: `/research/ideas/${idea.id}/director` })}
+            onClick={() => navigate({ to: `/research/ideas/${idea.id}/workspace` })}
           >
-            <Eye className="h-3 w-3 mr-1" /> View
+            <Eye className="h-3 w-3 mr-1" /> Open Workspace
           </Button>
         </div>
       </CardContent>

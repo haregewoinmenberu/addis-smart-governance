@@ -256,6 +256,7 @@ class RoleHierarchyService
         // Level 4: Team Leaders / Managers
         if (in_array($roleName, [
             'training_team_leader',
+            'research_team_leader',
             'software_team_leader',
             'maintenance_team_leader',
             'project_manager',
@@ -293,24 +294,22 @@ class RoleHierarchyService
      * Get all users that a manager can assign tasks/requests to.
      * Returns users with roles one level below the manager.
      */
-    public static function getManageableUsers(User $manager): array
+    public static function getManageableUsers(User $manager)
     {
         $manageableRoles = self::getManageableRoles($manager);
         
         if (empty($manageableRoles)) {
-            return [];
+            return collect([]);
         }
 
         // Get all users with these roles
-        $users = User::whereHas('roles', function ($query) use ($manageableRoles) {
+        return User::whereHas('roles', function ($query) use ($manageableRoles) {
             $query->whereIn('name', $manageableRoles);
         })
         ->with('roles')
         ->where('is_active', true)
         ->orderBy('name')
         ->get();
-
-        return $users->toArray();
     }
 
     /**
@@ -319,6 +318,66 @@ class RoleHierarchyService
     public static function getFullHierarchyMap(): array
     {
         return self::$hierarchyMap;
+    }
+
+    /**
+     * Get ALL roles that a manager can manage at ANY depth below them.
+     * e.g. research_director → [research_team_leader, research_officer]
+     */
+    public static function getAllManageableRolesRecursive(User $user): array
+    {
+        $userRoles = $user->roles->pluck('name')->toArray();
+        $allRoles = [];
+
+        foreach ($userRoles as $roleName) {
+            $allRoles = array_merge($allRoles, self::getChildRolesRecursive($roleName));
+        }
+
+        return array_values(array_unique($allRoles));
+    }
+
+    /**
+     * Recursively collect all child roles from the hierarchy map.
+     */
+    protected static function getChildRolesRecursive(string $roleName, array $visited = []): array
+    {
+        if (in_array($roleName, $visited)) {
+            return []; // prevent infinite loops
+        }
+
+        $visited[] = $roleName;
+        $directChildren = self::$hierarchyMap[$roleName] ?? [];
+        $allChildren = $directChildren;
+
+        foreach ($directChildren as $childRole) {
+            $allChildren = array_merge(
+                $allChildren,
+                self::getChildRolesRecursive($childRole, $visited)
+            );
+        }
+
+        return $allChildren;
+    }
+
+    /**
+     * Get ALL users that a manager can manage at ANY depth (recursive).
+     * e.g. research_director gets both research_team_leaders AND research_officers.
+     */
+    public static function getAllManageableUsersRecursive(User $manager)
+    {
+        $allRoles = self::getAllManageableRolesRecursive($manager);
+
+        if (empty($allRoles)) {
+            return collect([]);
+        }
+
+        return User::whereHas('roles', function ($query) use ($allRoles) {
+            $query->whereIn('name', $allRoles);
+        })
+        ->with('roles')
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get();
     }
 
     /**

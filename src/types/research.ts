@@ -14,6 +14,20 @@ export enum Priority {
 }
 
 export enum ResearchCategory {
+  // System Requests
+  SYSTEM_NEW = 'system_new',
+  SYSTEM_TRANSFER = 'system_transfer',
+  SYSTEM_UPGRADE = 'system_upgrade',
+
+  // Infrastructure Requests
+  INFRASTRUCTURE_CLOUD = 'infrastructure_cloud',
+  INFRASTRUCTURE_SERVER = 'infrastructure_server',
+  INFRASTRUCTURE_NETWORK = 'infrastructure_network',
+  INFRASTRUCTURE_STORAGE = 'infrastructure_storage',
+  INFRASTRUCTURE_SECURITY = 'infrastructure_security',
+  INFRASTRUCTURE_DATA_CENTER = 'infrastructure_data_center',
+
+  // Legacy fallback
   BASIC_RESEARCH = 'basic_research',
   APPLIED_RESEARCH = 'applied_research',
   EXPERIMENTAL_DEVELOPMENT = 'experimental_development',

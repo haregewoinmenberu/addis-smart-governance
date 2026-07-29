@@ -289,11 +289,11 @@ export function SmartCityResearchDashboard() {
         <div className="flex items-center gap-4"> 
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
-              <ListChecks className="h-8 w-8" />
-              Smart City
+              <ListChecks className="h-8 w-8 text-primary" />
+              Smart City ICT Evaluation
             </h1>
             <p className="text-muted-foreground mt-1">
-              Research Ideas Management & Assignment
+              Technology Requests Evaluation & Clearance Management
             </p>
           </div>
         </div>
@@ -304,7 +304,7 @@ export function SmartCityResearchDashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Ideas</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
               <FileText className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
@@ -314,7 +314,7 @@ export function SmartCityResearchDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+              <CardTitle className="text-sm font-medium">Pending Initial Review</CardTitle>
               <Clock className="h-4 w-4 text-amber-600" />
             </CardHeader>
             <CardContent>
@@ -324,7 +324,7 @@ export function SmartCityResearchDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Assigned to Director</CardTitle>
+              <CardTitle className="text-sm font-medium">Assigned to Evaluation Director</CardTitle>
               <UserPlus className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
@@ -334,7 +334,7 @@ export function SmartCityResearchDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">In Research Review</CardTitle>
+              <CardTitle className="text-sm font-medium">Under Evaluation Review</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
@@ -351,7 +351,7 @@ export function SmartCityResearchDashboard() {
             <div className="lg:col-span-2 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search research ideas..."
+                placeholder="Search technology requests..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"

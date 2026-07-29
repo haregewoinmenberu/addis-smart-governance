@@ -54,11 +54,9 @@ export type ResearchProjectFormData = z.infer<typeof researchProjectSchema>;
 
 // Category labels
 export const researchCategoryLabels: Record<string, string> = {
-  basic_research:           "Basic Research",
-  applied_research:         "Applied Research",
-  experimental_development: "Experimental Development",
-  innovation:               "Innovation",
-  pilot_project:            "Pilot Project",
+  system_request: "System Request",
+  infrastructure_request: "Infrastructure Request",
+  security_related: "Security Related Request",
 };
 
 // Priority labels

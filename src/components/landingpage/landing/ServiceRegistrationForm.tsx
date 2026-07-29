@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 
 import {
-  researchSchema, transformationSchema, licensingSchema, lmsSchema,
+  researchSchema, transformationSchema, licensingSchema,  lmsSchema,typeOfAgency,
   type ResearchFormData, type TransformationFormData,
   type LicensingFormData, 
 } from "@/lib/service-forms-schema";
@@ -387,9 +387,15 @@ function ResearchForm() {
   const form = useForm<ResearchFormData>({
     resolver: zodResolver(researchSchema),
     defaultValues: {
-      fullName: "", email: "", phone: "", institution: "",
-      researchTitle: "", category: "AI & Data", abstract: "",
-      estimatedBudget: "", durationMonths: 6, 
+      fullName: "",
+      email: "",
+      phone: "",
+      institution: "",
+      researchTitle: "",
+      category: "System Request",
+      abstract: "",
+      estimatedBudget: "",
+      durationMonths: 6,
       supportingLetter: null,
       agree: false as unknown as true,
     },
@@ -398,44 +404,89 @@ function ResearchForm() {
   return (
     <>
       <Form {...form}>
-        <form onSubmit={onSubmitHandler(form, setLoading, "Research proposal", "research", setSuccessData)} className="space-y-8">
+        <form
+          onSubmit={onSubmitHandler(
+            form,
+            setLoading,
+            "Research proposal",
+            "research",
+            setSuccessData,
+          )}
+          className="space-y-8"
+        >
           <Section title="Applicant">
             <TextField form={form} name="fullName" label="Full name" placeholder="Dr. Helen T." />
-            <TextField form={form} name="institution" label="Institution" placeholder="Addis Ababa University" />
-            <TextField form={form} name="email" label="Email" type="email" placeholder="you@example.com" />
+            <TextField
+              form={form}
+              name="institution"
+              label="Institution"
+              placeholder="Addis Ababa University"
+            />
+            <TextField
+              form={form}
+              name="email"
+              label="Email"
+              type="email"
+              placeholder="you@example.com"
+            />
             <TextField form={form} name="phone" label="Phone" placeholder="+251 ..." />
           </Section>
 
-          <Section title="Research details">
-            <TextField form={form} name="researchTitle" label="Research title" placeholder="AI-driven traffic optimization for Addis Ababa" />
+          <Section title="Request  details">
+            <TextField
+              form={form}
+              name="researchTitle"
+              label="Title"
+              placeholder="AI-driven traffic optimization for Addis Ababa"
+            />
             <SelectField
-              form={form} name="category" label="Category"
-              options={["AI & Data", "Smart City", "Cybersecurity", "Public Sector Innovation", "Other"]}
+              form={form}
+              name="category"
+              label="Category"
+              options={[
+                "System Request",
+                "Infrastructure Request",
+                "Security Related Request", 
+                "Other",
+              ]}
             />
             <NumberField form={form} name="durationMonths" label="Duration (months)" />
-            <TextField form={form} name="estimatedBudget" label="Estimated budget (optional)" placeholder="e.g. 250,000 ETB" />
+            <TextField
+              form={form}
+              name="estimatedBudget"
+              label="Estimated budget (optional)"
+              placeholder="e.g. 250,000 ETB"
+            />
             <div className="sm:col-span-2">
-              <TextAreaField form={form} name="abstract" label="Abstract" placeholder="Describe objectives, methodology and expected impact (min 20 chars)…" rows={6} />
+              <TextAreaField
+                form={form}
+                name="abstract"
+                label="Abstract"
+                placeholder="Describe objectives, methodology and expected impact (min 20 chars)…"
+                rows={6}
+              />
             </div>
           </Section>
 
           <Section title="Supporting Documents">
             <div className="sm:col-span-2">
-              <FileUploadField 
-                form={form} 
-                name="supportingLetter" 
-                label="Supporting Letter (optional)" 
+              <FileUploadField
+                form={form}
+                name="supportingLetter"
+                label="Supporting Letter (optional)"
                 description="Upload an institutional support letter or recommendation (PDF, DOC, DOCX)"
                 accept=".pdf,.doc,.docx"
               />
             </div>
           </Section>
 
-          <Section title="Consent"><AgreeField form={form} /></Section>
+          <Section title="Consent">
+            <AgreeField form={form} />
+          </Section>
           <SubmitRow loading={loading} label="Submit proposal" />
         </form>
       </Form>
-      
+
       <SuccessDialog data={successData} onClose={() => setSuccessData(null)} />
     </>
   );
@@ -452,7 +503,7 @@ function TransformationForm() {
     defaultValues: {
       agencyName: "", contactPerson: "", position: "",
       email: "", phone: "",
-      agencyType: "Bureau", currentMaturity: "Developing",
+      agencyType: "BUREAU", currentMaturity: "Developing",
       scope: "", expectedStart: "",
       officialLetter: null,
       agree: false as unknown as true,
@@ -462,10 +513,24 @@ function TransformationForm() {
   return (
     <>
       <Form {...form}>
-        <form onSubmit={onSubmitHandler(form, setLoading, "Transformation request", "transformation", setSuccessData)} className="space-y-8">
-          <Section title="Agency">
-            <TextField form={form} name="agencyName" label="Agency / Bureau" placeholder="Bureau of …" />
-            <SelectField form={form} name="agencyType" label="Type" options={["Bureau", "Sub-city", "Public Enterprise", "Other"]} />
+        <form
+          onSubmit={onSubmitHandler(
+            form,
+            setLoading,
+            "Transformation request",
+            "transformation",
+            setSuccessData,
+          )}
+          className="space-y-8"
+        >
+          <Section>
+            <TextField
+              form={form}
+              name="agencyName"
+              label="Organization/Company Name"
+              placeholder="Bureau of …"
+            />
+            <SelectField form={form} name="agencyType" label="Type" options={typeOfAgency} />
             <TextField form={form} name="contactPerson" label="Contact person" />
             <TextField form={form} name="position" label="Position" />
             <TextField form={form} name="email" label="Email" type="email" />
@@ -473,30 +538,43 @@ function TransformationForm() {
           </Section>
 
           <Section title="Engagement">
-            <SelectField form={form} name="currentMaturity" label="Current digital maturity" options={["Initial", "Developing", "Established", "Advanced"]} />
+            <SelectField
+              form={form}
+              name="currentMaturity"
+              label="Current digital maturity"
+              options={["Initial", "Developing", "Established", "Advanced"]}
+            />
             <TextField form={form} name="expectedStart" label="Expected start" type="date" />
             <div className="sm:col-span-2">
-              <TextAreaField form={form} name="scope" label="Scope & objectives" placeholder="What systems, processes or capabilities should be transformed?" rows={6} />
+              <TextAreaField
+                form={form}
+                name="scope"
+                label="Scope & objectives"
+                placeholder="What systems, processes or capabilities should be transformed?"
+                rows={6}
+              />
             </div>
           </Section>
 
           <Section title="Official Documents">
             <div className="sm:col-span-2">
-              <FileUploadField 
-                form={form} 
-                name="officialLetter" 
-                label="Official Request Letter (optional)" 
+              <FileUploadField
+                form={form}
+                name="officialLetter"
+                label="Official Request Letter (optional)"
                 description="Upload an official letter from your agency requesting technology transformation services (PDF, DOC, DOCX)"
                 accept=".pdf,.doc,.docx"
               />
             </div>
           </Section>
 
-          <Section title="Consent"><AgreeField form={form} /></Section>
+          <Section title="Consent">
+            <AgreeField form={form} />
+          </Section>
           <SubmitRow loading={loading} label="Submit request" />
         </form>
       </Form>
-      
+
       <SuccessDialog data={successData} onClose={() => setSuccessData(null)} />
     </>
   );
@@ -529,7 +607,7 @@ function LicensingForm() {
             <SelectField form={form} name="applicantType" label="Applicant type" options={["Individual Professional", "Firm", "Vendor"]} />
             <TextField form={form} name="fullName" label="Full / Company name" />
             <TextField form={form} name="nationalId" label="National ID / TIN" />
-            <TextField form={form} name="organization" label="Organization (optional)" />
+            {/* <TextField form={form} name="organization" label="Organization (optional)" /> */}
             <TextField form={form} name="email" label="Email" type="email" />
             <TextField form={form} name="phone" label="Phone" />
           </Section>

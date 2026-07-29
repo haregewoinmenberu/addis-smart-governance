@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, CheckCircle, ListTodo, Flask, Calendar } from 'lucide-react';
+import { FileText, CheckCircle, ListTodo, FileCheck, Calendar, ArrowRight } from 'lucide-react';
 import { getResearcherDashboard } from '@/lib/api';
+import { useNavigate } from '@tanstack/react-router';
 
 export default function ResearcherDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchMyDashboard();
@@ -24,33 +26,38 @@ export default function ResearcherDashboard() {
     }
   };
 
-  if (loading) return <div className="p-8">Loading your dashboard...</div>;
+  if (loading) return <div className="p-8">Loading your evaluation dashboard...</div>;
 
   return (
     <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold">Welcome, {stats?.user?.name}</h1>
-        <p className="text-muted-foreground">{stats?.user?.role}</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Welcome, {stats?.user?.name || 'Evaluation Officer'}</h1>
+          <p className="text-muted-foreground">{stats?.user?.role || 'Technical Evaluation Officer'}</p>
+        </div>
+        <Badge variant="outline" className="px-3 py-1.5 text-sm">
+          Technical Evaluation Officer
+        </Badge>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">My Ideas</CardTitle>
-            <Lightbulb className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Assigned Requests</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.my_ideas || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats?.my_approved_ideas || 0} approved
+              {stats?.my_approved_ideas || 0} completed
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">My Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Assessments</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -70,8 +77,8 @@ export default function ResearcherDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Experiments</CardTitle>
-            <Flask className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Submissions</CardTitle>
+            <FileCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.my_experiments || 0}</div>

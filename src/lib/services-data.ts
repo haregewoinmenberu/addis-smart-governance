@@ -47,11 +47,11 @@ export interface ServiceDetail {
 export const servicesData: Record<ServiceKey, ServiceDetail> = {
   research: {
     slug: "research",
-    title: "Research ",
-    shortTitle: "Research ",
+    title: "New Technology  Request ",
+    shortTitle: "New Technology  Request ",
     icon: FlaskConical,
     tagline: "Driving Ethiopia's Digital Future Through Evidence-Based Innovation",
-    description: "research submission, evaluation, and tracking system for national technology policy and innovation research.",
+    description: "Request submission, evaluation, and tracking system for national technology policy and innovation research.",
     longDescription: "The Research  is a comprehensive platform designed to streamline research submission, peer review, and policy implementation tracking. It connects researchers, policymakers, and innovators across Ethiopia to build an evidence-based foundation for digital transformation.",
     features: [
       {
@@ -94,9 +94,7 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
       }
     ],
     stats: [
-      { label: "Research Projects", value: "1,284" },
-      { label: "Active Researchers", value: "3,450" },
-      { label: "Policy Impacts", value: "156" },
+      { label: "Research Projects", value: "1,284" },  
       { label: "Institutions", value: "89" }
     ],
     ctaText: "Start Your Research Journey",
@@ -140,8 +138,8 @@ export const servicesData: Record<ServiceKey, ServiceDetail> = {
       }
     ],
     formKind: "research",
-    formTitle: "Research Proposal Registration",
-    formSubtitle: "Provide the details below to register your research proposal with STRP."
+    formTitle: "Request for Infrastructure or System Development",
+    formSubtitle: "Provide the details below to register your Request with STRP."
   },
   
   transformation: {

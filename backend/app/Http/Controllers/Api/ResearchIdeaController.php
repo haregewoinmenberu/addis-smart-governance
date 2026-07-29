@@ -24,12 +24,17 @@ class ResearchIdeaController extends Controller
         // Filter based on user access:
         // 1. Users with management access see ALL ideas (they can assign to others)
         // 2. Users without management access see:
-        //    - Ideas assigned to them
+        //    - Ideas assigned to them as director
+        //    - Ideas where they have assignments (team leader or officer)
         //    - Ideas they created themselves
         if (!$hasManagementAccess) {
             $query->where(function($q) use ($user) {
                 $q->where('assigned_to_director', $user->id)
-                  ->orWhere('submitted_by', $user->id);
+                  ->orWhere('submitted_by', $user->id)
+                  ->orWhereHas('assignments', function($assignQuery) use ($user) {
+                      $assignQuery->where('assigned_to', $user->id)
+                                  ->whereIn('status', ['pending', 'accepted', 'in_progress']);
+                  });
             });
         }
         // If user has management access, no filtering needed - they see all
@@ -69,7 +74,6 @@ class ResearchIdeaController extends Controller
             'priority' => 'nullable|string',
             'sub_city_id' => 'nullable|exists:sub_cities,id',
         ]);
-
         $validated['submitted_by'] = auth()->id();
         $validated['status'] = IdeaStatus::DRAFT;
         $validated['assignment_status'] = 'pending_smart_city';
@@ -82,7 +86,8 @@ class ResearchIdeaController extends Controller
         if ($smartCityUser) {
             $validated['assigned_to_smart_city'] = $smartCityUser->id;
         }
-
+        
+        
         $idea = ResearchIdea::create($validated);
 
         ResearchActivityLog::log('created', $idea, null, $validated, 'Research idea created and assigned to Smart City Command Center');
@@ -94,15 +99,28 @@ class ResearchIdeaController extends Controller
     {
         $user = auth()->user();
         
-        // Check if user has management capabilities
+        // Check if user has management capabilities (directors and above see all)
         $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
         
-        // If user doesn't have management access, they can only view ideas assigned to them
-        if (!$hasManagementAccess && $researchIdea->assigned_to_director != $user->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Research idea not found or access denied',
-            ], 404);
+        if (!$hasManagementAccess) {
+            // Check if user is the director assignee
+            $isDirectorAssignee = $researchIdea->assigned_to_director == $user->id;
+            
+            // Check if user submitted it
+            $isSubmitter = $researchIdea->submitted_by == $user->id;
+            
+            // Check if user has a team leader or officer assignment on this research
+            $isAssigned = \App\Models\ResearchAssignment::where('research_idea_id', $researchIdea->id)
+                ->where('assigned_to', $user->id)
+                ->whereIn('status', ['pending', 'accepted', 'in_progress'])
+                ->exists();
+
+            if (!$isDirectorAssignee && !$isSubmitter && !$isAssigned) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Research idea not found or access denied',
+                ], 404);
+            }
         }
         
         return response()->json([
@@ -268,12 +286,16 @@ class ResearchIdeaController extends Controller
                 : $researchIdea->director_notes,
         ]);
 
+        // Convert enum to string for logging
+        $oldStatusValue = $oldStatus instanceof \BackedEnum ? $oldStatus->value : (string) $oldStatus;
+        $newStatusValue = $request->status;
+
         ResearchActivityLog::log(
             'status_updated', 
             $researchIdea, 
-            ['status' => $oldStatus], 
-            ['status' => $request->status], 
-            "Status changed from {$oldStatus} to {$request->status}"
+            ['status' => $oldStatusValue], 
+            ['status' => $newStatusValue], 
+            "Status changed from {$oldStatusValue} to {$newStatusValue}"
         );
 
         return response()->json([

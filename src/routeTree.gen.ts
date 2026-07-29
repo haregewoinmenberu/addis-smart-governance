@@ -55,11 +55,14 @@ import { Route as TicketsIdRouteImport } from './routes/tickets.$id'
 import { Route as ServicesServiceSlugRouteImport } from './routes/services.$serviceSlug'
 import { Route as ServiceRequestsIdRouteImport } from './routes/service-requests.$id'
 import { Route as ResearchTransfersRouteImport } from './routes/research.transfers'
+import { Route as ResearchTeamRouteImport } from './routes/research.team'
 import { Route as ResearchScreeningsRouteImport } from './routes/research.screenings'
 import { Route as ResearchReportsRouteImport } from './routes/research.reports'
 import { Route as ResearchProjectsRouteImport } from './routes/research.projects'
 import { Route as ResearchIdeasRouteImport } from './routes/research.ideas'
 import { Route as ResearchEvaluationsRouteImport } from './routes/research.evaluations'
+import { Route as ResearchAssignmentsRouteImport } from './routes/research.assignments'
+import { Route as ResearchAssignedRouteImport } from './routes/research.assigned'
 import { Route as RequestsCreateRouteImport } from './routes/requests.create'
 import { Route as RequestsAssignedRouteImport } from './routes/requests.assigned'
 import { Route as RegistryCreateRouteImport } from './routes/registry.create'
@@ -74,9 +77,20 @@ import { Route as DashboardInstitutionRouteImport } from './routes/dashboard.ins
 import { Route as DashboardExecutiveRouteImport } from './routes/dashboard.executive'
 import { Route as DashboardBureauHeadRouteImport } from './routes/dashboard.bureau-head'
 import { Route as DashboardAuditorRouteImport } from './routes/dashboard.auditor'
+import { Route as ServiceRequestsIdIndexRouteImport } from './routes/service-requests.$id.index'
 import { Route as ResearchIdeasIndexRouteImport } from './routes/research.ideas.index'
 import { Route as UsersIdEditRouteImport } from './routes/users.$id.edit'
+import { Route as ServiceRequestsIdWorkspaceRouteImport } from './routes/service-requests.$id.workspace'
+import { Route as ResearchTeamLeaderReviewsRouteImport } from './routes/research.team-leader.reviews'
+import { Route as ResearchTeamLeaderDashboardRouteImport } from './routes/research.team-leader.dashboard'
 import { Route as ResearchProjectsIdRouteImport } from './routes/research.projects.$id'
+import { Route as ResearchOfficerSubmissionsRouteImport } from './routes/research.officer.submissions'
+import { Route as ResearchOfficerStagesRouteImport } from './routes/research.officer.stages'
+import { Route as ResearchOfficerDocumentsRouteImport } from './routes/research.officer.documents'
+import { Route as ResearchOfficerDashboardRouteImport } from './routes/research.officer.dashboard'
+import { Route as ResearchOfficerAssignmentsRouteImport } from './routes/research.officer.assignments'
+import { Route as ResearchOfficerAssessmentsRouteImport } from './routes/research.officer.assessments'
+import { Route as ResearchIdeasTeamLeaderRouteImport } from './routes/research.ideas.team-leader'
 import { Route as ResearchIdeasDirectorRouteImport } from './routes/research.ideas.director'
 import { Route as ResearchIdeasCreateRouteImport } from './routes/research.ideas.create'
 import { Route as ResearchIdeasIdRouteImport } from './routes/research.ideas.$id'
@@ -86,9 +100,12 @@ import { Route as ResearchIdeasIdIndexRouteImport } from './routes/research.idea
 import { Route as ResearchTransfersCreateProjectIdRouteImport } from './routes/research.transfers.create.$projectId'
 import { Route as ResearchScreeningsCreateIdeaIdRouteImport } from './routes/research.screenings.create.$ideaId'
 import { Route as ResearchProjectsCreateIdeaIdRouteImport } from './routes/research.projects.create.$ideaId'
+import { Route as ResearchIdeasIdWorkspaceRouteImport } from './routes/research.ideas.$id.workspace'
 import { Route as ResearchIdeasIdEditRouteImport } from './routes/research.ideas.$id.edit'
 import { Route as ResearchIdeasIdDirectorRouteImport } from './routes/research.ideas.$id.director'
 import { Route as ResearchEvaluationsCreateProjectIdRouteImport } from './routes/research.evaluations.create.$projectId'
+import { Route as ResearchIdeasIdWorkflowProgressIdWorkRouteImport } from './routes/research.ideas.$id.workflow.$progressId.work'
+import { Route as ResearchIdeasIdWorkflowProgressIdReviewRouteImport } from './routes/research.ideas.$id.workflow.$progressId.review'
 
 const WorkflowsRoute = WorkflowsRouteImport.update({
   id: '/workflows',
@@ -320,6 +337,11 @@ const ResearchTransfersRoute = ResearchTransfersRouteImport.update({
   path: '/research/transfers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResearchTeamRoute = ResearchTeamRouteImport.update({
+  id: '/research/team',
+  path: '/research/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResearchScreeningsRoute = ResearchScreeningsRouteImport.update({
   id: '/research/screenings',
   path: '/research/screenings',
@@ -343,6 +365,16 @@ const ResearchIdeasRoute = ResearchIdeasRouteImport.update({
 const ResearchEvaluationsRoute = ResearchEvaluationsRouteImport.update({
   id: '/research/evaluations',
   path: '/research/evaluations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchAssignmentsRoute = ResearchAssignmentsRouteImport.update({
+  id: '/research/assignments',
+  path: '/research/assignments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchAssignedRoute = ResearchAssignedRouteImport.update({
+  id: '/research/assigned',
+  path: '/research/assigned',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsCreateRoute = RequestsCreateRouteImport.update({
@@ -416,6 +448,11 @@ const DashboardAuditorRoute = DashboardAuditorRouteImport.update({
   path: '/auditor',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ServiceRequestsIdIndexRoute = ServiceRequestsIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ServiceRequestsIdRoute,
+} as any)
 const ResearchIdeasIndexRoute = ResearchIdeasIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -426,10 +463,68 @@ const UsersIdEditRoute = UsersIdEditRouteImport.update({
   path: '/$id/edit',
   getParentRoute: () => UsersRoute,
 } as any)
+const ServiceRequestsIdWorkspaceRoute =
+  ServiceRequestsIdWorkspaceRouteImport.update({
+    id: '/workspace',
+    path: '/workspace',
+    getParentRoute: () => ServiceRequestsIdRoute,
+  } as any)
+const ResearchTeamLeaderReviewsRoute =
+  ResearchTeamLeaderReviewsRouteImport.update({
+    id: '/research/team-leader/reviews',
+    path: '/research/team-leader/reviews',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ResearchTeamLeaderDashboardRoute =
+  ResearchTeamLeaderDashboardRouteImport.update({
+    id: '/research/team-leader/dashboard',
+    path: '/research/team-leader/dashboard',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ResearchProjectsIdRoute = ResearchProjectsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ResearchProjectsRoute,
+} as any)
+const ResearchOfficerSubmissionsRoute =
+  ResearchOfficerSubmissionsRouteImport.update({
+    id: '/research/officer/submissions',
+    path: '/research/officer/submissions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ResearchOfficerStagesRoute = ResearchOfficerStagesRouteImport.update({
+  id: '/research/officer/stages',
+  path: '/research/officer/stages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResearchOfficerDocumentsRoute =
+  ResearchOfficerDocumentsRouteImport.update({
+    id: '/research/officer/documents',
+    path: '/research/officer/documents',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ResearchOfficerDashboardRoute =
+  ResearchOfficerDashboardRouteImport.update({
+    id: '/research/officer/dashboard',
+    path: '/research/officer/dashboard',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ResearchOfficerAssignmentsRoute =
+  ResearchOfficerAssignmentsRouteImport.update({
+    id: '/research/officer/assignments',
+    path: '/research/officer/assignments',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ResearchOfficerAssessmentsRoute =
+  ResearchOfficerAssessmentsRouteImport.update({
+    id: '/research/officer/assessments',
+    path: '/research/officer/assessments',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ResearchIdeasTeamLeaderRoute = ResearchIdeasTeamLeaderRouteImport.update({
+  id: '/team-leader',
+  path: '/team-leader',
+  getParentRoute: () => ResearchIdeasRoute,
 } as any)
 const ResearchIdeasDirectorRoute = ResearchIdeasDirectorRouteImport.update({
   id: '/director',
@@ -479,6 +574,12 @@ const ResearchProjectsCreateIdeaIdRoute =
     path: '/create/$ideaId',
     getParentRoute: () => ResearchProjectsRoute,
   } as any)
+const ResearchIdeasIdWorkspaceRoute =
+  ResearchIdeasIdWorkspaceRouteImport.update({
+    id: '/workspace',
+    path: '/workspace',
+    getParentRoute: () => ResearchIdeasIdRoute,
+  } as any)
 const ResearchIdeasIdEditRoute = ResearchIdeasIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -494,6 +595,18 @@ const ResearchEvaluationsCreateProjectIdRoute =
     id: '/create/$projectId',
     path: '/create/$projectId',
     getParentRoute: () => ResearchEvaluationsRoute,
+  } as any)
+const ResearchIdeasIdWorkflowProgressIdWorkRoute =
+  ResearchIdeasIdWorkflowProgressIdWorkRouteImport.update({
+    id: '/workflow/$progressId/work',
+    path: '/workflow/$progressId/work',
+    getParentRoute: () => ResearchIdeasIdRoute,
+  } as any)
+const ResearchIdeasIdWorkflowProgressIdReviewRoute =
+  ResearchIdeasIdWorkflowProgressIdReviewRouteImport.update({
+    id: '/workflow/$progressId/review',
+    path: '/workflow/$progressId/review',
+    getParentRoute: () => ResearchIdeasIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -541,13 +654,16 @@ export interface FileRoutesByFullPath {
   '/registry/create': typeof RegistryCreateRoute
   '/requests/assigned': typeof RequestsAssignedRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/research/assigned': typeof ResearchAssignedRoute
+  '/research/assignments': typeof ResearchAssignmentsRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
   '/research/ideas': typeof ResearchIdeasRouteWithChildren
   '/research/projects': typeof ResearchProjectsRouteWithChildren
   '/research/reports': typeof ResearchReportsRoute
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
+  '/research/team': typeof ResearchTeamRoute
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
-  '/service-requests/$id': typeof ServiceRequestsIdRoute
+  '/service-requests/$id': typeof ServiceRequestsIdRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/create': typeof TicketsCreateRoute
@@ -567,16 +683,30 @@ export interface FileRoutesByFullPath {
   '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
   '/research/ideas/director': typeof ResearchIdeasDirectorRoute
+  '/research/ideas/team-leader': typeof ResearchIdeasTeamLeaderRoute
+  '/research/officer/assessments': typeof ResearchOfficerAssessmentsRoute
+  '/research/officer/assignments': typeof ResearchOfficerAssignmentsRoute
+  '/research/officer/dashboard': typeof ResearchOfficerDashboardRoute
+  '/research/officer/documents': typeof ResearchOfficerDocumentsRoute
+  '/research/officer/stages': typeof ResearchOfficerStagesRoute
+  '/research/officer/submissions': typeof ResearchOfficerSubmissionsRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
+  '/research/team-leader/dashboard': typeof ResearchTeamLeaderDashboardRoute
+  '/research/team-leader/reviews': typeof ResearchTeamLeaderReviewsRoute
+  '/service-requests/$id/workspace': typeof ServiceRequestsIdWorkspaceRoute
   '/users/$id/edit': typeof UsersIdEditRoute
   '/research/ideas/': typeof ResearchIdeasIndexRoute
+  '/service-requests/$id/': typeof ServiceRequestsIdIndexRoute
   '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
   '/research/ideas/$id/director': typeof ResearchIdeasIdDirectorRoute
   '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
+  '/research/ideas/$id/workspace': typeof ResearchIdeasIdWorkspaceRoute
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
   '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
   '/research/transfers/create/$projectId': typeof ResearchTransfersCreateProjectIdRoute
   '/research/ideas/$id/': typeof ResearchIdeasIdIndexRoute
+  '/research/ideas/$id/workflow/$progressId/review': typeof ResearchIdeasIdWorkflowProgressIdReviewRoute
+  '/research/ideas/$id/workflow/$progressId/work': typeof ResearchIdeasIdWorkflowProgressIdWorkRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -615,12 +745,14 @@ export interface FileRoutesByTo {
   '/registry/create': typeof RegistryCreateRoute
   '/requests/assigned': typeof RequestsAssignedRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/research/assigned': typeof ResearchAssignedRoute
+  '/research/assignments': typeof ResearchAssignmentsRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
   '/research/projects': typeof ResearchProjectsRouteWithChildren
   '/research/reports': typeof ResearchReportsRoute
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
+  '/research/team': typeof ResearchTeamRoute
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
-  '/service-requests/$id': typeof ServiceRequestsIdRoute
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/create': typeof TicketsCreateRoute
@@ -639,16 +771,30 @@ export interface FileRoutesByTo {
   '/requests/$id/edit': typeof RequestsIdEditRoute
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
   '/research/ideas/director': typeof ResearchIdeasDirectorRoute
+  '/research/ideas/team-leader': typeof ResearchIdeasTeamLeaderRoute
+  '/research/officer/assessments': typeof ResearchOfficerAssessmentsRoute
+  '/research/officer/assignments': typeof ResearchOfficerAssignmentsRoute
+  '/research/officer/dashboard': typeof ResearchOfficerDashboardRoute
+  '/research/officer/documents': typeof ResearchOfficerDocumentsRoute
+  '/research/officer/stages': typeof ResearchOfficerStagesRoute
+  '/research/officer/submissions': typeof ResearchOfficerSubmissionsRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
+  '/research/team-leader/dashboard': typeof ResearchTeamLeaderDashboardRoute
+  '/research/team-leader/reviews': typeof ResearchTeamLeaderReviewsRoute
+  '/service-requests/$id/workspace': typeof ServiceRequestsIdWorkspaceRoute
   '/users/$id/edit': typeof UsersIdEditRoute
   '/research/ideas': typeof ResearchIdeasIndexRoute
+  '/service-requests/$id': typeof ServiceRequestsIdIndexRoute
   '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
   '/research/ideas/$id/director': typeof ResearchIdeasIdDirectorRoute
   '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
+  '/research/ideas/$id/workspace': typeof ResearchIdeasIdWorkspaceRoute
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
   '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
   '/research/transfers/create/$projectId': typeof ResearchTransfersCreateProjectIdRoute
   '/research/ideas/$id': typeof ResearchIdeasIdIndexRoute
+  '/research/ideas/$id/workflow/$progressId/review': typeof ResearchIdeasIdWorkflowProgressIdReviewRoute
+  '/research/ideas/$id/workflow/$progressId/work': typeof ResearchIdeasIdWorkflowProgressIdWorkRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -696,13 +842,16 @@ export interface FileRoutesById {
   '/registry/create': typeof RegistryCreateRoute
   '/requests/assigned': typeof RequestsAssignedRoute
   '/requests/create': typeof RequestsCreateRoute
+  '/research/assigned': typeof ResearchAssignedRoute
+  '/research/assignments': typeof ResearchAssignmentsRoute
   '/research/evaluations': typeof ResearchEvaluationsRouteWithChildren
   '/research/ideas': typeof ResearchIdeasRouteWithChildren
   '/research/projects': typeof ResearchProjectsRouteWithChildren
   '/research/reports': typeof ResearchReportsRoute
   '/research/screenings': typeof ResearchScreeningsRouteWithChildren
+  '/research/team': typeof ResearchTeamRoute
   '/research/transfers': typeof ResearchTransfersRouteWithChildren
-  '/service-requests/$id': typeof ServiceRequestsIdRoute
+  '/service-requests/$id': typeof ServiceRequestsIdRouteWithChildren
   '/services/$serviceSlug': typeof ServicesServiceSlugRoute
   '/tickets/$id': typeof TicketsIdRoute
   '/tickets/create': typeof TicketsCreateRoute
@@ -722,16 +871,30 @@ export interface FileRoutesById {
   '/research/ideas/$id': typeof ResearchIdeasIdRouteWithChildren
   '/research/ideas/create': typeof ResearchIdeasCreateRoute
   '/research/ideas/director': typeof ResearchIdeasDirectorRoute
+  '/research/ideas/team-leader': typeof ResearchIdeasTeamLeaderRoute
+  '/research/officer/assessments': typeof ResearchOfficerAssessmentsRoute
+  '/research/officer/assignments': typeof ResearchOfficerAssignmentsRoute
+  '/research/officer/dashboard': typeof ResearchOfficerDashboardRoute
+  '/research/officer/documents': typeof ResearchOfficerDocumentsRoute
+  '/research/officer/stages': typeof ResearchOfficerStagesRoute
+  '/research/officer/submissions': typeof ResearchOfficerSubmissionsRoute
   '/research/projects/$id': typeof ResearchProjectsIdRoute
+  '/research/team-leader/dashboard': typeof ResearchTeamLeaderDashboardRoute
+  '/research/team-leader/reviews': typeof ResearchTeamLeaderReviewsRoute
+  '/service-requests/$id/workspace': typeof ServiceRequestsIdWorkspaceRoute
   '/users/$id/edit': typeof UsersIdEditRoute
   '/research/ideas/': typeof ResearchIdeasIndexRoute
+  '/service-requests/$id/': typeof ServiceRequestsIdIndexRoute
   '/research/evaluations/create/$projectId': typeof ResearchEvaluationsCreateProjectIdRoute
   '/research/ideas/$id/director': typeof ResearchIdeasIdDirectorRoute
   '/research/ideas/$id/edit': typeof ResearchIdeasIdEditRoute
+  '/research/ideas/$id/workspace': typeof ResearchIdeasIdWorkspaceRoute
   '/research/projects/create/$ideaId': typeof ResearchProjectsCreateIdeaIdRoute
   '/research/screenings/create/$ideaId': typeof ResearchScreeningsCreateIdeaIdRoute
   '/research/transfers/create/$projectId': typeof ResearchTransfersCreateProjectIdRoute
   '/research/ideas/$id/': typeof ResearchIdeasIdIndexRoute
+  '/research/ideas/$id/workflow/$progressId/review': typeof ResearchIdeasIdWorkflowProgressIdReviewRoute
+  '/research/ideas/$id/workflow/$progressId/work': typeof ResearchIdeasIdWorkflowProgressIdWorkRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -780,11 +943,14 @@ export interface FileRouteTypes {
     | '/registry/create'
     | '/requests/assigned'
     | '/requests/create'
+    | '/research/assigned'
+    | '/research/assignments'
     | '/research/evaluations'
     | '/research/ideas'
     | '/research/projects'
     | '/research/reports'
     | '/research/screenings'
+    | '/research/team'
     | '/research/transfers'
     | '/service-requests/$id'
     | '/services/$serviceSlug'
@@ -806,16 +972,30 @@ export interface FileRouteTypes {
     | '/research/ideas/$id'
     | '/research/ideas/create'
     | '/research/ideas/director'
+    | '/research/ideas/team-leader'
+    | '/research/officer/assessments'
+    | '/research/officer/assignments'
+    | '/research/officer/dashboard'
+    | '/research/officer/documents'
+    | '/research/officer/stages'
+    | '/research/officer/submissions'
     | '/research/projects/$id'
+    | '/research/team-leader/dashboard'
+    | '/research/team-leader/reviews'
+    | '/service-requests/$id/workspace'
     | '/users/$id/edit'
     | '/research/ideas/'
+    | '/service-requests/$id/'
     | '/research/evaluations/create/$projectId'
     | '/research/ideas/$id/director'
     | '/research/ideas/$id/edit'
+    | '/research/ideas/$id/workspace'
     | '/research/projects/create/$ideaId'
     | '/research/screenings/create/$ideaId'
     | '/research/transfers/create/$projectId'
     | '/research/ideas/$id/'
+    | '/research/ideas/$id/workflow/$progressId/review'
+    | '/research/ideas/$id/workflow/$progressId/work'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -854,12 +1034,14 @@ export interface FileRouteTypes {
     | '/registry/create'
     | '/requests/assigned'
     | '/requests/create'
+    | '/research/assigned'
+    | '/research/assignments'
     | '/research/evaluations'
     | '/research/projects'
     | '/research/reports'
     | '/research/screenings'
+    | '/research/team'
     | '/research/transfers'
-    | '/service-requests/$id'
     | '/services/$serviceSlug'
     | '/tickets/$id'
     | '/tickets/create'
@@ -878,16 +1060,30 @@ export interface FileRouteTypes {
     | '/requests/$id/edit'
     | '/research/ideas/create'
     | '/research/ideas/director'
+    | '/research/ideas/team-leader'
+    | '/research/officer/assessments'
+    | '/research/officer/assignments'
+    | '/research/officer/dashboard'
+    | '/research/officer/documents'
+    | '/research/officer/stages'
+    | '/research/officer/submissions'
     | '/research/projects/$id'
+    | '/research/team-leader/dashboard'
+    | '/research/team-leader/reviews'
+    | '/service-requests/$id/workspace'
     | '/users/$id/edit'
     | '/research/ideas'
+    | '/service-requests/$id'
     | '/research/evaluations/create/$projectId'
     | '/research/ideas/$id/director'
     | '/research/ideas/$id/edit'
+    | '/research/ideas/$id/workspace'
     | '/research/projects/create/$ideaId'
     | '/research/screenings/create/$ideaId'
     | '/research/transfers/create/$projectId'
     | '/research/ideas/$id'
+    | '/research/ideas/$id/workflow/$progressId/review'
+    | '/research/ideas/$id/workflow/$progressId/work'
   id:
     | '__root__'
     | '/'
@@ -934,11 +1130,14 @@ export interface FileRouteTypes {
     | '/registry/create'
     | '/requests/assigned'
     | '/requests/create'
+    | '/research/assigned'
+    | '/research/assignments'
     | '/research/evaluations'
     | '/research/ideas'
     | '/research/projects'
     | '/research/reports'
     | '/research/screenings'
+    | '/research/team'
     | '/research/transfers'
     | '/service-requests/$id'
     | '/services/$serviceSlug'
@@ -960,16 +1159,30 @@ export interface FileRouteTypes {
     | '/research/ideas/$id'
     | '/research/ideas/create'
     | '/research/ideas/director'
+    | '/research/ideas/team-leader'
+    | '/research/officer/assessments'
+    | '/research/officer/assignments'
+    | '/research/officer/dashboard'
+    | '/research/officer/documents'
+    | '/research/officer/stages'
+    | '/research/officer/submissions'
     | '/research/projects/$id'
+    | '/research/team-leader/dashboard'
+    | '/research/team-leader/reviews'
+    | '/service-requests/$id/workspace'
     | '/users/$id/edit'
     | '/research/ideas/'
+    | '/service-requests/$id/'
     | '/research/evaluations/create/$projectId'
     | '/research/ideas/$id/director'
     | '/research/ideas/$id/edit'
+    | '/research/ideas/$id/workspace'
     | '/research/projects/create/$ideaId'
     | '/research/screenings/create/$ideaId'
     | '/research/transfers/create/$projectId'
     | '/research/ideas/$id/'
+    | '/research/ideas/$id/workflow/$progressId/review'
+    | '/research/ideas/$id/workflow/$progressId/work'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1004,14 +1217,25 @@ export interface RootRouteChildren {
   VendorsRoute: typeof VendorsRouteWithChildren
   WorkflowsRoute: typeof WorkflowsRoute
   DocumentsIdRoute: typeof DocumentsIdRoute
+  ResearchAssignedRoute: typeof ResearchAssignedRoute
+  ResearchAssignmentsRoute: typeof ResearchAssignmentsRoute
   ResearchEvaluationsRoute: typeof ResearchEvaluationsRouteWithChildren
   ResearchIdeasRoute: typeof ResearchIdeasRouteWithChildren
   ResearchProjectsRoute: typeof ResearchProjectsRouteWithChildren
   ResearchReportsRoute: typeof ResearchReportsRoute
   ResearchScreeningsRoute: typeof ResearchScreeningsRouteWithChildren
+  ResearchTeamRoute: typeof ResearchTeamRoute
   ResearchTransfersRoute: typeof ResearchTransfersRouteWithChildren
   ServicesServiceSlugRoute: typeof ServicesServiceSlugRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
+  ResearchOfficerAssessmentsRoute: typeof ResearchOfficerAssessmentsRoute
+  ResearchOfficerAssignmentsRoute: typeof ResearchOfficerAssignmentsRoute
+  ResearchOfficerDashboardRoute: typeof ResearchOfficerDashboardRoute
+  ResearchOfficerDocumentsRoute: typeof ResearchOfficerDocumentsRoute
+  ResearchOfficerStagesRoute: typeof ResearchOfficerStagesRoute
+  ResearchOfficerSubmissionsRoute: typeof ResearchOfficerSubmissionsRoute
+  ResearchTeamLeaderDashboardRoute: typeof ResearchTeamLeaderDashboardRoute
+  ResearchTeamLeaderReviewsRoute: typeof ResearchTeamLeaderReviewsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1338,6 +1562,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResearchTransfersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/research/team': {
+      id: '/research/team'
+      path: '/research/team'
+      fullPath: '/research/team'
+      preLoaderRoute: typeof ResearchTeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/research/screenings': {
       id: '/research/screenings'
       path: '/research/screenings'
@@ -1371,6 +1602,20 @@ declare module '@tanstack/react-router' {
       path: '/research/evaluations'
       fullPath: '/research/evaluations'
       preLoaderRoute: typeof ResearchEvaluationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/assignments': {
+      id: '/research/assignments'
+      path: '/research/assignments'
+      fullPath: '/research/assignments'
+      preLoaderRoute: typeof ResearchAssignmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/assigned': {
+      id: '/research/assigned'
+      path: '/research/assigned'
+      fullPath: '/research/assigned'
+      preLoaderRoute: typeof ResearchAssignedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/requests/create': {
@@ -1471,6 +1716,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAuditorRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/service-requests/$id/': {
+      id: '/service-requests/$id/'
+      path: '/'
+      fullPath: '/service-requests/$id/'
+      preLoaderRoute: typeof ServiceRequestsIdIndexRouteImport
+      parentRoute: typeof ServiceRequestsIdRoute
+    }
     '/research/ideas/': {
       id: '/research/ideas/'
       path: '/'
@@ -1485,12 +1737,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersIdEditRouteImport
       parentRoute: typeof UsersRoute
     }
+    '/service-requests/$id/workspace': {
+      id: '/service-requests/$id/workspace'
+      path: '/workspace'
+      fullPath: '/service-requests/$id/workspace'
+      preLoaderRoute: typeof ServiceRequestsIdWorkspaceRouteImport
+      parentRoute: typeof ServiceRequestsIdRoute
+    }
+    '/research/team-leader/reviews': {
+      id: '/research/team-leader/reviews'
+      path: '/research/team-leader/reviews'
+      fullPath: '/research/team-leader/reviews'
+      preLoaderRoute: typeof ResearchTeamLeaderReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/team-leader/dashboard': {
+      id: '/research/team-leader/dashboard'
+      path: '/research/team-leader/dashboard'
+      fullPath: '/research/team-leader/dashboard'
+      preLoaderRoute: typeof ResearchTeamLeaderDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/research/projects/$id': {
       id: '/research/projects/$id'
       path: '/$id'
       fullPath: '/research/projects/$id'
       preLoaderRoute: typeof ResearchProjectsIdRouteImport
       parentRoute: typeof ResearchProjectsRoute
+    }
+    '/research/officer/submissions': {
+      id: '/research/officer/submissions'
+      path: '/research/officer/submissions'
+      fullPath: '/research/officer/submissions'
+      preLoaderRoute: typeof ResearchOfficerSubmissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/officer/stages': {
+      id: '/research/officer/stages'
+      path: '/research/officer/stages'
+      fullPath: '/research/officer/stages'
+      preLoaderRoute: typeof ResearchOfficerStagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/officer/documents': {
+      id: '/research/officer/documents'
+      path: '/research/officer/documents'
+      fullPath: '/research/officer/documents'
+      preLoaderRoute: typeof ResearchOfficerDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/officer/dashboard': {
+      id: '/research/officer/dashboard'
+      path: '/research/officer/dashboard'
+      fullPath: '/research/officer/dashboard'
+      preLoaderRoute: typeof ResearchOfficerDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/officer/assignments': {
+      id: '/research/officer/assignments'
+      path: '/research/officer/assignments'
+      fullPath: '/research/officer/assignments'
+      preLoaderRoute: typeof ResearchOfficerAssignmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/officer/assessments': {
+      id: '/research/officer/assessments'
+      path: '/research/officer/assessments'
+      fullPath: '/research/officer/assessments'
+      preLoaderRoute: typeof ResearchOfficerAssessmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/research/ideas/team-leader': {
+      id: '/research/ideas/team-leader'
+      path: '/team-leader'
+      fullPath: '/research/ideas/team-leader'
+      preLoaderRoute: typeof ResearchIdeasTeamLeaderRouteImport
+      parentRoute: typeof ResearchIdeasRoute
     }
     '/research/ideas/director': {
       id: '/research/ideas/director'
@@ -1555,6 +1877,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResearchProjectsCreateIdeaIdRouteImport
       parentRoute: typeof ResearchProjectsRoute
     }
+    '/research/ideas/$id/workspace': {
+      id: '/research/ideas/$id/workspace'
+      path: '/workspace'
+      fullPath: '/research/ideas/$id/workspace'
+      preLoaderRoute: typeof ResearchIdeasIdWorkspaceRouteImport
+      parentRoute: typeof ResearchIdeasIdRoute
+    }
     '/research/ideas/$id/edit': {
       id: '/research/ideas/$id/edit'
       path: '/edit'
@@ -1575,6 +1904,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/research/evaluations/create/$projectId'
       preLoaderRoute: typeof ResearchEvaluationsCreateProjectIdRouteImport
       parentRoute: typeof ResearchEvaluationsRoute
+    }
+    '/research/ideas/$id/workflow/$progressId/work': {
+      id: '/research/ideas/$id/workflow/$progressId/work'
+      path: '/workflow/$progressId/work'
+      fullPath: '/research/ideas/$id/workflow/$progressId/work'
+      preLoaderRoute: typeof ResearchIdeasIdWorkflowProgressIdWorkRouteImport
+      parentRoute: typeof ResearchIdeasIdRoute
+    }
+    '/research/ideas/$id/workflow/$progressId/review': {
+      id: '/research/ideas/$id/workflow/$progressId/review'
+      path: '/workflow/$progressId/review'
+      fullPath: '/research/ideas/$id/workflow/$progressId/review'
+      preLoaderRoute: typeof ResearchIdeasIdWorkflowProgressIdReviewRouteImport
+      parentRoute: typeof ResearchIdeasIdRoute
     }
   }
 }
@@ -1657,13 +2000,26 @@ const RequestsRouteWithChildren = RequestsRoute._addFileChildren(
   RequestsRouteChildren,
 )
 
+interface ServiceRequestsIdRouteChildren {
+  ServiceRequestsIdWorkspaceRoute: typeof ServiceRequestsIdWorkspaceRoute
+  ServiceRequestsIdIndexRoute: typeof ServiceRequestsIdIndexRoute
+}
+
+const ServiceRequestsIdRouteChildren: ServiceRequestsIdRouteChildren = {
+  ServiceRequestsIdWorkspaceRoute: ServiceRequestsIdWorkspaceRoute,
+  ServiceRequestsIdIndexRoute: ServiceRequestsIdIndexRoute,
+}
+
+const ServiceRequestsIdRouteWithChildren =
+  ServiceRequestsIdRoute._addFileChildren(ServiceRequestsIdRouteChildren)
+
 interface ServiceRequestsRouteChildren {
-  ServiceRequestsIdRoute: typeof ServiceRequestsIdRoute
+  ServiceRequestsIdRoute: typeof ServiceRequestsIdRouteWithChildren
   ServiceRequestsIndexRoute: typeof ServiceRequestsIndexRoute
 }
 
 const ServiceRequestsRouteChildren: ServiceRequestsRouteChildren = {
-  ServiceRequestsIdRoute: ServiceRequestsIdRoute,
+  ServiceRequestsIdRoute: ServiceRequestsIdRouteWithChildren,
   ServiceRequestsIndexRoute: ServiceRequestsIndexRoute,
 }
 
@@ -1728,13 +2084,21 @@ const ResearchEvaluationsRouteWithChildren =
 interface ResearchIdeasIdRouteChildren {
   ResearchIdeasIdDirectorRoute: typeof ResearchIdeasIdDirectorRoute
   ResearchIdeasIdEditRoute: typeof ResearchIdeasIdEditRoute
+  ResearchIdeasIdWorkspaceRoute: typeof ResearchIdeasIdWorkspaceRoute
   ResearchIdeasIdIndexRoute: typeof ResearchIdeasIdIndexRoute
+  ResearchIdeasIdWorkflowProgressIdReviewRoute: typeof ResearchIdeasIdWorkflowProgressIdReviewRoute
+  ResearchIdeasIdWorkflowProgressIdWorkRoute: typeof ResearchIdeasIdWorkflowProgressIdWorkRoute
 }
 
 const ResearchIdeasIdRouteChildren: ResearchIdeasIdRouteChildren = {
   ResearchIdeasIdDirectorRoute: ResearchIdeasIdDirectorRoute,
   ResearchIdeasIdEditRoute: ResearchIdeasIdEditRoute,
+  ResearchIdeasIdWorkspaceRoute: ResearchIdeasIdWorkspaceRoute,
   ResearchIdeasIdIndexRoute: ResearchIdeasIdIndexRoute,
+  ResearchIdeasIdWorkflowProgressIdReviewRoute:
+    ResearchIdeasIdWorkflowProgressIdReviewRoute,
+  ResearchIdeasIdWorkflowProgressIdWorkRoute:
+    ResearchIdeasIdWorkflowProgressIdWorkRoute,
 }
 
 const ResearchIdeasIdRouteWithChildren = ResearchIdeasIdRoute._addFileChildren(
@@ -1745,6 +2109,7 @@ interface ResearchIdeasRouteChildren {
   ResearchIdeasIdRoute: typeof ResearchIdeasIdRouteWithChildren
   ResearchIdeasCreateRoute: typeof ResearchIdeasCreateRoute
   ResearchIdeasDirectorRoute: typeof ResearchIdeasDirectorRoute
+  ResearchIdeasTeamLeaderRoute: typeof ResearchIdeasTeamLeaderRoute
   ResearchIdeasIndexRoute: typeof ResearchIdeasIndexRoute
 }
 
@@ -1752,6 +2117,7 @@ const ResearchIdeasRouteChildren: ResearchIdeasRouteChildren = {
   ResearchIdeasIdRoute: ResearchIdeasIdRouteWithChildren,
   ResearchIdeasCreateRoute: ResearchIdeasCreateRoute,
   ResearchIdeasDirectorRoute: ResearchIdeasDirectorRoute,
+  ResearchIdeasTeamLeaderRoute: ResearchIdeasTeamLeaderRoute,
   ResearchIdeasIndexRoute: ResearchIdeasIndexRoute,
 }
 
@@ -1826,14 +2192,25 @@ const rootRouteChildren: RootRouteChildren = {
   VendorsRoute: VendorsRouteWithChildren,
   WorkflowsRoute: WorkflowsRoute,
   DocumentsIdRoute: DocumentsIdRoute,
+  ResearchAssignedRoute: ResearchAssignedRoute,
+  ResearchAssignmentsRoute: ResearchAssignmentsRoute,
   ResearchEvaluationsRoute: ResearchEvaluationsRouteWithChildren,
   ResearchIdeasRoute: ResearchIdeasRouteWithChildren,
   ResearchProjectsRoute: ResearchProjectsRouteWithChildren,
   ResearchReportsRoute: ResearchReportsRoute,
   ResearchScreeningsRoute: ResearchScreeningsRouteWithChildren,
+  ResearchTeamRoute: ResearchTeamRoute,
   ResearchTransfersRoute: ResearchTransfersRouteWithChildren,
   ServicesServiceSlugRoute: ServicesServiceSlugRoute,
   ProfileIndexRoute: ProfileIndexRoute,
+  ResearchOfficerAssessmentsRoute: ResearchOfficerAssessmentsRoute,
+  ResearchOfficerAssignmentsRoute: ResearchOfficerAssignmentsRoute,
+  ResearchOfficerDashboardRoute: ResearchOfficerDashboardRoute,
+  ResearchOfficerDocumentsRoute: ResearchOfficerDocumentsRoute,
+  ResearchOfficerStagesRoute: ResearchOfficerStagesRoute,
+  ResearchOfficerSubmissionsRoute: ResearchOfficerSubmissionsRoute,
+  ResearchTeamLeaderDashboardRoute: ResearchTeamLeaderDashboardRoute,
+  ResearchTeamLeaderReviewsRoute: ResearchTeamLeaderReviewsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

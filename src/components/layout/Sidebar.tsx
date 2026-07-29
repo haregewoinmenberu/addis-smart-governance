@@ -71,7 +71,7 @@ const nav: NavItem[] = [
     sectionLabel: "Research Director",
     children: [
       {
-        to: "/research/ideas/director",
+        to: "/research/ideas/director?tab=assigned",
         label: "Research Ideas",
         icon: Lightbulb,
         permission: "view_research",
@@ -86,7 +86,7 @@ const nav: NavItem[] = [
         to: "/research/reports",
         label: "Research Reports",
         icon: FileText,
-        permission: "view_research",
+        permission: "view-research-reports",
       },
     ],
   },
@@ -124,6 +124,124 @@ const nav: NavItem[] = [
           },
         ],
       },
+      {
+        to: "/notifications",
+        label: "Notifications",
+        icon: Bell,
+        permission: "view_notifications",
+      },
+    ],
+  },
+
+  // ── Research Team Leader Portal (for research_team_leader role only) ──────
+  {
+    to: "/research/team-leader/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    sectionLabel: "Research Team Leader",
+    permission: "view_assigned_research",
+  },
+  
+  {
+    label: "Research Tasks",
+    icon: Microscope,
+    sectionLabel: "Research Team Leader",
+    children: [
+      {
+        to: "/research/ideas/team-leader",
+        label: "Research Ideas",
+        icon: Lightbulb,
+        permission: "view_assigned_research",
+      },
+      {
+        to: "/requests/assigned",
+        label: "Assigned Requests",
+        icon: Target,
+        permission: "view_assigned_research",
+      },
+    ],
+  },
+  
+  {
+    label: "User Management",
+    icon: Users,
+    sectionLabel: "Research Team Leader",
+    children: [
+      {
+        to: "/users",
+        label: "Users",
+        icon: Users,
+        permission: "view_users",
+      },
+      {
+        to: "/notifications",
+        label: "Notifications",
+        icon: Bell,
+        permission: "view_notifications",
+      },
+    ],
+  },
+
+  // ── Research Officer Portal (for research_officer role only) ──────
+  {
+    to: "/research/officer/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    sectionLabel: "Research Officer",
+    permission: "view_assigned_task",
+  },
+
+  {
+    label: "My Evaluation Tasks",
+    icon: Microscope,
+    sectionLabel: "Research Officer",
+    children: [
+      {
+        to: "/research/officer/assignments",
+        label: "Assigned Evaluations",
+        icon: ClipboardCheck,
+        permission: "view_assigned_task",
+      },
+      {
+        to: "/research/officer/stages",
+        label: "Evaluation Stages",
+        icon: GitBranch,
+        permission: "conduct_research",
+      },
+      {
+        to: "/research/officer/assessments",
+        label: "Technical Assessments",
+        icon: FileCheck,
+        permission: "technology_assessment",
+      },
+    ],
+  },
+
+  {
+    label: "Documents & Reports",
+    icon: FileText,
+    sectionLabel: "Research Officer",
+    children: [
+      {
+        to: "/research/officer/documents",
+        label: "My Uploads",
+        icon: Download,
+        permission: "upload_documents",
+      },
+      {
+        to: "/research/officer/submissions",
+        label: "My Submissions",
+        icon: ClipboardList,
+        permission: "submit_assessment",
+      },
+    ],
+  },
+
+  {
+    label: "Communications",
+    icon: Bell,
+    sectionLabel: "Research Officer",
+    children: [
       {
         to: "/notifications",
         label: "Notifications",
@@ -599,6 +717,8 @@ const CollapsibleSection = memo(
         
         // For Research Director, check children permissions directly
         const isResearchDirector = user?.roles?.some(role => role.name === "research_director");
+        const isResearchTeamLeader = user?.roles?.some(role => role.name === "research_team_leader");
+        
         if (isResearchDirector && item.sectionLabel === "Research Director") {
           const filtered = item.children.filter(child => {
             // Check permission
@@ -611,6 +731,21 @@ const CollapsibleSection = memo(
             return true; // No permission required
           });
           console.log('[CollapsibleSection]', item.label, 'Research Director visible children:', filtered.length, filtered.map(c => c.label));
+          return filtered;
+        }
+        
+        if (isResearchTeamLeader && item.sectionLabel === "Research Team Leader") {
+          const filtered = item.children.filter(child => {
+            // Check permission
+            if (child.permission) return hasPermission(child.permission);
+            if (child.permissions) {
+              return child.requireAll
+                ? hasAllPermissions(child.permissions)
+                : hasAnyPermission(child.permissions);
+            }
+            return true; // No permission required
+          });
+          console.log('[CollapsibleSection]', item.label, 'Research Team Leader visible children:', filtered.length, filtered.map(c => c.label));
           return filtered;
         }
         
@@ -697,6 +832,16 @@ export const Sidebar = memo(function Sidebar() {
     if (user.user_type === "INSTITUTIONAL" && user.permissions?.includes("view_institution_dashboard")) {
       return "/dashboard/institution?tab=my-requests";
     }
+
+    // For Research Officer, go to officer dashboard
+    if (user.roles?.some(role => role.name === "research_officer")) {
+      return "/research/officer/dashboard";
+    }
+
+    // For Research Team Leader, go to team leader dashboard
+    if (user.roles?.some(role => role.name === "research_team_leader")) {
+      return "/research/team-leader/dashboard";
+    }
     
     // For internal staff with executive dashboard access
     if (user.permissions?.includes("view_executive_dashboard")) {
@@ -722,6 +867,9 @@ export const Sidebar = memo(function Sidebar() {
 
       // For Research Director role, show items from Research Director section
       const isResearchDirector = user?.roles?.some(role => role.name === "research_director");
+      const isResearchTeamLeader = user?.roles?.some(role => role.name === "research_team_leader");
+      const isResearchOfficer = user?.roles?.some(role => role.name === "research_officer");
+      
       if (isResearchDirector) {
         // Show items with Research Director section label
         if (item.sectionLabel === "Research Director") {
@@ -737,6 +885,38 @@ export const Sidebar = memo(function Sidebar() {
         // Hide everything else for research directors
         return false;
       }
+      
+      if (isResearchTeamLeader) {
+        // Show items with Research Team Leader section label
+        if (item.sectionLabel === "Research Team Leader") {
+          // Check permission if specified
+          if (item.permission) return hasPermission(item.permission);
+          if (item.permissions) {
+            return item.requireAll
+              ? hasAllPermissions(item.permissions)
+              : hasAnyPermission(item.permissions);
+          }
+          return true;
+        }
+        // Hide everything else for research team leaders
+        return false;
+      }
+
+      if (isResearchOfficer) {
+        // Show items with Research Officer section label
+        if (item.sectionLabel === "Research Officer") {
+          // Check permission if specified
+          if (item.permission) return hasPermission(item.permission);
+          if (item.permissions) {
+            return item.requireAll
+              ? hasAllPermissions(item.permissions)
+              : hasAnyPermission(item.permissions);
+          }
+          return true;
+        }
+        // Hide everything else for research officers
+        return false;
+      }
 
       // For admin only items
       if (item.adminOnly) return isITDBAdmin();
@@ -749,8 +929,12 @@ export const Sidebar = memo(function Sidebar() {
         }
       }
       
-      // Hide Research Director section from other users
-      if (item.sectionLabel === "Research Director") {
+      // Hide Research Director, Research Team Leader, and Research Officer sections from other users
+      if (
+        item.sectionLabel === "Research Director" ||
+        item.sectionLabel === "Research Team Leader" ||
+        item.sectionLabel === "Research Officer"
+      ) {
         return false;
       }
       
@@ -777,29 +961,49 @@ export const Sidebar = memo(function Sidebar() {
       
       // For Research Director, ONLY show Research Director section items
       const isResearchDirector = user?.roles?.some(role => role.name === "research_director");
+      const isResearchTeamLeader = user?.roles?.some(role => role.name === "research_team_leader");
+      const isResearchOfficer = user?.roles?.some(role => role.name === "research_officer");
+      
       console.log('[Sidebar] Is research director:', isResearchDirector);
+      console.log('[Sidebar] Is research team leader:', isResearchTeamLeader);
+      console.log('[Sidebar] Is research officer:', isResearchOfficer);
       
       if (isResearchDirector) {
         const researchDirectorItems = nav.filter(item => item.sectionLabel === "Research Director");
-        console.log('[Sidebar] Research Director items found:', researchDirectorItems.length);
-        console.log('[Sidebar] Items:', researchDirectorItems.map(i => i.label));
-        
-        // Apply hasAccess filter
         const accessibleItems = researchDirectorItems.filter(hasAccess);
-        console.log('[Sidebar] Accessible items after hasAccess filter:', accessibleItems.length);
-        console.log('[Sidebar] Accessible:', accessibleItems.map(i => i.label));
-        
+        return accessibleItems;
+      }
+      
+      if (isResearchTeamLeader) {
+        const researchTeamLeaderItems = nav.filter(item => item.sectionLabel === "Research Team Leader");
+        const accessibleItems = researchTeamLeaderItems.filter(hasAccess);
+        return accessibleItems;
+      }
+
+      if (isResearchOfficer) {
+        const researchOfficerItems = nav.filter(item => item.sectionLabel === "Research Officer");
+        const accessibleItems = researchOfficerItems.filter(hasAccess);
+        console.log('[Sidebar] Research Officer items found:', accessibleItems.map(i => i.label));
         return accessibleItems;
       }
       
       // For low-level workers (less than 10 permissions), hide Dashboards section
       const hasLowLevelPermissions = (user?.permissions?.length || 0) < 10;
       if (hasLowLevelPermissions) {
-        return nav.filter(item => item.sectionLabel !== "Dashboards" && item.sectionLabel !== "Research Director").filter(hasAccess);
+        return nav.filter(item => 
+          item.sectionLabel !== "Dashboards" && 
+          item.sectionLabel !== "Research Director" && 
+          item.sectionLabel !== "Research Team Leader" &&
+          item.sectionLabel !== "Research Officer"
+        ).filter(hasAccess);
       }
       
-      // For all other users, show all accessible items (exclude Research Director section)
-      return nav.filter(item => item.sectionLabel !== "Research Director").filter(hasAccess);
+      // For all other users, show all accessible items (exclude role-specific sections)
+      return nav.filter(item =>
+        item.sectionLabel !== "Research Director" &&
+        item.sectionLabel !== "Research Team Leader" &&
+        item.sectionLabel !== "Research Officer"
+      ).filter(hasAccess);
     },
     [hasAccess, user]
   );

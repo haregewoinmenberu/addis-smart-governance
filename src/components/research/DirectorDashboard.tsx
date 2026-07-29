@@ -31,9 +31,9 @@ export default function DirectorDashboard() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Research Director Dashboard</h1>
+        <h1 className="text-3xl font-bold">Evaluation Director Dashboard</h1>
         <Badge variant="outline" className="text-lg px-4 py-2">
-          {stats?.user_role}
+          Evaluation Director
         </Badge>
       </div>
 
@@ -41,21 +41,8 @@ export default function DirectorDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">Technology Requests</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_projects || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats?.active_projects || 0} active
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Ideas</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.total_ideas || 0}</div>
@@ -67,12 +54,25 @@ export default function DirectorDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Evaluations</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.active_projects || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats?.total_projects || 0} in pipeline
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Evaluated Budget</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${(stats?.total_budget / 1000000 || 0).toFixed(1)}M
+              ETB {(stats?.total_budget / 1000000 || 0).toFixed(1)}M
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Avg: {Number(stats?.avg_progress ?? 0).toFixed(1)}% complete
@@ -82,13 +82,13 @@ export default function DirectorDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Tech Transfers</CardTitle>
+            <CardTitle className="text-sm font-medium">Technology Clearances</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.technology_transfers || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats?.completed_evaluations || 0} evaluations done
+              {stats?.completed_evaluations || 0} approved clearances
             </p>
           </CardContent>
         </Card>

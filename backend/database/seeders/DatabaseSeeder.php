@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
 
             systemSettingsSeeder::class,
             NotificationSeeder::class,
+            ResearchWorkflowStagesSeeder::class,
  
         ]);
     }

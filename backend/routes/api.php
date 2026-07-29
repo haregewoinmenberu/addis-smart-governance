@@ -74,9 +74,51 @@ Route::prefix('institutions')->group(function () {
 });
 
 // Service Form Submission - Public endpoint (can be called without auth)
-Route::prefix('service-forms')->group(function () {
+// Add CORS middleware explicitly for public routes
+Route::prefix('service-forms')->middleware([\Illuminate\Http\Middleware\HandleCors::class])->group(function () {
+    // Handle OPTIONS preflight requests explicitly
+    Route::options('/submit', function () {
+        return response('', 200);
+    });
+    
     Route::post('/submit', [ServiceFormSubmissionController::class, 'submitForm']);
     Route::get('/status/{referenceNumber}', [ServiceFormSubmissionController::class, 'getSubmissionStatus']);
+ 
+    
+    // Diagnostic endpoint to check system status
+    Route::get('/diagnostic', function () {
+        try {
+            $checks = [
+                'php_version' => PHP_VERSION,
+                'laravel_version' => app()->version(),
+                'storage_writable' => is_writable(storage_path()),
+                'db_connected' => false,
+                'env_loaded' => config('app.key') !== null,
+                'app_key_set' => !empty(config('app.key')),
+            ];
+            
+            // Test database connection
+            try {
+                \DB::connection()->getPdo();
+                $checks['db_connected'] = true;
+                $checks['db_name'] = \DB::connection()->getDatabaseName();
+            } catch (\Exception $e) {
+                $checks['db_error'] = $e->getMessage();
+            }
+            
+            return response()->json([
+                'success' => true,
+                'checks' => $checks,
+                'timestamp' => now(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null,
+            ], 500);
+        }
+    });
 });
 
 Route::get('health', function () {
@@ -421,6 +463,24 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         Route::delete('/{id}', [ServiceFormSubmissionController::class, 'destroy']);
     });
 
+    // Service Request Workflow Management
+    Route::prefix('service-request-workflow')->group(function () {
+        Route::get('/team-leaders', [\App\Http\Controllers\Api\ServiceRequestWorkflowController::class, 'getAvailableTeamLeaders']);
+        Route::get('/officers', [\App\Http\Controllers\Api\ServiceRequestWorkflowController::class, 'getAvailableOfficers']);
+        
+        Route::prefix('requests/{serviceRequest}')->group(function () {
+            Route::get('/assignments', [\App\Http\Controllers\Api\ServiceRequestWorkflowController::class, 'getAssignments']);
+            Route::post('/assign-team-leader', [\App\Http\Controllers\Api\ServiceRequestWorkflowController::class, 'assignTeamLeader']);
+            Route::post('/assign-officer', [\App\Http\Controllers\Api\ServiceRequestWorkflowController::class, 'assignOfficer']);
+        });
+
+        Route::prefix('assignments/{assignment}')->group(function () {
+            Route::post('/accept', [\App\Http\Controllers\Api\ServiceRequestWorkflowController::class, 'acceptAssignment']);
+            Route::post('/start', [\App\Http\Controllers\Api\ServiceRequestWorkflowController::class, 'startAssignment']);
+            Route::post('/complete', [\App\Http\Controllers\Api\ServiceRequestWorkflowController::class, 'completeAssignment']);
+        });
+    });
+
     // Institutions - Protected routes
     Route::prefix('institutions')->group(function () {
         // My institution (institutional users)
@@ -756,6 +816,86 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
         Route::delete('/{researchIdea}/attachments/{attachmentId}', [ResearchIdeaController::class, 'deleteAttachment'])
             ->middleware('permission:view_research');
     });
+
+    // Research Workflow Management
+    Route::prefix('research-workflow')->group(function () {
+        Route::get('/stages', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'getStages'])
+            ->middleware('permission:view_research');
+        Route::get('/team-leaders', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'getAvailableTeamLeaders'])
+            ->middleware('permission:assign_team_leader');
+        Route::get('/officers', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'getAvailableOfficers'])
+            ->middleware('permission:assign_officer');
+        
+        Route::prefix('ideas/{researchIdea}')->group(function () {
+            Route::get('/progress', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'getProgress'])
+                ->middleware('permission:view_research');
+            Route::post('/initialize', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'initializeWorkflow'])
+                ->middleware('permission:manage_research_workflow');
+            Route::post('/assign-team-leader', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'assignTeamLeader'])
+                ->middleware('permission:assign_team_leader');
+            Route::post('/assign-officer', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'assignOfficer'])
+                ->middleware('permission:assign_officer');
+            Route::get('/assignments', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'getAssignments'])
+                ->middleware('permission:view_research');
+            Route::get('/clearance-certificate', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'getClearanceCertificate'])
+                ->middleware('permission:view_research');
+        });
+
+        Route::prefix('progress/{progress}')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'getProgressItem'])
+                ->middleware('permission:view_research');
+            Route::post('/start', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'startStage'])
+                ->middleware('permission:update_research_progress');
+            Route::post('/submit', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'submitStage'])
+                ->middleware('permission:submit_research_stage');
+            Route::post('/review', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'reviewStage'])
+                ->middleware('permission:review_research_stage');
+        });
+
+        Route::prefix('assignments/{assignment}')->group(function () {
+            Route::post('/accept', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'acceptAssignment'])
+                ->middleware('permission:view_assigned_research');
+            Route::post('/start', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'startAssignment'])
+                ->middleware('permission:view_assigned_research');
+            Route::post('/complete', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'completeAssignment'])
+                ->middleware('permission:view_assigned_research');
+        });
+    });
+
+    // Research Forward to Smart City
+    Route::prefix('research-forward')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\ResearchForwardController::class, 'index'])
+            ->middleware('permission:view_research');
+        Route::post('/ideas/{researchIdea}', [\App\Http\Controllers\Api\ResearchForwardController::class, 'forwardToSmartCity'])
+            ->middleware('permission:forward_to_smart_city');
+        Route::get('/{forwardRequest}', [\App\Http\Controllers\Api\ResearchForwardController::class, 'show'])
+            ->middleware('permission:view_research');
+        Route::post('/{forwardRequest}/acknowledge', [\App\Http\Controllers\Api\ResearchForwardController::class, 'acknowledge'])
+            ->middleware('permission:view_research');
+        Route::put('/{forwardRequest}/status', [\App\Http\Controllers\Api\ResearchForwardController::class, 'updateStatus'])
+            ->middleware('permission:view_research');
+        Route::get('/{forwardRequest}/attachments/{attachmentIndex}', [\App\Http\Controllers\Api\ResearchForwardController::class, 'downloadAttachment'])
+            ->middleware('permission:view_research');
+    });
+
+    // Research Team Leader
+    Route::prefix('research-team-leader')->middleware('permission:view_assigned_research')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Api\ResearchTeamLeaderController::class, 'dashboard']);
+        Route::get('/assigned-research', [\App\Http\Controllers\Api\ResearchTeamLeaderController::class, 'assignedResearch']);
+        Route::get('/officer-assignments', [\App\Http\Controllers\Api\ResearchTeamLeaderController::class, 'officerAssignments']);
+        Route::get('/team-members', [\App\Http\Controllers\Api\ResearchTeamLeaderController::class, 'teamMembers']);
+        Route::get('/pending-reviews', [\App\Http\Controllers\Api\ResearchTeamLeaderController::class, 'pendingReviews']);
+    });
+
+    // Research Officer
+    Route::prefix('research-officer')->middleware('permission:view_assigned_task')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Api\ResearchOfficerController::class, 'dashboard']);
+        Route::get('/my-assignments', [\App\Http\Controllers\Api\ResearchOfficerController::class, 'myAssignments']);
+        Route::get('/ideas/{ideaId}/stages', [\App\Http\Controllers\Api\ResearchOfficerController::class, 'myStages']);
+        Route::post('/assignments/{assignment}/accept', [\App\Http\Controllers\Api\ResearchOfficerController::class, 'acceptAssignment']);
+        Route::get('/my-submissions', [\App\Http\Controllers\Api\ResearchOfficerController::class, 'mySubmissions']);
+    });
+
 
     // Research Screening - Review Committee
     Route::prefix('research-screenings')->group(function () {

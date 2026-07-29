@@ -10,11 +10,39 @@ import { usersApi } from "@/lib/api/users";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
+
 export const Route = createFileRoute("/users/create")({
   head: () => ({ meta: [{ title: "Create User — STRP" }] }),
   component: () => (
     <RequireAuth>
-      <PermissionGuard permission="create_users">
+      <PermissionGuard
+        permission="create_users"
+        fallback={
+          <AppShell>
+            <div className="container mx-auto p-6 max-w-2xl">
+              <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+                <CardHeader>
+                  <CardTitle className="text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                    <AlertCircle className="h-6 w-6" />
+                    Access Denied
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-amber-700 dark:text-amber-200">
+                    You do not have permission to create users. Please contact your system administrator if you believe you should have access.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={() => window.history.back()}>
+                    <ArrowLeft className="h-4 w-4 mr-1.5" />
+                    Go Back
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </AppShell>
+        }
+      >
         <Page />
       </PermissionGuard>
     </RequireAuth>

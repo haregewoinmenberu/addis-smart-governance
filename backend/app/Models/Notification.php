@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Notification extends Model
 {
+    protected $attributes = [
+        'channel' => 'in_app',
+        'priority' => 'normal',
+    ];
+
     protected $fillable = [
         'user_id',
         'created_by_id',

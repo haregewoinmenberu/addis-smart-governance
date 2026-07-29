@@ -14,7 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // CORS must be first to handle preflight requests
+        // CORS must be first to handle preflight requests AND errors
+        $middleware->priority([
+            \Illuminate\Http\Middleware\HandleCors::class,
+            \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+            \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        ]);
+        
         $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
         
         // Force JSON response for API routes
@@ -48,12 +54,12 @@ return Application::configure(basePath: dirname(__DIR__))
             return $request->expectsJson();
         });
         
-        // Custom JSON rendering for API errors
+        // Custom JSON rendering for API errors with CORS headers
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
                 
-                return response()->json([
+                $response = response()->json([
                     'success' => false,
                     'message' => $e->getMessage() ?: 'An error occurred',
                     'error' => config('app.debug') ? [
@@ -63,6 +69,12 @@ return Application::configure(basePath: dirname(__DIR__))
                         'trace' => $e->getTrace(),
                     ] : null,
                 ], $statusCode);
+                
+                // Add CORS headers to error responses
+                return $response->header('Access-Control-Allow-Origin', $request->header('Origin') ?: '*')
+                    ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                    ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+                    ->header('Access-Control-Allow-Credentials', 'true');
             }
         });
     })->create();
