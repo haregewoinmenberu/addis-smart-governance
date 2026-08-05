@@ -10,16 +10,25 @@ export const Route = createFileRoute('/service-requests/$id/')({
       <ServiceRequestDetailRedirect />
     </RequireAuth>
   ),
+  validateSearch: (search: Record<string, unknown>) => ({
+    returnTo: (search.returnTo as string) || undefined,
+  }),
 });
 
 // Redirect to workspace by default
 function ServiceRequestDetailRedirect() {
   const { id } = Route.useParams();
+  const { returnTo } = Route.useSearch();
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    navigate({ to: '/service-requests/$id/workspace', params: { id }, replace: true });
-  }, [id, navigate]);
+    navigate({
+      to: '/service-requests/$id/workspace',
+      params: { id },
+      search: returnTo ? { returnTo } : undefined,
+      replace: true,
+    });
+  }, [id, returnTo, navigate]);
 
   return (
     <AppShell>

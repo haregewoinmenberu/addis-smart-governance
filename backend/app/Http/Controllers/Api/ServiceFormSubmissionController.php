@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use App\Models\ServiceFormSubmission;
+use App\Models\ResearchIdea;
+use App\Enums\ResearchCategory;
 use App\Http\Controllers\Controller;
 
 class ServiceFormSubmissionController extends Controller
@@ -87,15 +89,37 @@ class ServiceFormSubmissionController extends Controller
                 $formData['attachments'] = $fileAttachments;
             }
 
+            // Research and Transformation requests are Technology Requests —
+            // route them into ResearchIdea instead of ServiceFormSubmission,
+            // keeping the same request/response contract this endpoint
+            // already has so the public form needs no frontend changes.
+            if (in_array($serviceType, ['research', 'transformation'])) {
+                $idea = $this->createTechnologyRequestFromServiceForm($serviceType, $formData, $fileAttachments, $request->user());
+
+                \Log::info('Service form routed to Technology Requests', [
+                    'service_type' => $serviceType,
+                    'reference_number' => $idea->reference_number,
+                    'research_idea_id' => $idea->id,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => ucfirst($serviceType) . ' form submitted successfully',
+                    'data' => [
+                        'reference_number' => $idea->reference_number,
+                        'status' => $idea->status->value,
+                        'submission_timestamp' => $idea->submitted_at,
+                    ]
+                ], 201);
+            }
+
             // Generate reference number with service type prefix
             $referencePrefix = match($serviceType) {
-                'research' => 'RSH',
-                'transformation' => 'TTR',
                 'licensing' => 'LIC',
                 'lms' => 'LMS',
                 default => 'SRV'
             };
-            
+
             $referenceNumber = $referencePrefix . '-' . date('Ymd') . '-' . strtoupper(Str::random(6));
 
             // Create submission record
@@ -161,23 +185,39 @@ class ServiceFormSubmissionController extends Controller
     {
         $submission = ServiceFormSubmission::where('reference_number', $referenceNumber)->first();
 
-        if (!$submission) {
+        if ($submission) {
             return response()->json([
-                'success' => false,
-                'message' => 'Submission not found',
-            ], 404);
+                'success' => true,
+                'data' => [
+                    'reference_number' => $submission->reference_number,
+                    'service_type' => $submission->service_type,
+                    'status' => $submission->status,
+                    'submitted_at' => $submission->submission_timestamp,
+                    'updated_at' => $submission->updated_at,
+                ]
+            ]);
+        }
+
+        // Research/transformation requests now live in ResearchIdea — fall
+        // back there so the same public tracking page keeps working.
+        $idea = ResearchIdea::where('reference_number', $referenceNumber)->first();
+        if ($idea) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'reference_number' => $idea->reference_number,
+                    'service_type' => $idea->intake_form_data['source'] ?? 'research',
+                    'status' => $idea->status->value,
+                    'submitted_at' => $idea->submitted_at,
+                    'updated_at' => $idea->updated_at,
+                ]
+            ]);
         }
 
         return response()->json([
-            'success' => true,
-            'data' => [
-                'reference_number' => $submission->reference_number,
-                'service_type' => $submission->service_type,
-                'status' => $submission->status,
-                'submitted_at' => $submission->submission_timestamp,
-                'updated_at' => $submission->updated_at,
-            ]
-        ]);
+            'success' => false,
+            'message' => 'Submission not found',
+        ], 404);
     }
 
     /**
@@ -261,12 +301,17 @@ class ServiceFormSubmissionController extends Controller
         }
 
         $submission = ServiceFormSubmission::findOrFail($id);
-        $submission->update([
-            'reviewed_by' => $request->assigned_to,
-            'review_notes' => $request->notes
-                ? ($submission->review_notes ? $submission->review_notes . "\n" . $request->notes : $request->notes)
-                : $submission->review_notes,
-        ]);
+
+        \App\Models\ServiceRequestAssignment::updateOrCreate(
+            ['service_request_id' => $submission->id, 'assignment_type' => 'officer'],
+            [
+                'assigned_by' => $request->user()?->id,
+                'assigned_to' => $request->assigned_to,
+                'assignment_notes' => $request->notes,
+                'assigned_date' => now(),
+                'status' => 'pending',
+            ]
+        );
 
         \Log::info('Submission assigned', [
             'submission_id' => $id,
@@ -277,7 +322,7 @@ class ServiceFormSubmissionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Submission assigned successfully',
-            'data'    => $submission->fresh()->load(['submittedBy', 'reviewedBy']),
+            'data'    => $submission->fresh()->load(['submittedBy', 'reviewedBy', 'assignments.assignedTo']),
         ]);
     }
 
@@ -301,23 +346,24 @@ class ServiceFormSubmissionController extends Controller
 
         $user = $request->user();
         $submission = ServiceFormSubmission::findOrFail($id);
-        
+
         // Check if user has permission to review:
         // 1. Users with management access can review any submission
-        // 2. Users assigned to the submission can review it
+        // 2. Users actually assigned to the submission can review it
         $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
-        $isAssignedToSubmission = $submission->reviewed_by == $user->id;
-        
+        $isAssignedToSubmission = $submission->assignments()->where('assigned_to', $user->id)->exists();
+
         if (!$hasManagementAccess && !$isAssignedToSubmission) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have permission to review this submission',
             ], 403);
         }
-        
+
         $submission->update([
             'status'       => $request->status,
             'review_notes' => $request->review_notes,
+            'reviewed_by'  => $user->id,
             'reviewed_at'  => now(),
         ]);
 
@@ -483,14 +529,29 @@ class ServiceFormSubmissionController extends Controller
                 $formData['attachments'] = $fileAttachments;
             }
 
+            if (in_array($serviceType, ['research', 'transformation'])) {
+                $idea = $this->createTechnologyRequestFromServiceForm($serviceType, $formData, $fileAttachments, $user);
+
+                \Log::info('Authenticated service form routed to Technology Requests', [
+                    'service_type' => $serviceType,
+                    'reference_number' => $idea->reference_number,
+                    'research_idea_id' => $idea->id,
+                    'submitted_by' => $user->id,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => ucfirst($serviceType) . ' request submitted successfully',
+                    'data' => $idea,
+                ], 201);
+            }
+
             // Generate reference number
             $referencePrefix = match($serviceType) {
-                'research' => 'RSH',
-                'transformation' => 'TTR',
                 'licensing' => 'LIC',
                 default => 'SRV'
             };
-            
+
             $referenceNumber = $referencePrefix . '-' . date('Ymd') . '-' . strtoupper(Str::random(6));
 
             // Create submission record
@@ -888,6 +949,88 @@ class ServiceFormSubmissionController extends Controller
                 ]),
             ]),
         ]);
+    }
+
+    /**
+     * Build a ResearchIdea (Technology Request) from a research/transformation
+     * service-form submission, mapping each type's free-form fields onto
+     * ResearchIdea's fixed columns; anything without a matching column goes
+     * into intake_form_data so nothing submitted is lost.
+     */
+    private function createTechnologyRequestFromServiceForm(string $serviceType, array $formData, array $fileAttachments, ?\App\Models\User $user): ResearchIdea
+    {
+        if ($serviceType === 'research') {
+            $categoryMap = [
+                'System Request' => ResearchCategory::SYSTEM_REQUEST,
+                'Infrastructure Request' => ResearchCategory::INFRASTRUCTURE_REQUEST,
+                'Security Related Request' => ResearchCategory::SECURITY_RELATED,
+            ];
+            $category = $categoryMap[$formData['category'] ?? ''] ?? ResearchCategory::TECHNOLOGY_EVALUATION;
+
+            $attributes = [
+                'title' => $formData['researchTitle'] ?? 'Untitled Technology Request',
+                'summary' => $formData['abstract'] ?? '',
+                'problem_statement' => $formData['abstract'] ?? '',
+                'objectives' => $formData['abstract'] ?? '',
+                'expected_outcome' => 'Not specified at submission time.',
+                'research_category' => $category->value,
+                'requester_organization' => $formData['institution'] ?? null,
+                'requester_name' => $formData['fullName'] ?? null,
+                'requester_email' => $formData['email'] ?? null,
+                'requester_phone' => $formData['phone'] ?? null,
+                'intake_form_data' => [
+                    'source' => 'service_form_research',
+                    'estimatedBudget' => $formData['estimatedBudget'] ?? null,
+                    'durationMonths' => $formData['durationMonths'] ?? null,
+                ],
+            ];
+            $attachmentKey = 'supportingLetter';
+        } else {
+            $attributes = [
+                'title' => 'Organizational Transformation: ' . ($formData['agencyName'] ?? 'Untitled'),
+                'summary' => $formData['scope'] ?? '',
+                'problem_statement' => $formData['scope'] ?? '',
+                'objectives' => $formData['scope'] ?? '',
+                'expected_outcome' => 'Not specified at submission time.',
+                'research_category' => ResearchCategory::SYSTEM_CUSTOMIZATION->value,
+                'requester_organization' => $formData['agencyName'] ?? null,
+                'requester_name' => $formData['contactPerson'] ?? null,
+                'requester_email' => $formData['email'] ?? null,
+                'requester_phone' => $formData['phone'] ?? null,
+                'intake_form_data' => [
+                    'source' => 'service_form_transformation',
+                    'position' => $formData['position'] ?? null,
+                    'agencyType' => $formData['agencyType'] ?? null,
+                    'currentMaturity' => $formData['currentMaturity'] ?? null,
+                    'expectedStart' => $formData['expectedStart'] ?? null,
+                ],
+            ];
+            $attachmentKey = 'officialLetter';
+        }
+
+        $attributes['submitted_by'] = $user?->id;
+        $attributes['is_external_request'] = $user === null;
+        $attributes['status'] = 'submitted';
+        $attributes['assignment_status'] = 'pending_smart_city';
+        $attributes['submitted_at'] = now();
+
+        $idea = ResearchIdea::create($attributes);
+        $idea->update([
+            'reference_number' => 'TCR-' . str_pad($idea->id, 5, '0', STR_PAD_LEFT) . '-' . date('Y'),
+        ]);
+
+        if (isset($fileAttachments[$attachmentKey])) {
+            $file = $fileAttachments[$attachmentKey];
+            $idea->attachments()->create([
+                'file_name' => $file['original_name'],
+                'file_path' => $file['path'],
+                'file_type' => $file['mime_type'],
+                'file_size' => $file['size'],
+                'uploaded_by' => $user?->id,
+            ]);
+        }
+
+        return $idea;
     }
 
     /**

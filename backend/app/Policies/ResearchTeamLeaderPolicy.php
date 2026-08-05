@@ -74,12 +74,9 @@ class ResearchTeamLeaderPolicy
             return false;
         }
 
-        // Check if stage requires team leader approval
-        if ($progress->stage->approver_role !== 'research_team_leader') {
-            return false;
-        }
-
         // Check if stage is pending review
+        // No per-stage approver designation exists in the schema, so any stage
+        // pending review on this team leader's assigned research is reviewable.
         return $progress->status === 'pending_review';
     }
 
@@ -89,19 +86,11 @@ class ResearchTeamLeaderPolicy
     public function workOnStage(User $user, ResearchWorkflowProgress $progress): bool
     {
         // Check if research is assigned to this team leader
-        $isAssigned = ResearchAssignment::where('research_idea_id', $progress->research_idea_id)
+        return ResearchAssignment::where('research_idea_id', $progress->research_idea_id)
             ->where('assigned_to', $user->id)
             ->where('assignment_type', 'team_leader')
             ->whereIn('status', ['accepted', 'in_progress'])
             ->exists();
-
-        if (!$isAssigned) {
-            return false;
-        }
-
-        // Team leader can work on stages that require director approval
-        // (these are team leader-owned stages)
-        return $progress->stage->approver_role === 'research_director';
     }
 
     /**

@@ -8,6 +8,8 @@ class ResearchIdeaAttachment extends Model
 {
     protected $fillable = [
         'research_idea_id',
+        'workflow_progress_id',
+        'field_name',
         'file_name',
         'file_path',
         'file_type',
@@ -18,6 +20,11 @@ class ResearchIdeaAttachment extends Model
     public function researchIdea()
     {
         return $this->belongsTo(ResearchIdea::class);
+    }
+
+    public function workflowProgress()
+    {
+        return $this->belongsTo(ResearchWorkflowProgress::class, 'workflow_progress_id');
     }
 
     public function uploader()

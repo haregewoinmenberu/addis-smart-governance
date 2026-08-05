@@ -187,8 +187,8 @@ function CreateResearchIdeaPage() {
       queryClient.invalidateQueries({ queryKey: ["research-ideas"] });
 
       toast({
-        title: "✅ Research Idea Submitted",
-        description: "Your idea has been created and assigned to the Smart City Command Center.",
+        title: "✅ Technology Request Submitted",
+        description: "Your request has been created and assigned to the Smart City Command Center.",
       });
 
       // Check if user is Research Director and redirect accordingly
@@ -202,7 +202,7 @@ function CreateResearchIdeaPage() {
     onError: (error: Error) => {
       toast({
         title: "Submission Failed",
-        description: error.message || "Failed to submit research idea",
+        description: error.message || "Failed to submit technology request",
         variant: "destructive",
       });
     },
@@ -232,8 +232,8 @@ function CreateResearchIdeaPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Submit Research Idea"
-        subtitle="Propose a new research or innovation project for Addis Ababa"
+        title="Submit Technology Request"
+        subtitle="Propose a new technology request for evaluation in Addis Ababa"
         actions={
           <Button
             id="back-to-ideas-btn"
@@ -410,7 +410,7 @@ function CreateResearchIdeaPage() {
                     <FormControl>
                       <Textarea
                         id="idea-summary"
-                        placeholder="Give a concise overview of your research idea — what it is, why it matters, and what you aim to achieve..."
+                        placeholder="Give a concise overview of your technology request — what it is, why it matters, and what you aim to achieve..."
                         rows={4}
                         {...field}
                         className="resize-none"
@@ -544,7 +544,7 @@ function CreateResearchIdeaPage() {
               <FileUploadBox
                 id="research-attachments"
                 label="Upload Documents"
-                description="PDF, Word, or image files — supporting materials for your research idea"
+                description="PDF, Word, or image files — supporting materials for your technology request"
                 files={attachments}
                 onChange={setAttachments}
               />
@@ -567,7 +567,7 @@ function CreateResearchIdeaPage() {
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Submit Research Idea
+                  Submit Technology Request
                 </>
               )}
             </Button>

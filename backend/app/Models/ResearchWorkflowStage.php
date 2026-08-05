@@ -16,10 +16,13 @@ class ResearchWorkflowStage extends Model
         'order',
         'is_required',
         'requires_approval',
-        'approver_role',
-        'applies_to',  // 'all', 'system', or 'infrastructure'
+        'assigned_director_id',
+        'assigned_team__leaders_id',
+        'research_type',  // 'all', 'system_request', 'infrastructure_request', or 'security_related_request'
+        'fillable_by_role', // null = no restriction, or 'research_director'|'research_team_leader'|'research_officer'
         'form_fields',
         'is_active',
+        'assigned_officers_id',
     ];
 
     protected $casts = [
@@ -27,6 +30,8 @@ class ResearchWorkflowStage extends Model
         'requires_approval' => 'boolean',
         'is_active' => 'boolean',
         'form_fields' => 'array',
+        'assigned_team__leaders_id' => 'array',
+        'assigned_officers_id' => 'array',
     ];
 
 

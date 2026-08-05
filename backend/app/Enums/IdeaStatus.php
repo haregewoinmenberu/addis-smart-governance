@@ -9,6 +9,7 @@ enum IdeaStatus: string
     case UNDER_REVIEW = 'under_review';
     case APPROVED = 'approved';
     case REJECTED = 'rejected';
+    case NEEDS_IMPROVEMENT = 'needs_improvement';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum IdeaStatus: string
             self::UNDER_REVIEW => 'Under Review',
             self::APPROVED => 'Approved',
             self::REJECTED => 'Rejected',
+            self::NEEDS_IMPROVEMENT => 'Needs Improvement',
         };
     }
 
@@ -29,6 +31,7 @@ enum IdeaStatus: string
             self::UNDER_REVIEW => 'yellow',
             self::APPROVED => 'green',
             self::REJECTED => 'red',
+            self::NEEDS_IMPROVEMENT => 'orange',
         };
     }
 

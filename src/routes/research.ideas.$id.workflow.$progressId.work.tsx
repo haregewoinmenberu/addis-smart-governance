@@ -7,10 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { researchWorkflowAPI } from "@/lib/research-workflow-api";
-import { ArrowLeft, Save, Send } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { researchWorkflowAPI, ValidationApiError } from "@/lib/research-workflow-api";
+import { ArrowLeft, Send, Loader2, FileCheck, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { ResearchWorkflowProgress } from "@/types/research-workflow";
+import { ResearchWorkflowProgress, UploadedStageFile } from "@/types/research-workflow";
 
 export const Route = createFileRoute("/research/ideas/$id/workflow/$progressId/work")({
   component: () => (
@@ -28,6 +32,7 @@ function WorkOnStagePage() {
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [notes, setNotes] = useState("");
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProgress();
@@ -62,13 +67,18 @@ function WorkOnStagePage() {
     }));
   };
 
-  const handleSubmit = async () => { 
+  const isFieldEmpty = (field: any, value: any): boolean => {
+    if (field.type === "checkbox") return value !== true;
+    if (value === null || value === undefined) return true;
+    if (typeof value === "object") return !value.path;
+    return String(value).trim() === "";
+  };
+
+  const handleSubmit = async () => {
     // Validate required fields
     if (progress?.stage?.form_fields) {
       const requiredFields = progress.stage.form_fields.filter((f: any) => f && f.required);
-      const missingFields = requiredFields.filter(
-        (f: any) => !formData[f.name] || formData[f.name].toString().trim() === "",
-      );
+      const missingFields = requiredFields.filter((f: any) => isFieldEmpty(f, formData[f.name]));
 
       if (missingFields.length > 0) {
         const fieldNames = missingFields
@@ -96,9 +106,30 @@ function WorkOnStagePage() {
       }
     } catch (error: any) {
       console.error("Error submitting stage:", error);
-      toast.error(error.message || "Failed to submit stage");
+      if (error instanceof ValidationApiError) {
+        const firstFieldErrors = Object.values(error.errors).flat();
+        toast.error(firstFieldErrors[0] || error.message);
+      } else {
+        toast.error(error.message || "Failed to submit stage");
+      }
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleFileUpload = async (field: any, file: File | null) => {
+    if (!file) return;
+    setUploadingField(field.name);
+    try {
+      const response = await researchWorkflowAPI.uploadStageFile(progressId, field.name, file);
+      if (response.success) {
+        handleFieldChange(field.name, response.data as UploadedStageFile);
+        toast.success(`${field.label || field.name} uploaded`);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to upload file");
+    } finally {
+      setUploadingField(null);
     }
   };
 
@@ -113,18 +144,21 @@ function WorkOnStagePage() {
   const renderFormField = (field: any) => {
     if (!field || !field.name) return null;
 
-    const value = formData[field.name] || "";
+    const value = formData[field.name] ?? "";
     const label = field.label || field.name.replace(/_/g, " ");
     const placeholder = field.hint || `Enter ${label.toLowerCase()}`;
+    const fieldLabel = (
+      <Label htmlFor={field.name}>
+        {label}
+        {field.required && <span className="text-red-500 ml-1">*</span>}
+      </Label>
+    );
 
     switch (field.type) {
       case "textarea":
         return (
           <div key={field.name} className="space-y-2">
-            <Label htmlFor={field.name}>
-              {label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </Label>
+            {fieldLabel}
             <Textarea
               id={field.name}
               value={value}
@@ -137,14 +171,113 @@ function WorkOnStagePage() {
           </div>
         );
 
-      case "text":
-      default:
+      case "number":
         return (
           <div key={field.name} className="space-y-2">
-            <Label htmlFor={field.name}>
+            {fieldLabel}
+            <Input
+              id={field.name}
+              type="number"
+              value={value}
+              onChange={(e) => handleFieldChange(field.name, e.target.value)}
+              placeholder={placeholder}
+              className="w-full"
+            />
+            {field.hint && <p className="text-xs text-muted-foreground">{field.hint}</p>}
+          </div>
+        );
+
+      case "select":
+        return (
+          <div key={field.name} className="space-y-2">
+            {fieldLabel}
+            <Select
+              value={value || undefined}
+              onValueChange={(v) => handleFieldChange(field.name, v)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={placeholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {(field.options || []).map((opt: { value: string; label: string }) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {field.hint && <p className="text-xs text-muted-foreground">{field.hint}</p>}
+          </div>
+        );
+
+      case "checkbox":
+        return (
+          <div key={field.name} className="flex items-center gap-2">
+            <Checkbox
+              id={field.name}
+              checked={value === true}
+              onCheckedChange={(checked) => handleFieldChange(field.name, checked === true)}
+            />
+            <Label htmlFor={field.name} className="mt-0!">
               {label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </Label>
+          </div>
+        );
+
+      case "file": {
+        const uploaded: UploadedStageFile | undefined =
+          value && typeof value === "object" ? value : undefined;
+        const isUploading = uploadingField === field.name;
+        return (
+          <div key={field.name} className="space-y-2">
+            {fieldLabel}
+            <div className="flex items-center gap-3">
+              <Input
+                id={field.name}
+                type="file"
+                disabled={isUploading}
+                onChange={(e) => handleFileUpload(field, e.target.files?.[0] ?? null)}
+                className="w-full"
+              />
+              {isUploading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />}
+            </div>
+            {uploaded && !isUploading && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <FileCheck className="h-3.5 w-3.5 text-green-600" /> {uploaded.original_name}
+              </p>
+            )}
+            {!uploaded && !isUploading && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Upload className="h-3.5 w-3.5" /> No file uploaded yet
+              </p>
+            )}
+            {field.hint && <p className="text-xs text-muted-foreground">{field.hint}</p>}
+          </div>
+        );
+      }
+
+      case "text":
+        return (
+          <div key={field.name} className="space-y-2">
+            {fieldLabel}
+            <Input
+              id={field.name}
+              type="text"
+              value={value}
+              onChange={(e) => handleFieldChange(field.name, e.target.value)}
+              placeholder={placeholder}
+              className="w-full"
+            />
+            {field.hint && <p className="text-xs text-muted-foreground">{field.hint}</p>}
+          </div>
+        );
+
+      default:
+        console.warn(`Unknown form field type "${field.type}" for field "${field.name}" — rendering as text input.`);
+        return (
+          <div key={field.name} className="space-y-2">
+            {fieldLabel}
             <Input
               id={field.name}
               type="text"

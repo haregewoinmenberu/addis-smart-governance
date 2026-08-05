@@ -157,15 +157,18 @@ class SmartCityServiceRequestController extends Controller
 
         $submission = ServiceFormSubmission::findOrFail($id);
 
-        // Update form_data with assignment information
-        $formData = $submission->form_data;
-        $formData['assigned_to'] = $validated['assigned_to'];
-        $formData['assigned_by'] = $user->id;
-        $formData['assigned_at'] = now()->toDateTimeString();
-        $formData['assignment_notes'] = $validated['notes'] ?? null;
+        \App\Models\ServiceRequestAssignment::updateOrCreate(
+            ['service_request_id' => $submission->id, 'assignment_type' => 'officer'],
+            [
+                'assigned_by' => $user->id,
+                'assigned_to' => $validated['assigned_to'],
+                'assignment_notes' => $validated['notes'] ?? null,
+                'assigned_date' => now(),
+                'status' => 'pending',
+            ]
+        );
 
         $submission->update([
-            'form_data' => $formData,
             'status' => 'under_review',
             'review_notes' => $validated['notes'] ?? $submission->review_notes,
         ]);
@@ -180,7 +183,7 @@ class SmartCityServiceRequestController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Service request assigned to ' . $assignedUser->name . ' successfully',
-            'data' => $submission->fresh(['institution', 'submittedBy', 'reviewedBy'])
+            'data' => $submission->fresh(['institution', 'submittedBy', 'reviewedBy', 'assignments.assignedTo'])
         ]);
     }
 
@@ -384,14 +387,18 @@ class SmartCityServiceRequestController extends Controller
         $submissions = ServiceFormSubmission::whereIn('id', $validated['submission_ids'])->get();
 
         foreach ($submissions as $submission) {
-            $formData = $submission->form_data;
-            $formData['assigned_to'] = $validated['assigned_to'];
-            $formData['assigned_by'] = $user->id;
-            $formData['assigned_at'] = now()->toDateTimeString();
-            $formData['assignment_notes'] = $validated['notes'] ?? null;
+            \App\Models\ServiceRequestAssignment::updateOrCreate(
+                ['service_request_id' => $submission->id, 'assignment_type' => 'officer'],
+                [
+                    'assigned_by' => $user->id,
+                    'assigned_to' => $validated['assigned_to'],
+                    'assignment_notes' => $validated['notes'] ?? null,
+                    'assigned_date' => now(),
+                    'status' => 'pending',
+                ]
+            );
 
             $submission->update([
-                'form_data' => $formData,
                 'status' => 'under_review',
                 'review_notes' => $validated['notes'] ?? $submission->review_notes,
             ]);

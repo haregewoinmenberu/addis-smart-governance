@@ -41,14 +41,11 @@ class ResearchTeamLeaderController extends Controller
             })
             ->count();
 
-        // Pending Reviews (officer submissions pending team leader review)
+        // Pending Reviews (submissions pending review on research assigned to this team leader)
         $pendingReviews = ResearchWorkflowProgress::whereHas('researchIdea', function ($query) use ($assignedResearch) {
                 $query->whereIn('id', $assignedResearch);
             })
             ->where('status', 'pending_review')
-            ->whereHas('stage', function ($query) {
-                $query->where('approver_role', 'research_team_leader');
-            })
             ->count();
 
         // Completed Research
@@ -260,14 +257,11 @@ class ResearchTeamLeaderController extends Controller
             ->whereIn('status', ['accepted', 'in_progress'])
             ->pluck('research_idea_id');
 
-        // Get workflow stages pending review by team leader
+        // Get workflow stages pending review on research assigned to this team leader
         $pendingReviews = ResearchWorkflowProgress::whereHas('researchIdea', function ($query) use ($assignedResearch) {
                 $query->whereIn('id', $assignedResearch);
             })
             ->where('status', 'pending_review')
-            ->whereHas('stage', function ($query) {
-                $query->where('approver_role', 'research_team_leader');
-            })
             ->with([
                 'researchIdea:id,title,status,priority',
                 'stage:id,name,description,requires_approval',

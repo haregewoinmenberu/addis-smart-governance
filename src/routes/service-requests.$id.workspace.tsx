@@ -20,10 +20,14 @@ export const Route = createFileRoute('/service-requests/$id/workspace')({
       <ServiceRequestWorkspacePage />
     </RequireAuth>
   ),
+  validateSearch: (search: Record<string, unknown>) => ({
+    returnTo: (search.returnTo as string) || '/service-requests',
+  }),
 });
 
 function ServiceRequestWorkspacePage() {
   const { id } = Route.useParams();
+  const { returnTo } = Route.useSearch();
   const navigate = useNavigate();
 
   // Fetch service request data
@@ -61,7 +65,7 @@ function ServiceRequestWorkspacePage() {
       <AppShell>
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <p className="text-lg font-medium">Service request not found</p>
-          <Button className="mt-4" onClick={() => navigate({ to: '/service-requests' })}>
+          <Button className="mt-4" onClick={() => navigate({ to: returnTo })}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Service Requests
           </Button>
@@ -79,7 +83,7 @@ function ServiceRequestWorkspacePage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate({ to: '/service-requests' })}
+            onClick={() => navigate({ to: returnTo })}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to List

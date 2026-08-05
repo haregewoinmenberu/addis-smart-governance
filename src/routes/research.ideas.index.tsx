@@ -143,7 +143,7 @@ function ResearchIdeasPage() {
       return json;
     },
     onSuccess: () => {
-      toast({ title: "✅ Assigned", description: "Research idea assigned successfully." });
+      toast({ title: "✅ Assigned", description: "Technology request assigned successfully." });
       queryClient.invalidateQueries({ queryKey: ["research-ideas"] });
       setAssignTarget(null);
       setAssignUserId("");
@@ -185,7 +185,7 @@ function ResearchIdeasPage() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Deleted", description: "Research idea deleted." });
+      toast({ title: "Deleted", description: "Technology request deleted." });
       queryClient.invalidateQueries({ queryKey: ["research-ideas"] });
       setDeleteTarget(null);
     },
@@ -198,8 +198,8 @@ function ResearchIdeasPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Research Ideas"
-        subtitle="Submit and manage research proposals and innovation ideas"
+        title="Technology Requests"
+        subtitle="Submit and manage technology requests for evaluation"
         actions={
           <Button
             id="submit-new-idea-btn"
@@ -265,11 +265,11 @@ function ResearchIdeasPage() {
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <FlaskConical className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-base font-semibold mb-1">No research ideas yet</h3>
+                <h3 className="text-base font-semibold mb-1">No technology requests yet</h3>
                 <p className="text-sm text-muted-foreground mb-5">
                   {search || filterStatus
                     ? "Try adjusting your filters."
-                    : "Submit your first research idea to get started."}
+                    : "Submit your first technology request to get started."}
                 </p>
                 <Button id="empty-create-btn" onClick={() => navigate({ to: "/research/ideas/create" })}>
                   <Plus className="h-4 w-4 mr-2" /> Submit Your First Idea
@@ -286,13 +286,18 @@ function ResearchIdeasPage() {
                         <CardTitle className="text-sm font-semibold truncate">{idea.title}</CardTitle>
                         <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
                           <User className="h-3 w-3" />
-                          {idea.submitter?.name ?? "Unknown"}
+                          {idea.is_external_request
+                            ? `${idea.requester_name ?? "External requester"}${idea.requester_organization ? ` · ${idea.requester_organization}` : ""}`
+                            : idea.submitter?.name ?? "Unknown"}
                           <span className="text-border">·</span>
                           <Calendar className="h-3 w-3" />
                           {new Date(idea.created_at).toLocaleDateString("en-US",{ month:"short", day:"numeric", year:"numeric" })}
                         </p>
                       </div>
                       <div className="flex gap-1.5 shrink-0 flex-wrap justify-end">
+                        {idea.is_external_request && (
+                          <Badge variant="outline" className="text-xs text-purple-700 border-purple-200">External</Badge>
+                        )}
                         <Badge className={`text-xs ${STATUS_STYLES[idea.status] ?? ""}`}>
                           {idea.status?.replace(/_/g," ")}
                         </Badge>
@@ -527,7 +532,7 @@ function ResearchIdeasPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Research Idea</AlertDialogTitle>
+            <AlertDialogTitle>Delete Technology Request</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete{" "}
               <span className="font-semibold text-foreground">"{deleteTarget?.title}"</span>?{" "}

@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, FileStack, ClipboardCheck, Database, ShieldCheck,
+  LayoutDashboard, ClipboardCheck, Database, ShieldCheck,
   Lock, Building2, GitBranch, BarChart3, MessageSquare, Bell,
   Users, Settings, ChevronLeft, Sparkles, Layers, LogOut,
   Lightbulb, FlaskConical, TrendingUp, Award, BookOpen, Target,
@@ -64,7 +64,7 @@ const nav: NavItem[] = [
     sectionLabel: "Research Director",
     permission: "view_research",
   },
-  
+
   {
     label: "Research",
     icon: Microscope,
@@ -72,12 +72,6 @@ const nav: NavItem[] = [
     children: [
       {
         to: "/research/ideas/director?tab=assigned",
-        label: "Research Ideas",
-        icon: Lightbulb,
-        permission: "view_research",
-      },
-      {
-        to: "/requests/assigned",
         label: "Assigned Requests",
         icon: Target,
         permission: "view_research",
@@ -90,7 +84,7 @@ const nav: NavItem[] = [
       },
     ],
   },
-  
+
   {
     label: "Analytics & Reports",
     icon: BarChart3,
@@ -104,7 +98,7 @@ const nav: NavItem[] = [
       },
     ],
   },
-  
+
   {
     label: "Management",
     icon: Settings,
@@ -130,6 +124,12 @@ const nav: NavItem[] = [
         icon: Bell,
         permission: "view_notifications",
       },
+      {
+        to: "/research/workflow-stages",
+        label: "Workflow Stages",
+        icon: GitBranch,
+        permission: "manage_workflow_stages",
+      },
     ],
   },
 
@@ -141,7 +141,7 @@ const nav: NavItem[] = [
     sectionLabel: "Research Team Leader",
     permission: "view_assigned_research",
   },
-  
+
   {
     label: "Research Tasks",
     icon: Microscope,
@@ -149,19 +149,13 @@ const nav: NavItem[] = [
     children: [
       {
         to: "/research/ideas/team-leader",
-        label: "Research Ideas",
+        label: "Technology Requests",
         icon: Lightbulb,
         permission: "view_assigned_research",
-      },
-      {
-        to: "/requests/assigned",
-        label: "Assigned Requests",
-        icon: Target,
-        permission: "view_assigned_research",
-      },
+      }
     ],
   },
-  
+
   {
     label: "User Management",
     icon: Users,
@@ -276,7 +270,7 @@ const nav: NavItem[] = [
         permission: "view_reports_dashboard",
       },
     ],
-  }, 
+  },
 
   // ── Training Management ────────────────────────────────────
   {
@@ -310,23 +304,17 @@ const nav: NavItem[] = [
     icon: Microscope,
     children: [
       {
-        to: "/service-requests",
-        label: "Service Requests",
-        icon: FileStack,
-        permission: "receive_requests",
-      },
-      {
-        to: "/research/ideas",
-        label: "Research Ideas",
+        to: "/technology-requests",
+        label: "Technology Requests",
         icon: Lightbulb,
-        permission: "view_research",
+        permissions: ["view_research", "receive_requests"],
       },
       {
         to: "/research/screenings",
         label: "Idea Screening",
         icon: Target,
         permission: "conduct_research",
-      }, 
+      },
       {
         to: "/research/transfers",
         label: "Technology Transfer",
@@ -338,6 +326,12 @@ const nav: NavItem[] = [
         label: "Research Reports",
         icon: FileText,
         permission: "view_research",
+      },
+      {
+        to: "/research/workflow-stages",
+        label: "Workflow Stages",
+        icon: GitBranch,
+        permission: "manage_workflow_stages",
       },
     ],
   },
@@ -585,15 +579,15 @@ const nav: NavItem[] = [
         permission: "manage_roles",
       },
     ],
-  }, 
+  },
 
   // ── Communications ─────────────────────────────────────────
-   {
-      to: "/notifications",
-      label: "Notifications",
-      icon: Bell,
-      permission: "view_notifications",
-    },
+  {
+    to: "/notifications",
+    label: "Notifications",
+    icon: Bell,
+    permission: "view_notifications",
+  },
 
   // ── Administration ─────────────────────────────────────────
   {

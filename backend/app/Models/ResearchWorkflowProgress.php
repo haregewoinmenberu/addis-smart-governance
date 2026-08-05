@@ -61,12 +61,22 @@ class ResearchWorkflowProgress extends Model
      */
     public function canBeWorkedOnBy(User $user): bool
     {
-        // itdb_administrator can always work on any stage
+        // itdb_administrator is a system-level override, always allowed
         if ($user->hasRole('itdb_administrator')) {
             return true;
         }
 
+        // If this stage is restricted to a specific role, only that role may
+        // fill it — this narrows every check below, including the director's
+        // usual oversight bypass, so a stage restricted to e.g. 'research_officer'
+        // genuinely cannot be filled by the director instead.
+        $requiredRole = $this->stage->fillable_by_role;
+        if ($requiredRole && !$user->hasRole($requiredRole)) {
+            return false;
+        }
+
         // Research Director has oversight authority — can work on any stage
+        // not restricted away from them above
         if ($user->hasRole('research_director')) {
             return true;
         }
@@ -89,7 +99,6 @@ class ResearchWorkflowProgress extends Model
         }
 
         // Research Team Leader can work on their assigned research stages
-        // (stages where approver_role is 'research_director' — meaning team leader does the work)
         if ($user->hasRole('research_team_leader')) {
             $isAssignedToResearch = ResearchAssignment::where('research_idea_id', $this->research_idea_id)
                 ->where('assigned_to', $user->id)

@@ -208,9 +208,9 @@ export const navigationSections: NavigationSection[] = [
     items: [
       {
         to: "/research/ideas",
-        label: "Research Ideas",
+        label: "Technology Requests",
         permission: "view_research",
-        description: "View research proposals",
+        description: "View technology requests",
       },
       {
         to: "/research/assign",

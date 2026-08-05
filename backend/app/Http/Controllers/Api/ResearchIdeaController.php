@@ -51,6 +51,14 @@ class ResearchIdeaController extends Controller
             $query->where('research_category', $request->category);
         }
 
+        if ($request->assigned_to_director) {
+            $query->where('assigned_to_director', $request->assigned_to_director);
+        }
+
+        if ($request->submitted_by) {
+            $query->where('submitted_by', $request->submitted_by);
+        }
+
         if ($request->search) {
             $query->where(function($q) use ($request) {
                 $q->where('title', 'like', "%{$request->search}%")
@@ -350,7 +358,7 @@ class ResearchIdeaController extends Controller
             $canAccess = true;
         }
 
-        // Assigned user can download
+        // Assigned director can download
         if ($researchIdea->assigned_to_director && $researchIdea->assigned_to_director === $user->id) {
             $canAccess = true;
         }
@@ -358,6 +366,18 @@ class ResearchIdeaController extends Controller
         // Managers can download based on hierarchy
         $hasManagementAccess = \App\Services\RoleHierarchyService::hasUserManagementCapability($user);
         if ($hasManagementAccess) {
+            $canAccess = true;
+        }
+
+        // Team leaders/officers actually assigned to this research can access
+        // its documents too — including files they themselves uploaded while
+        // working a stage, which otherwise nobody without hierarchy management
+        // capability (e.g. a research_officer) could ever download.
+        $isAssignedToResearch = $researchIdea->assignments()
+            ->where('assigned_to', $user->id)
+            ->whereIn('status', ['pending', 'accepted', 'in_progress'])
+            ->exists();
+        if ($isAssignedToResearch) {
             $canAccess = true;
         }
 

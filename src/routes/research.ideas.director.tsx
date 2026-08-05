@@ -20,6 +20,7 @@ export const Route = createFileRoute("/research/ideas/director")({
       <ResearchDirectorIdeasPage />
     </RequireAuth>
   ),
+
   validateSearch: (search: Record<string, unknown>) => {
     return {
       tab: (search.tab as string) || "assigned",
@@ -49,39 +50,45 @@ function ResearchDirectorIdeasPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
-  // Fetch all research ideas
-  const { data: ideasData, isLoading } = useQuery({
-    queryKey: ["research-ideas", searchQuery, filterStatus],
+  // Fetch ideas assigned to this director and ideas created by this director
+  // as separate, server-filtered queries so results aren't lost past page 1
+  // of a combined "all ideas" fetch.
+  const { data: assignedData, isLoading: isLoadingAssigned } = useQuery({
+    queryKey: ["research-ideas", "director-assigned", user?.id, searchQuery, filterStatus],
+    enabled: !!user?.id,
     queryFn: async () => {
       const params = new URLSearchParams();
+      params.append("assigned_to_director", String(user!.id));
       if (searchQuery) params.append("search", searchQuery);
       if (filterStatus) params.append("status", filterStatus);
       const res = await fetch(`/api/research-ideas?${params}`, {
         headers: { Authorization: `Bearer ${getAuthToken()}` },
       });
-      if (!res.ok) throw new Error("Failed to fetch ideas");
+      if (!res.ok) throw new Error("Failed to fetch assigned ideas");
       return res.json();
     },
   });
 
-  const allIdeas: any[] = ideasData?.data ?? [];
+  const { data: createdData, isLoading: isLoadingCreated } = useQuery({
+    queryKey: ["research-ideas", "director-created", user?.id, searchQuery, filterStatus],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append("submitted_by", String(user!.id));
+      if (searchQuery) params.append("search", searchQuery);
+      if (filterStatus) params.append("status", filterStatus);
+      const res = await fetch(`/api/research-ideas?${params}`, {
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch created ideas");
+      return res.json();
+    },
+  });
 
-  // Filter ideas based on tabs
-  const assignedIdeas = allIdeas.filter((idea) => {
-    // Handle both object and number for assigned_to_director
-    const assignedId = typeof idea.assigned_to_director === 'object' 
-      ? idea.assigned_to_director?.id 
-      : idea.assigned_to_director;
-    return assignedId === user?.id;
-  });
-  
-  const myIdeas = allIdeas.filter((idea) => {
-    // Handle both object and number for submitted_by
-    const submitterId = typeof idea.submitter === 'object'
-      ? idea.submitter?.id
-      : idea.submitted_by;
-    return submitterId === user?.id;
-  });
+  const assignedIdeas: any[] = assignedData?.data ?? [];
+  const myIdeas: any[] = createdData?.data ?? [];
+  const assignedTotal: number = assignedData?.total ?? assignedIdeas.length;
+  const myTotal: number = createdData?.total ?? myIdeas.length;
 
   const handleTabChange = (value: string) => {
     navigate({
@@ -118,9 +125,7 @@ function ResearchDirectorIdeasPage() {
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-          {idea.summary}
-        </p>
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{idea.summary}</p>
 
         <div className="flex justify-between items-center gap-2">
           <div className="flex gap-1.5 flex-wrap">
@@ -153,18 +158,8 @@ function ResearchDirectorIdeasPage() {
   return (
     <AppShell>
       <PageHeader
-        title="My Research Ideas"
-        subtitle="Manage ideas assigned to you and ideas you've created"
-        actions={
-          <Button
-            size="sm"
-            className="gap-1.5 bg-gradient-primary text-primary-foreground shadow-glow"
-            onClick={() => navigate({ to: "/research/ideas/create" })}
-          >
-            <Plus className="h-4 w-4" />
-            Submit New Idea
-          </Button>
-        }
+        title="Assigned Requests"
+        subtitle="Manage ideas assigned to you and  you've created"
       />
 
       {/* Filters */}
@@ -197,93 +192,34 @@ function ResearchDirectorIdeasPage() {
       </Card>
 
       {/* Tabs */}
-      <Tabs value={search.tab} onValueChange={handleTabChange}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="assigned" className="gap-2">
-            <Target className="h-4 w-4" />
-            Assigned Ideas
-            {assignedIdeas.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {assignedIdeas.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="created" className="gap-2">
-            <Lightbulb className="h-4 w-4" />
-            My Ideas
-            {myIdeas.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {myIdeas.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="assigned" className="space-y-3">
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-4">
-                    <div className="h-4 bg-muted rounded w-2/3 mb-2" />
-                    <div className="h-3 bg-muted rounded w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : assignedIdeas.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Target className="h-7 w-7 text-primary" />
-                </div>
-                <h3 className="text-base font-semibold mb-1">
-                  No assigned ideas yet
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Ideas assigned to you from Smart City Command Center will appear here
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            assignedIdeas.map(renderIdeaCard)
-          )}
-        </TabsContent>
-
-        <TabsContent value="created" className="space-y-3">
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-4">
-                    <div className="h-4 bg-muted rounded w-2/3 mb-2" />
-                    <div className="h-3 bg-muted rounded w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : myIdeas.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Lightbulb className="h-7 w-7 text-primary" />
-                </div>
-                <h3 className="text-base font-semibold mb-1">
-                  No ideas created yet
-                </h3>
-                <p className="text-sm text-muted-foreground mb-5">
-                  Submit your first research idea to get started
-                </p>
-                <Button onClick={() => navigate({ to: "/research/ideas/create" })}>
-                  <Plus className="h-4 w-4 mr-2" /> Submit Your First Idea
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            myIdeas.map(renderIdeaCard)
-          )}
-        </TabsContent>
-      </Tabs>
+      <div className="space-y-3">
+        {isLoadingAssigned ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-4">
+                  <div className="h-4 bg-muted rounded w-2/3 mb-2" />
+                  <div className="h-3 bg-muted rounded w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : assignedIdeas.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Target className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="text-base font-semibold mb-1">No assigned ideas yet</h3>
+              <p className="text-sm text-muted-foreground">
+                Ideas assigned to you from Smart City Command Center will appear here
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          assignedIdeas.map(renderIdeaCard)
+        )}
+      </div>
     </AppShell>
   );
 }

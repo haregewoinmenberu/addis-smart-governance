@@ -11,24 +11,25 @@ use App\Models\ResearchAssignment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ResearchWorkflowController extends Controller
 {
     /**
      * Get workflow stages configuration
-     * Optionally filtered by request type: ?type=system|infrastructure|all
+     * Optionally filtered by request type: ?type=system_request|infrastructure_request|security_related_request
      */
     public function getStages(Request $request)
     {
-        $requestType = $request->query('type'); // 'system', 'infrastructure', or null (all)
+        $requestType = $request->query('type'); // one of ResearchWorkflowStage research_type values, or null (all)
 
         $query = ResearchWorkflowStage::active()->ordered();
 
         // If a request type is given, return stages for that type + universal stages
-        if ($requestType && in_array($requestType, ['system', 'infrastructure'])) {
+        if ($requestType && in_array($requestType, ['system_request', 'infrastructure_request', 'security_related_request'])) {
             $query->where(function ($q) use ($requestType) {
-                $q->where('applies_to', 'all')
-                  ->orWhere('applies_to', $requestType);
+                $q->where('research_type', 'all')
+                  ->orWhere('research_type', $requestType);
             });
         }
 
@@ -37,6 +38,143 @@ class ResearchWorkflowController extends Controller
         return response()->json([
             'success' => true,
             'data' => $stages,
+        ]);
+    }
+
+    /**
+     * Validate the incoming stage payload (shared by store/update), including
+     * the dynamic form_fields array — Laravel's wildcard conditional rules
+     * don't reliably enforce "options required when type=select", so that
+     * part is checked manually.
+     */
+    private function validateStagePayload(Request $request, bool $isUpdate = false): array
+    {
+        $validated = $request->validate([
+            'name' => ($isUpdate ? 'sometimes|' : '') . 'required|string|max:255',
+            'description' => 'nullable|string',
+            'order' => 'nullable|integer|min:0',
+            'research_type' => 'nullable|in:all,system_request,infrastructure_request,security_related_request',
+            'fillable_by_role' => 'nullable|in:research_director,research_team_leader,research_officer',
+            'is_required' => 'boolean',
+            'requires_approval' => 'boolean',
+            'is_active' => 'boolean',
+            'form_fields' => 'nullable|array',
+            'form_fields.*.name' => 'required|string',
+            'form_fields.*.label' => 'required|string',
+            'form_fields.*.type' => 'required|in:text,textarea,number,select,checkbox,file',
+            'form_fields.*.required' => 'boolean',
+            'form_fields.*.hint' => 'nullable|string',
+            'form_fields.*.options' => 'nullable|array',
+            'form_fields.*.options.*.value' => 'required_with:form_fields.*.options|string',
+            'form_fields.*.options.*.label' => 'required_with:form_fields.*.options|string',
+        ]);
+
+        $errors = [];
+        foreach ($validated['form_fields'] ?? [] as $index => $field) {
+            if ($field['type'] === 'select' && empty($field['options'])) {
+                $errors["form_fields.{$index}.options"] = ["Field \"{$field['label']}\" is a select field and needs at least one option."];
+            }
+        }
+        if (!empty($errors)) {
+            throw \Illuminate\Validation\ValidationException::withMessages($errors);
+        }
+
+        return $validated;
+    }
+
+    /**
+     * Create a new workflow stage.
+     */
+    public function storeStage(Request $request)
+    {
+        $validated = $this->validateStagePayload($request);
+
+        $slug = \Illuminate\Support\Str::slug($validated['name'], '_');
+        $originalSlug = $slug;
+        $suffix = 1;
+        while (ResearchWorkflowStage::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '_' . (++$suffix);
+        }
+
+        $stage = ResearchWorkflowStage::create([
+            ...$validated,
+            'slug' => $slug,
+            'research_type' => $validated['research_type'] ?? 'all',
+            'is_required' => $validated['is_required'] ?? true,
+            'requires_approval' => $validated['requires_approval'] ?? false,
+            'is_active' => $validated['is_active'] ?? true,
+            'order' => $validated['order'] ?? ((ResearchWorkflowStage::max('order') ?? 0) + 1),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Workflow stage created successfully',
+            'data' => $stage,
+        ], 201);
+    }
+
+    /**
+     * Update an existing workflow stage. The slug is immutable — nothing
+     * else keys off it besides the one hardcoded lookup in
+     * getClearanceCertificate(), and changing it post-creation is never
+     * necessary for a stage that already has real progress records.
+     */
+    public function updateStage(Request $request, ResearchWorkflowStage $stage)
+    {
+        $validated = $this->validateStagePayload($request, isUpdate: true);
+
+        $stage->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Workflow stage updated successfully',
+            'data' => $stage->fresh(),
+        ]);
+    }
+
+    /**
+     * Delete a workflow stage — blocked if any research idea has already
+     * progressed through it, to avoid orphaning ResearchWorkflowProgress
+     * rows. Deactivating (is_active=false) is the safe alternative.
+     */
+    public function destroyStage(ResearchWorkflowStage $stage)
+    {
+        if ($stage->progress()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This stage already has progress recorded against it and cannot be deleted. Deactivate it instead.',
+            ], 409);
+        }
+
+        $stage->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Workflow stage deleted successfully',
+        ]);
+    }
+
+    /**
+     * Reorder stages. Accepts an ordered array of stage IDs and assigns
+     * `order` to match array position.
+     */
+    public function reorderStages(Request $request)
+    {
+        $validated = $request->validate([
+            'stage_ids' => 'required|array',
+            'stage_ids.*' => 'required|integer|exists:research_workflow_stages,id',
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            foreach ($validated['stage_ids'] as $position => $stageId) {
+                ResearchWorkflowStage::where('id', $stageId)->update(['order' => $position + 1]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stages reordered successfully',
+            'data' => ResearchWorkflowStage::ordered()->get(),
         ]);
     }
 
@@ -85,15 +223,15 @@ class ResearchWorkflowController extends Controller
             ], 422);
         }
 
-        // Determine request type from category (system / infrastructure)
+        // Determine request type from category (system_request / infrastructure_request / security_related_request)
         $requestType = $researchIdea->getRequestType();
 
         // Load only stages applicable to this request type
         $stages = ResearchWorkflowStage::active()->ordered()
-            // ->where(function ($q) use ($requestType) {
-            //     $q->where('applies_to', 'all')
-            //       ->orWhere('applies_to', $requestType);
-            // })
+            ->where(function ($q) use ($requestType) {
+                $q->where('research_type', 'all')
+                  ->orWhere('research_type', $requestType);
+            })
             ->get();
 
         DB::transaction(function () use ($researchIdea, $stages) {
@@ -155,20 +293,199 @@ class ResearchWorkflowController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $progress->submit($user, $validated['stage_data']);
+        $normalizedStageData = \App\Services\ResearchStageFormValidator::validate($progress->stage, $validated['stage_data']);
+
+        $progress->submit($user, $normalizedStageData);
 
         if ($validated['notes'] ?? null) {
             $progress->update(['notes' => $validated['notes']]);
         }
 
         // Send notification to team leader if this is an officer submission
-        if ($progress->stage->approver_role === 'research_team_leader') {
+        if ($user->hasRole('research_officer')) {
             \App\Services\ResearchTeamLeaderNotificationService::notifyOfficerSubmission($progress);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Stage submitted successfully',
+            'data' => $progress->fresh()->load(['stage', 'assignedUser']),
+        ]);
+    }
+
+    /**
+     * Upload a file for one dynamic form field on a workflow stage, ahead of
+     * submitting the stage. Returns a path reference to embed in stage_data.
+     */
+    public function uploadStageFile(Request $request, ResearchWorkflowProgress $progress)
+    {
+        $user = $request->user();
+
+        if (!$progress->canBeWorkedOnBy($user)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to upload files for this stage',
+            ], 403);
+        }
+
+        $request->validate([
+            'file' => 'required|file|max:10240',
+            'field_name' => 'required|string',
+        ]);
+
+        $file = $request->file('file');
+        $fieldName = $request->input('field_name');
+        $path = $file->store('research-workflow/' . $progress->id . '/' . $fieldName, 'public');
+
+        // Surface this in the request's unified Documents tab too, not just
+        // inside this stage's own stage_data — previously only attachments
+        // from the initial submission were visible there. Re-uploads for the
+        // same stage+field replace the earlier attachment rather than piling up.
+        $fieldLabel = collect($progress->stage->form_fields ?? [])
+            ->firstWhere('name', $fieldName)['label'] ?? $fieldName;
+
+        \App\Models\ResearchIdeaAttachment::updateOrCreate(
+            ['workflow_progress_id' => $progress->id, 'field_name' => $fieldName],
+            [
+                'research_idea_id' => $progress->research_idea_id,
+                'file_name' => $progress->stage->name . ' — ' . $fieldLabel . ': ' . $file->getClientOriginalName(),
+                'file_path' => $path,
+                'file_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => $user->id,
+            ]
+        );
+
+        \App\Services\ResearchAuditService::logWorkflowChange(
+            $progress,
+            $user,
+            'uploaded a file for'
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'mime' => $file->getMimeType(),
+            ],
+        ]);
+    }
+
+    /**
+     * Download a file previously uploaded for one of this stage's dynamic
+     * form fields. The requested path must actually be referenced in this
+     * stage's own stage_data, to prevent access to unrelated stored files.
+     */
+    public function downloadStageFile(Request $request, ResearchWorkflowProgress $progress)
+    {
+        $user = $request->user();
+
+        $isAdmin = $user->hasRole('itdb_administrator') || $user->hasRole('bureau_head');
+        $isResearchDirector = $user->hasRole('research_director');
+        $isAssignedTeamLeader = $user->hasRole('research_team_leader') && ResearchAssignment::where('research_idea_id', $progress->research_idea_id)
+            ->where('assigned_to', $user->id)
+            ->where('assignment_type', 'team_leader')
+            ->whereIn('status', ['accepted', 'in_progress'])
+            ->exists();
+
+        if (!$progress->canBeWorkedOnBy($user) && !$isAdmin && !$isResearchDirector && !$isAssignedTeamLeader) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to access this file',
+            ], 403);
+        }
+
+        $path = $request->query('path');
+        $referencedPaths = collect($progress->stage_data ?? [])
+            ->map(fn ($value) => is_array($value) ? ($value['path'] ?? null) : null)
+            ->filter()
+            ->values();
+
+        if (!$path || !$referencedPaths->contains($path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File not found for this stage',
+            ], 404);
+        }
+
+        if (!Storage::disk('public')->exists($path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File not found',
+            ], 404);
+        }
+
+        return response()->file(storage_path('app/public/' . $path));
+    }
+
+    /**
+     * Assign a specific officer to work on this specific stage (rather than
+     * the whole request). The officer must already have an officer-type
+     * ResearchAssignment on this research idea — this narrows which of the
+     * already-assigned officers is responsible for this particular stage,
+     * it doesn't grant new hierarchy access. Once set, canBeWorkedOnBy()
+     * locks the stage to exactly this officer.
+     */
+    public function assignStageOfficer(Request $request, ResearchWorkflowProgress $progress)
+    {
+        $user = $request->user();
+
+        if (in_array($progress->status, ['completed', 'approved'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This stage is already completed and cannot be reassigned',
+            ], 422);
+        }
+
+        $isAdmin = $user->hasRole('itdb_administrator') || $user->hasRole('bureau_head');
+        $isResearchDirector = $user->hasRole('research_director');
+        $isAssignedTeamLeader = $user->hasRole('research_team_leader') && ResearchAssignment::where('research_idea_id', $progress->research_idea_id)
+            ->where('assigned_to', $user->id)
+            ->where('assignment_type', 'team_leader')
+            ->whereIn('status', ['accepted', 'in_progress'])
+            ->exists();
+
+        if (!$isAdmin && !$isResearchDirector && !$isAssignedTeamLeader) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to assign officers on this request',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'officer_id' => 'required|exists:users,id',
+        ]);
+
+        $isAssignedOfficer = ResearchAssignment::where('research_idea_id', $progress->research_idea_id)
+            ->where('assigned_to', $validated['officer_id'])
+            ->where('assignment_type', 'officer')
+            ->whereIn('status', ['pending', 'accepted', 'in_progress'])
+            ->exists();
+
+        if (!$isAssignedOfficer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This officer must already be assigned to the request before being assigned to a specific stage',
+            ], 422);
+        }
+
+        $stageRole = $progress->stage->fillable_by_role;
+        if ($stageRole && $stageRole !== 'research_officer') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This stage is restricted to a different role and cannot be assigned to an officer',
+            ], 422);
+        }
+
+        $progress->update(['assigned_to' => $validated['officer_id']]);
+
+        \App\Services\ResearchAuditService::logWorkflowChange($progress, $user, 'assigned officer to');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Officer assigned to stage successfully',
             'data' => $progress->fresh()->load(['stage', 'assignedUser']),
         ]);
     }
@@ -204,43 +521,34 @@ class ResearchWorkflowController extends Controller
             ], 422);
         }
 
-        // Enforce approver-role: the stage designates WHICH role can review it.
-        // research_director reviews director-designated stages,
-        // research_team_leader reviews team-leader-designated stages.
-        $approverRole = $progress->stage->approver_role;
-        $userRoleNames = $user->roles->pluck('name')->toArray();
-        $isDesignatedApprover = in_array($approverRole, $userRoleNames);
-
-        // itdb_administrator can review any stage
+        // No per-stage approver designation exists in the schema, so reviewers are:
+        // itdb_administrator/bureau_head (any stage), research_director (oversight
+        // authority over all research), or the research_team_leader assigned to
+        // this specific research idea. Exception: a stage restricted to
+        // fillable_by_role=research_director was filled by the director
+        // themselves, so the director cannot also review it (no self-approval)
+        // — that review escalates to Smart City instead.
         $isAdmin = $user->hasRole('itdb_administrator') || $user->hasRole('bureau_head');
+        $stageFilledByDirectorOnly = $progress->stage->fillable_by_role === 'research_director';
+        $isResearchDirector = $user->hasRole('research_director') && !$stageFilledByDirectorOnly;
+        $isSmartCity = $stageFilledByDirectorOnly && (
+            $user->hasRole('smart_city_sector_head') || $user->hasRole('smart_city_command')
+        );
 
-        // research_director can also review team-leader-level stages when needed
-        // (oversight authority — director can step in for any stage in their domain)
-        $isResearchDirector = $user->hasRole('research_director');
-        $isResearchDomain = in_array($approverRole, ['research_team_leader', 'research_director', 'research_officer']);
-
-        if (!$isDesignatedApprover && !$isAdmin && !($isResearchDirector && $isResearchDomain)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You are not the designated approver for this stage. This stage requires a ' . str_replace('_', ' ', $approverRole) . ' to review it.',
-            ], 403);
-        }
-
-        // For team leaders: they must be assigned to this research idea
-        $isTeamLeader = in_array('research_team_leader', $userRoleNames);
-        if ($isTeamLeader && !$isAdmin && !$isResearchDirector) {
-            $isAssignedToResearch = ResearchAssignment::where('research_idea_id', $progress->research_idea_id)
+        $isAssignedTeamLeader = false;
+        if ($user->hasRole('research_team_leader')) {
+            $isAssignedTeamLeader = ResearchAssignment::where('research_idea_id', $progress->research_idea_id)
                 ->where('assigned_to', $user->id)
                 ->where('assignment_type', 'team_leader')
                 ->whereIn('status', ['accepted', 'in_progress'])
                 ->exists();
+        }
 
-            if (!$isAssignedToResearch) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You can only review stages for research assigned to you',
-                ], 403);
-            }
+        if (!$isAdmin && !$isResearchDirector && !$isAssignedTeamLeader && !$isSmartCity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to review this stage',
+            ], 403);
         }
 
         $validated = $request->validate([

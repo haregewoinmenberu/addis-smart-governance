@@ -29,10 +29,14 @@ export const Route = createFileRoute("/research/ideas/$id/")({
       <ResearchIdeaDetailPage />
     </RequireAuth>
   ),
+  validateSearch: (search: Record<string, unknown>) => ({
+    returnTo: (search.returnTo as string) || "/research/ideas",
+  }),
 });
 
 function ResearchIdeaDetailPage() {
   const { id } = Route.useParams();
+  const { returnTo } = Route.useSearch();
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -128,7 +132,7 @@ function ResearchIdeaDetailPage() {
     onSuccess: () => {
       toast({ title: "Deleted", description: "Research idea deleted successfully." });
       queryClient.invalidateQueries({ queryKey: ["research-ideas"] });
-      navigate({ to: "/research/ideas" });
+      navigate({ to: returnTo });
     },
     onError: () => {
       toast({ title: "Error", description: "Could not delete the idea.", variant: "destructive" });
@@ -259,10 +263,10 @@ function ResearchIdeaDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate({ to: '/research/ideas' })}
+              onClick={() => navigate({ to: returnTo })}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Ideas
+              Back
             </Button>
           </div>
         }

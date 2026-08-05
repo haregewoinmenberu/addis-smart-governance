@@ -303,8 +303,6 @@ function ServiceRequestsPage() {
               className="px-4 py-2 border border-border rounded-lg bg-background text-sm min-w-[170px]"
             >
               <option value="">All Types</option>
-              <option value="research">Research</option>
-              <option value="transformation">Digital Transformation</option>
               <option value="licensing">Licensing</option>
               <option value="lms">LMS</option>
             </select>

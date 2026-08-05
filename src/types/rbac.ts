@@ -92,6 +92,7 @@ export type PermissionName =
   | 'assign_team_leader'
   | 'assign_officer'
   | 'manage_research_workflow'
+  | 'manage_workflow_stages'
   | 'view_assigned_research'
   | 'update_research_progress'
   | 'submit_research_stage'

@@ -2,6 +2,15 @@ import { getAuthToken } from "./api";
 
 const API_BASE_URL = '/api';
 
+export class ValidationApiError extends Error {
+  errors: Record<string, string[]>;
+  constructor(message: string, errors: Record<string, string[]>) {
+    super(message);
+    this.name = 'ValidationApiError';
+    this.errors = errors;
+  }
+}
+
 class ResearchWorkflowAPI {
   private getHeaders() {
     const token = getAuthToken();
@@ -14,14 +23,53 @@ class ResearchWorkflowAPI {
   private async handleResponse(response: Response) {
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      if (response.status === 422 && error.errors) {
+        throw new ValidationApiError(error.message || 'Validation failed', error.errors);
+      }
       throw new Error(error.message || `HTTP ${response.status}`);
     }
     return response.json();
   }
 
-  async getStages() {
-    const response = await fetch(`${API_BASE_URL}/research-workflow/stages`, {
+  async getStages(type?: string) {
+    const query = type ? `?type=${encodeURIComponent(type)}` : '';
+    const response = await fetch(`${API_BASE_URL}/research-workflow/stages${query}`, {
       headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async createStage(data: Record<string, any>) {
+    const response = await fetch(`${API_BASE_URL}/research-workflow-stages`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateStage(stageId: number, data: Record<string, any>) {
+    const response = await fetch(`${API_BASE_URL}/research-workflow-stages/${stageId}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteStage(stageId: number) {
+    const response = await fetch(`${API_BASE_URL}/research-workflow-stages/${stageId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async reorderStages(stageIds: number[]) {
+    const response = await fetch(`${API_BASE_URL}/research-workflow-stages/reorder`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ stage_ids: stageIds }),
     });
     return this.handleResponse(response);
   }
@@ -87,6 +135,15 @@ class ResearchWorkflowAPI {
     return this.handleResponse(response);
   }
 
+  async assignStageOfficer(progressId: string, officerId: number) {
+    const response = await fetch(`${API_BASE_URL}/research-workflow/progress/${progressId}/assign-officer`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ officer_id: officerId }),
+    });
+    return this.handleResponse(response);
+  }
+
   async startStage(progressId: string) {
     const response = await fetch(`${API_BASE_URL}/research-workflow/progress/${progressId}/start`, {
       method: 'POST',
@@ -100,6 +157,19 @@ class ResearchWorkflowAPI {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
+  async uploadStageFile(progressId: string, fieldName: string, file: File) {
+    const token = getAuthToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('field_name', fieldName);
+    const response = await fetch(`${API_BASE_URL}/research-workflow/progress/${progressId}/upload-file`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
     });
     return this.handleResponse(response);
   }
@@ -186,6 +256,13 @@ class ResearchWorkflowAPI {
 
   async getTeamLeaderMembers() {
     const response = await fetch(`${API_BASE_URL}/research-team-leader/team-members`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getTeamLeaderDashboard() {
+    const response = await fetch(`${API_BASE_URL}/research-team-leader/dashboard`, {
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);

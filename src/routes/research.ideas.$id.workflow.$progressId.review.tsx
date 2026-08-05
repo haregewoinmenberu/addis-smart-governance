@@ -1,16 +1,16 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import { AppShell } from '@/components/layout/AppShell';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { researchWorkflowAPI } from '@/lib/research-workflow-api';
-import { ArrowLeft, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { ResearchWorkflowProgress } from '@/types/research-workflow';
+import { ResearchWorkflowProgress, UploadedStageFile } from '@/types/research-workflow';
 import { Badge } from '@/components/ui/badge';
 
 export const Route = createFileRoute('/research/ideas/$id/workflow/$progressId/review')({
@@ -93,16 +93,50 @@ function ReviewStagePage() {
 
   const renderFieldValue = (field: any, value: any) => {
     if (!field || !field.name) return null;
-    
+
     const label = field.label || field.name.replace(/_/g, ' ');
-    const displayValue = value || 'Not provided';
-    
+
+    let body: ReactNode;
+
+    if (value === null || value === undefined || value === '') {
+      body = <p className="text-sm text-muted-foreground italic">Not provided</p>;
+    } else if (field.type === 'checkbox') {
+      body = <Badge variant={value === true ? 'default' : 'outline'}>{value === true ? 'Yes' : 'No'}</Badge>;
+    } else if (field.type === 'select') {
+      const option = (field.options || []).find((opt: { value: string; label: string }) => opt.value === value);
+      body = <p className="text-sm">{option ? option.label : String(value)}</p>;
+    } else if (field.type === 'file' && typeof value === 'object' && value.path) {
+      const file = value as UploadedStageFile;
+      body = (
+        <button
+          type="button"
+          onClick={() =>
+            navigate({
+              to: '/documents/$id',
+              params: { id: progressId },
+              search: {
+                type: 'research-workflow',
+                path: file.path,
+                name: file.original_name,
+                fileType: file.mime,
+                attachmentId: '',
+                returnTo: `/research/ideas/${id}/workflow/${progressId}/review`,
+              },
+            })
+          }
+          className="text-sm text-primary hover:underline flex items-center gap-1.5"
+        >
+          <FileText className="h-3.5 w-3.5" /> {file.original_name}
+        </button>
+      );
+    } else {
+      body = <p className="text-sm whitespace-pre-wrap">{String(value)}</p>;
+    }
+
     return (
       <div key={field.name} className="space-y-2">
         <Label className="font-medium">{label}</Label>
-        <div className="p-3 bg-gray-50 rounded-md">
-          <p className="text-sm whitespace-pre-wrap">{displayValue}</p>
-        </div>
+        <div className="p-3 bg-gray-50 rounded-md">{body}</div>
       </div>
     );
   };

@@ -28,6 +28,11 @@ enum ResearchCategory: string
     case INFRASTRUCTURE_REQUEST = 'infrastructure_request';
     case SECURITY_RELATED = 'security_related';
 
+    // Technology Request unification additions
+    case SYSTEM_CUSTOMIZATION = 'system_customization';
+    case TECHNOLOGY_EVALUATION = 'technology_evaluation';
+    case SMART_CITY_IMPROVEMENT = 'smart_city_improvement';
+
     public function label(): string
     {
         return match($this) {
@@ -51,6 +56,10 @@ enum ResearchCategory: string
             self::SYSTEM_REQUEST => 'System Request',
             self::INFRASTRUCTURE_REQUEST => 'Infrastructure Request',
             self::SECURITY_RELATED => 'Security Related Request',
+
+            self::SYSTEM_CUSTOMIZATION => 'Existing System Customization Request',
+            self::TECHNOLOGY_EVALUATION => 'Technology Evaluation Request',
+            self::SMART_CITY_IMPROVEMENT => 'Smart City Technology Improvement Request',
         };
     }
 

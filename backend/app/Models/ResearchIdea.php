@@ -32,6 +32,17 @@ class ResearchIdea extends Model
         'director_assigned_at',
         'director_notes',
         'assignment_status',
+        'vendor_name',
+        'vendor_contact',
+        'trl_level',
+        'is_external_request',
+        'requester_name',
+        'requester_email',
+        'requester_phone',
+        'requester_organization',
+        'smart_city_request_id',
+        'reference_number',
+        'intake_form_data',
     ];
 
     protected $casts = [
@@ -41,6 +52,9 @@ class ResearchIdea extends Model
         'submitted_at' => 'datetime',
         'smart_city_assigned_at' => 'datetime',
         'director_assigned_at' => 'datetime',
+        'trl_level' => 'integer',
+        'is_external_request' => 'boolean',
+        'intake_form_data' => 'array',
     ];
 
     protected $appends = ['assigned_director_name', 'request_type'];
@@ -51,8 +65,9 @@ class ResearchIdea extends Model
     }
 
     /**
-     * Returns 'system' or 'infrastructure' based on the category.
-     * Used to filter conditional evaluation stages.
+     * Returns 'system_request', 'infrastructure_request', or 'security_related_request'
+     * based on the category. Matches the research_workflow_stages.research_type enum
+     * so it can be used directly to filter conditional evaluation stages.
      */
     public function getRequestTypeAttribute(): string
     {
@@ -61,18 +76,19 @@ class ResearchIdea extends Model
 
     public function getRequestType(): string
     {
-        if ($this->research_category) {
-            $category = $this->research_category;
-            // If it's an enum instance
-            if ($category instanceof \App\Enums\ResearchCategory) {
-                return $category->requestType();
+        $category = $this->research_category;
+        $value = $category instanceof \App\Enums\ResearchCategory ? $category->value : $category;
+
+        if (is_string($value)) {
+            if (str_starts_with($value, 'security_related')) {
+                return 'security_related_request';
             }
-            // If it's a string value
-            if (is_string($category) && str_starts_with($category, 'infrastructure')) {
-                return 'infrastructure';
+            if (str_starts_with($value, 'infrastructure')) {
+                return 'infrastructure_request';
             }
         }
-        return 'system';
+
+        return 'system_request';
     }
 
     /**
@@ -103,7 +119,7 @@ class ResearchIdea extends Model
             'type'                 => $isApproved ? 'clearance' : 'rejection',
             'request_title'        => $this->title,
             'requesting_org'       => $this->government_sector ?? $this->submitter?->institution?->name ?? 'Unknown',
-            'evaluation_type'      => $this->getRequestType() === 'infrastructure' ? 'Infrastructure Request' : 'System Request',
+            'evaluation_type'      => $this->getRequestType() === 'infrastructure_request' ? 'Infrastructure Request' : 'System Request',
             'category_label'       => $this->research_category?->label() ?? 'Technology Request',
             'decision'             => $isApproved ? 'Approved' : ($this->status?->value === 'rejected' ? 'Rejected' : 'Pending'),
             'conditions'           => $conditions,
@@ -127,6 +143,15 @@ class ResearchIdea extends Model
     public function assignedToDirector()
     {
         return $this->belongsTo(User::class, 'assigned_to_director');
+    }
+
+    /**
+     * The SmartCityRequest this idea originated from, when submitted through
+     * the unified intake front door. Unused until intake is wired in Phase 2.
+     */
+    public function smartCityRequest()
+    {
+        return $this->belongsTo(SmartCityRequest::class);
     }
 
     public function attachments()

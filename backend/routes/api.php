@@ -818,6 +818,17 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
     });
 
     // Research Workflow Management
+    Route::prefix('research-workflow-stages')->group(function () {
+        Route::post('/', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'storeStage'])
+            ->middleware('permission:manage_workflow_stages');
+        Route::post('/reorder', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'reorderStages'])
+            ->middleware('permission:manage_workflow_stages');
+        Route::put('/{stage}', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'updateStage'])
+            ->middleware('permission:manage_workflow_stages');
+        Route::delete('/{stage}', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'destroyStage'])
+            ->middleware('permission:manage_workflow_stages');
+    });
+
     Route::prefix('research-workflow')->group(function () {
         Route::get('/stages', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'getStages'])
             ->middleware('permission:view_research');
@@ -848,8 +859,14 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
                 ->middleware('permission:update_research_progress');
             Route::post('/submit', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'submitStage'])
                 ->middleware('permission:submit_research_stage');
+            Route::post('/upload-file', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'uploadStageFile'])
+                ->middleware('permission:submit_research_stage');
+            Route::get('/download-file', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'downloadStageFile'])
+                ->middleware('permission:view_research');
             Route::post('/review', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'reviewStage'])
                 ->middleware('permission:review_research_stage');
+            Route::post('/assign-officer', [\App\Http\Controllers\Api\ResearchWorkflowController::class, 'assignStageOfficer'])
+                ->middleware('permission:assign_officer');
         });
 
         Route::prefix('assignments/{assignment}')->group(function () {

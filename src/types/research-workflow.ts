@@ -6,7 +6,8 @@ export interface ResearchWorkflowStage {
   order: number;
   is_required: boolean;
   requires_approval: boolean;
-  approver_role?: string;
+  research_type?: 'all' | 'system_request' | 'infrastructure_request' | 'security_related_request';
+  fillable_by_role?: 'research_director' | 'research_team_leader' | 'research_officer' | null;
   form_fields?: FormField[];
   is_active: boolean;
   created_at: string;
@@ -19,7 +20,14 @@ export interface FormField {
   type: 'text' | 'textarea' | 'number' | 'select' | 'checkbox' | 'file';
   required: boolean;
   hint?: string;
-  options?: string[];
+  options?: Array<{ value: string; label: string }>;
+}
+
+export interface UploadedStageFile {
+  path: string;
+  original_name: string;
+  size: number;
+  mime: string;
 }
 
 export interface ResearchWorkflowProgress {

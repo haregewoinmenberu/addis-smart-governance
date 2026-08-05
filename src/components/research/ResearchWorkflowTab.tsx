@@ -2,14 +2,18 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { ResearchIdea } from '@/types/research';
 import { ResearchWorkflowProgress, ResearchWorkflowStage } from '@/types/research-workflow';
 import { researchWorkflowAPI } from '@/lib/research-workflow-api';
-import { CheckCircle, Circle, AlertCircle, Play, Check, X, ArrowRight, User, ShieldCheck, FileCheck } from 'lucide-react';
+import { CheckCircle, Circle, AlertCircle, Play, Check, X, ArrowRight, User, ShieldCheck, FileCheck, UserCog, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '@/hooks/useAuth';
 import TechnologyClearanceCertificate, { ClearanceCertificateData } from './TechnologyClearanceCertificate';
+import { FILLABLE_BY_ROLE_LABELS } from './WorkflowStageForm';
 
 interface ResearchWorkflowTabProps {
   researchIdea: ResearchIdea;
@@ -28,33 +32,76 @@ export default function ResearchWorkflowTab({ researchIdea, progress, onUpdate }
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const [officerAssignments, setOfficerAssignments] = useState<any[]>([]);
+  const [assigningProgressId, setAssigningProgressId] = useState<number | null>(null);
+
   const userRoles = (user?.roles ?? []).map((r: any) => r.name);
   const isDirector = userRoles.includes('research_director');
   const isTeamLeader = userRoles.includes('research_team_leader');
+  const isSystemAdmin = userRoles.includes('itdb_administrator');
   const isAdmin = userRoles.some((r: string) =>
     ['itdb_administrator', 'bureau_head', 'smart_city_sector_head'].includes(r)
   );
+  const canAssignStageOfficer = isAdmin || isDirector || isTeamLeader;
 
   const canReviewStage = (progressItem: ResearchWorkflowProgress): boolean => {
     if (progressItem.status !== 'pending_review' || !progressItem.stage?.requires_approval) return false;
-    const approverRole = progressItem.stage?.approver_role ?? '';
-    if (isAdmin) return true;
-    if (isDirector) return ['research_director', 'research_team_leader', 'research_officer'].includes(approverRole);
-    if (isTeamLeader) return approverRole === 'research_team_leader';
-    return false;
+    // No per-stage approver designation exists: admins, the research director,
+    // and the team leader assigned to this research may all review. The backend
+    // enforces the actual assignment check for team leaders.
+    return isAdmin || isDirector || isTeamLeader;
   };
 
   const canWorkOnStage = (progressItem: ResearchWorkflowProgress): boolean =>
     ['not_started', 'in_progress', 'revision_requested'].includes(progressItem.status);
 
+  // Mirrors the backend's canBeWorkedOnBy() role restriction: itdb_administrator
+  // always bypasses, a stage with no fillable_by_role is unrestricted, otherwise
+  // only the matching role can start/work on it.
+  const canFillRestrictedStage = (stage?: ResearchWorkflowStage): boolean => {
+    if (isSystemAdmin) return true;
+    if (!stage?.fillable_by_role) return true;
+    return userRoles.includes(stage.fillable_by_role);
+  };
+
   useEffect(() => {
     let mounted = true;
-    const reqType = (researchIdea as any).request_type ?? 'system';
-    researchWorkflowAPI.getStages()
+    const reqType = (researchIdea as any).request_type ?? 'system_request';
+    researchWorkflowAPI.getStages(reqType)
       .then(r => { if (r.success && mounted) setStages(r.data); })
       .catch(e => { if (mounted) setError(e.message); });
     return () => { mounted = false; };
   }, [researchIdea]);
+
+  useEffect(() => {
+    if (!canAssignStageOfficer) return;
+    let mounted = true;
+    researchWorkflowAPI.getAssignments(researchIdea.id.toString())
+      .then(r => {
+        if (r.success && mounted) {
+          setOfficerAssignments((r.data ?? []).filter((a: any) => a.assignment_type === 'officer'));
+        }
+      })
+      .catch(() => { /* non-fatal — assign control just won't have options */ });
+    return () => { mounted = false; };
+  }, [researchIdea.id, canAssignStageOfficer]);
+
+  const handleAssignStageOfficer = async (progressId: number, officerId: string) => {
+    setAssigningProgressId(progressId);
+    try {
+      const r = await researchWorkflowAPI.assignStageOfficer(progressId.toString(), Number(officerId));
+      if (r.success) {
+        toast.success('Officer assigned to stage');
+        onUpdate();
+      } else {
+        throw new Error(r.message);
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to assign officer');
+    } finally {
+      setAssigningProgressId(null);
+    }
+  };
 
   const initializeWorkflow = async () => {
     if (initializingWorkflow) return;
@@ -113,8 +160,6 @@ export default function ResearchWorkflowTab({ researchIdea, progress, onUpdate }
     const c: Record<string,string> = { not_started:'bg-gray-400', in_progress:'bg-blue-500', pending_review:'bg-yellow-500', approved:'bg-green-500', completed:'bg-green-600', revision_requested:'bg-orange-500', rejected:'bg-red-500' };
     return <Badge className={c[s] || 'bg-gray-400'}>{s.replace(/_/g,' ')}</Badge>;
   };
-
-  const approverLabel = (r?: string) => ({ research_director:'Director Review', research_team_leader:'Team Leader Review', research_officer:'Officer Review' }[r ?? ''] ?? (r ?? '').replace(/_/g,' '));
 
   return (
     <div className="space-y-4">
@@ -177,7 +222,13 @@ export default function ResearchWorkflowTab({ researchIdea, progress, onUpdate }
                         {pi.stage?.is_required && <Badge variant="outline" className="text-xs">Required</Badge>}
                         {pi.stage?.requires_approval && (
                           <Badge variant="outline" className="text-xs bg-yellow-50 flex items-center gap-1">
-                            <User className="h-3 w-3"/>{approverLabel(pi.stage?.approver_role)}
+                            <User className="h-3 w-3"/>Approval Required
+                          </Badge>
+                        )}
+                        {pi.stage?.fillable_by_role && (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+                            <Lock className="h-3 w-3"/>
+                            {FILLABLE_BY_ROLE_LABELS[pi.stage.fillable_by_role] ?? pi.stage.fillable_by_role}
                           </Badge>
                         )}
                       </div>
@@ -193,17 +244,46 @@ export default function ResearchWorkflowTab({ researchIdea, progress, onUpdate }
                           <p className="text-xs text-gray-500 mt-1">by {pi.reviews[0].reviewer?.name} on {new Date(pi.reviews[0].reviewed_at).toLocaleDateString()}</p>
                         </div>
                       )}
+                      {canAssignStageOfficer && !['completed', 'approved'].includes(pi.status) && officerAssignments.length > 0 && (
+                        <div className="mt-3 flex items-center gap-2">
+                          <UserCog className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <Select
+                            value={pi.assigned_user ? String(pi.assigned_user.id) : undefined}
+                            onValueChange={(v) => handleAssignStageOfficer(pi.id, v)}
+                            disabled={assigningProgressId === pi.id}
+                          >
+                            <SelectTrigger className="h-8 text-xs w-56">
+                              <SelectValue placeholder="Assign officer to this stage" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {officerAssignments.map((a: any) => (
+                                <SelectItem key={a.id} value={String(typeof a.assigned_to === 'object' ? a.assigned_to.id : a.assigned_to)}>
+                                  {typeof a.assigned_to === 'object' ? a.assigned_to.name : `User #${a.assigned_to}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 ml-4">
                     {statusBadge(pi.status)}
-                    {pi.status === 'not_started' && canWorkOnStage(pi) && (
-                      <Button size="sm" onClick={() => handleStartStage(pi)} disabled={loading}><Play className="mr-1 h-3 w-3"/>Start</Button>
-                    )}
-                    {canWorkOnStage(pi) && pi.status !== 'not_started' && (
-                      <Button size="sm" onClick={() => handleNavigateToWork(pi)} disabled={loading}>
-                        <ArrowRight className="mr-1 h-3 w-3"/>{pi.status === 'revision_requested' ? 'Revise' : 'Work on Stage'}
-                      </Button>
+                    {!canFillRestrictedStage(pi.stage) && canWorkOnStage(pi) ? (
+                      <Badge variant="outline" className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Lock className="h-3 w-3" /> Not your role
+                      </Badge>
+                    ) : (
+                      <>
+                        {pi.status === 'not_started' && canWorkOnStage(pi) && (
+                          <Button size="sm" onClick={() => handleStartStage(pi)} disabled={loading}><Play className="mr-1 h-3 w-3"/>Start</Button>
+                        )}
+                        {canWorkOnStage(pi) && pi.status !== 'not_started' && (
+                          <Button size="sm" onClick={() => handleNavigateToWork(pi)} disabled={loading}>
+                            <ArrowRight className="mr-1 h-3 w-3"/>{pi.status === 'revision_requested' ? 'Revise' : 'Work on Stage'}
+                          </Button>
+                        )}
+                      </>
                     )}
                     {canReviewStage(pi) && (
                       <Button size="sm" variant="outline" onClick={() => handleNavigateToReview(pi)} disabled={loading} className="border-green-500 text-green-700 hover:bg-green-50">

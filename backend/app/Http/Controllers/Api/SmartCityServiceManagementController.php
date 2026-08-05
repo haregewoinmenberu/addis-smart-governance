@@ -195,19 +195,18 @@ class SmartCityServiceManagementController extends Controller
 
         $submission = ServiceFormSubmission::findOrFail($id);
 
-        // Update form_data to include assignment information
-        $formData = $submission->form_data;
-        $formData['assignment'] = [
-            'assigned_to' => $validated['assigned_to'],
-            'assigned_by' => $user->id,
-            'assigned_at' => now()->toDateTimeString(),
-            'notes' => $validated['assignment_notes'] ?? null,
-        ];
+        \App\Models\ServiceRequestAssignment::updateOrCreate(
+            ['service_request_id' => $submission->id, 'assignment_type' => 'officer'],
+            [
+                'assigned_by' => $user->id,
+                'assigned_to' => $validated['assigned_to'],
+                'assignment_notes' => $validated['assignment_notes'] ?? null,
+                'assigned_date' => now(),
+                'status' => 'pending',
+            ]
+        );
 
-        $submission->update([
-            'form_data' => $formData,
-            'status' => 'processing',
-        ]);
+        $submission->update(['status' => 'processing']);
 
         \Log::info('Service request assigned', [
             'submission_id' => $submission->id,

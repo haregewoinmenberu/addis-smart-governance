@@ -99,6 +99,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 ['name' => 'assign_team_leader', 'display_name' => 'Assign Evaluation Team Leader'],
                 ['name' => 'assign_officer', 'display_name' => 'Assign Technical Evaluation Officer'],
                 ['name' => 'manage_research_workflow', 'display_name' => 'Manage Evaluation Process'],
+                ['name' => 'manage_workflow_stages', 'display_name' => 'Manage Evaluation Workflow Stages'],
                 ['name' => 'view_assigned_research', 'display_name' => 'View Assigned Evaluation'],
                 ['name' => 'update_research_progress', 'display_name' => 'Update Evaluation Progress'],
                 ['name' => 'submit_research_stage', 'display_name' => 'Submit Evaluation Stage'],
@@ -542,7 +543,12 @@ class RolesAndPermissionsSeeder extends Seeder
                 'submit_research_ideas',
                 'assign_research',
                 'approve_research',
-                'approve_feasibility',  
+                'approve_feasibility',
+                'manage_workflow_stages',
+                // Reviews the final evaluation report when it's restricted to
+                // Research Director only — the director can't review their own
+                // submission, so that review escalates to Smart City instead.
+                'review_research_stage',
                 'view_reports',
                 'generate_reports',
                 'view_notifications',
@@ -679,6 +685,9 @@ class RolesAndPermissionsSeeder extends Seeder
                 'risk_analysis',
                 'assign_team_leader',
                 'manage_research_workflow',
+                'manage_workflow_stages',
+                'update_research_progress',
+                'submit_research_stage',
                 'review_research_stage',
                 'approve_research_stage',
                 'forward_to_smart_city',
