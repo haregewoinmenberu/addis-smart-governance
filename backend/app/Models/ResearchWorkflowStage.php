@@ -20,6 +20,7 @@ class ResearchWorkflowStage extends Model
         'assigned_team__leaders_id',
         'research_type',  // 'all', 'system_request', 'infrastructure_request', or 'security_related_request'
         'fillable_by_role', // null = no restriction, or 'research_director'|'research_team_leader'|'research_officer'
+        'created_by',     // User who created this stage
         'form_fields',
         'is_active',
         'assigned_officers_id',
@@ -34,6 +35,13 @@ class ResearchWorkflowStage extends Model
         'assigned_officers_id' => 'array',
     ];
 
+    /**
+     * Get the user who created this stage
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     /**
      * Get progress records for this stage

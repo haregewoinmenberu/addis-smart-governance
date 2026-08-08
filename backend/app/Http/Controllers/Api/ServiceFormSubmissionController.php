@@ -268,7 +268,10 @@ class ServiceFormSubmissionController extends Controller
             $query->where('reviewed_by', $request->assigned_to);
         }
 
-        $submissions = $query->latest()->paginate(20);
+        $perPage = $request->input('per_page', 20); // Default to 20, but allow override
+        $perPage = min(max((int)$perPage, 1), 100); // Clamp between 1 and 100
+
+        $submissions = $query->latest()->paginate($perPage);
 
         return response()->json([
             'success' => true,

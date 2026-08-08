@@ -128,6 +128,42 @@ class ResearchWorkflowProgress extends Model
     }
 
     /**
+     * Check if user is authorized to review this stage's submission.
+     * Mirrors the authorization block in
+     * ResearchWorkflowController::reviewStage() — kept here so the "Review"
+     * page can gate itself with the same rule the submit endpoint enforces,
+     * instead of only finding out via a 403 after filling out the form.
+     */
+    public function canBeReviewedBy(User $user): bool
+    {
+        if (!$user->hasPermission('review_research_stage')) {
+            return false;
+        }
+
+        if (!$this->stage->requires_approval || $this->status !== 'pending_review') {
+            return false;
+        }
+
+        $isAdmin = $user->hasRole('itdb_administrator') || $user->hasRole('bureau_head');
+        $stageFilledByDirectorOnly = $this->stage->fillable_by_role === 'research_director';
+        $isResearchDirector = $user->hasRole('research_director') && !$stageFilledByDirectorOnly;
+        $isSmartCity = $stageFilledByDirectorOnly && (
+            $user->hasRole('smart_city_sector_head') || $user->hasRole('smart_city_command')
+        );
+
+        $isAssignedTeamLeader = false;
+        if ($user->hasRole('research_team_leader')) {
+            $isAssignedTeamLeader = ResearchAssignment::where('research_idea_id', $this->research_idea_id)
+                ->where('assigned_to', $user->id)
+                ->where('assignment_type', 'team_leader')
+                ->whereIn('status', ['accepted', 'in_progress'])
+                ->exists();
+        }
+
+        return $isAdmin || $isResearchDirector || $isAssignedTeamLeader || $isSmartCity;
+    }
+
+    /**
      * Start working on this stage
      */
     public function start(User $user)

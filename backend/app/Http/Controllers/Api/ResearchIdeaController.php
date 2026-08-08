@@ -66,7 +66,10 @@ class ResearchIdeaController extends Controller
             });
         }
 
-        return response()->json($query->latest()->paginate(20));
+        $perPage = $request->input('per_page', 20); // Default to 20, but allow override
+        $perPage = min(max((int)$perPage, 1), 100); // Clamp between 1 and 100
+
+        return response()->json($query->latest()->paginate($perPage));
     }
 
     public function store(Request $request)
@@ -134,7 +137,9 @@ class ResearchIdeaController extends Controller
         return response()->json([
             'data' => $researchIdea->load([
                 'submitter',
-                'attachments',
+                'attachments.uploader',
+                'attachments.lastEditor',
+                'attachments.versions.uploader',
                 'screenings.evaluator',
                 'project',
                 'assignedToDirector'
@@ -330,7 +335,7 @@ class ResearchIdeaController extends Controller
             'uploaded_by' => auth()->id(),
         ]);
 
-        return response()->json($attachment, 201);
+        return response()->json($attachment->load(['uploader', 'lastEditor']), 201);
     }
 
     public function deleteAttachment(ResearchIdea $researchIdea, $attachmentId)
@@ -405,5 +410,152 @@ class ResearchIdeaController extends Controller
                 'Content-Disposition' => 'inline; filename="' . $attachment->file_name . '"'
             ]
         );
+    }
+
+    /**
+     * Check if user can edit a specific attachment based on role hierarchy
+     */
+    public function checkAttachmentEditPrivilege(Request $request, ResearchIdea $researchIdea, $attachmentId)
+    {
+        $user = $request->user();
+        $attachment = $researchIdea->attachments()->findOrFail($attachmentId);
+
+        $canEdit = false;
+        $reason = '';
+
+        // Get uploader role level
+        $uploader = $attachment->uploader;
+        if (!$uploader) {
+            return response()->json([
+                'success' => true,
+                'can_edit' => false,
+                'reason' => 'Original uploader information not available',
+                'attachment' => $attachment->load(['uploader', 'lastEditor']),
+            ]);
+        }
+
+        $uploaderRoles = $uploader->roles->pluck('name')->toArray();
+        $viewerRoles = $user->roles->pluck('name')->toArray();
+
+        // Get the highest role level for both users (lower number = higher authority)
+        $uploaderLevel = min(array_map(
+            fn($role) => \App\Services\RoleHierarchyService::getRoleLevel($role),
+            $uploaderRoles
+        ));
+        $viewerLevel = min(array_map(
+            fn($role) => \App\Services\RoleHierarchyService::getRoleLevel($role),
+            $viewerRoles
+        ));
+
+        // User can edit if they have same or higher authority (same or lower level number)
+        if ($viewerLevel <= $uploaderLevel) {
+            $canEdit = true;
+            $reason = $viewerLevel < $uploaderLevel 
+                ? 'You have higher authority than the uploader'
+                : 'You have the same authority level as the uploader';
+        } else {
+            $reason = 'You have lower authority than the original uploader';
+        }
+
+        // Also allow edit if the user is the uploader themselves
+        if ($attachment->uploaded_by === $user->id) {
+            $canEdit = true;
+            $reason = 'You are the original uploader';
+        }
+
+        return response()->json([
+            'success' => true,
+            'can_edit' => $canEdit,
+            'reason' => $reason,
+            'uploader_level' => $uploaderLevel,
+            'viewer_level' => $viewerLevel,
+            'attachment' => $attachment->load(['uploader', 'lastEditor']),
+        ]);
+    }
+
+    /**
+     * Update/replace an existing attachment by creating a new version
+     */
+    public function updateAttachment(Request $request, ResearchIdea $researchIdea, $attachmentId)
+    {
+        $user = $request->user();
+        $attachment = $researchIdea->attachments()->findOrFail($attachmentId);
+
+        // Check edit privilege using the same logic
+        $uploader = $attachment->uploader;
+        if (!$uploader) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot edit attachment - uploader information not available',
+            ], 403);
+        }
+
+        $uploaderRoles = $uploader->roles->pluck('name')->toArray();
+        $viewerRoles = $user->roles->pluck('name')->toArray();
+
+        $uploaderLevel = min(array_map(
+            fn($role) => \App\Services\RoleHierarchyService::getRoleLevel($role),
+            $uploaderRoles
+        ));
+        $viewerLevel = min(array_map(
+            fn($role) => \App\Services\RoleHierarchyService::getRoleLevel($role),
+            $viewerRoles
+        ));
+
+        $canEdit = ($viewerLevel <= $uploaderLevel) || ($attachment->uploaded_by === $user->id);
+
+        if (!$canEdit) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to edit this attachment. You need the same or higher authority as the uploader.',
+            ], 403);
+        }
+
+        $request->validate([
+            'file' => 'required|file|max:10240',
+            'version_notes' => 'nullable|string|max:500',
+        ]);
+
+        $file = $request->file('file');
+        
+        // Store new file
+        $path = $file->store('research-ideas/' . $researchIdea->id, 'public');
+
+        // Get next version number
+        $latestVersion = \App\Models\ResearchAttachmentVersion::where('attachment_id', $attachment->id)
+            ->max('version_number');
+        $newVersionNumber = ($latestVersion ?? 0) + 1;
+
+        // Mark all previous versions as not current
+        \App\Models\ResearchAttachmentVersion::where('attachment_id', $attachment->id)
+            ->update(['is_current' => false]);
+
+        // Create new version
+        $version = \App\Models\ResearchAttachmentVersion::create([
+            'attachment_id' => $attachment->id,
+            'version_number' => $newVersionNumber,
+            'file_path' => $path,
+            'file_name' => $file->getClientOriginalName(),
+            'file_type' => $file->getMimeType(),
+            'file_size' => $file->getSize(),
+            'uploaded_by' => $user->id,
+            'version_notes' => $request->input('version_notes'),
+            'is_current' => true,
+        ]);
+
+        // Update attachment metadata to point to current version
+        $attachment->update([
+            'edited_by' => $user->id,
+            'edited_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'New version created successfully',
+            'data' => [
+                'attachment' => $attachment->fresh()->load(['uploader', 'lastEditor', 'versions.uploader']),
+                'new_version' => $version->load('uploader'),
+            ],
+        ]);
     }
 }

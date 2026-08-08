@@ -17,7 +17,7 @@ export const Route = createFileRoute("/documents/$id")({
       path: (search.path as string) || "",
       name: (search.name as string) || "document.pdf",
       returnTo: (search.returnTo as string) || "/",
-      type: (search.type as string) || "service-form", // 'service-form', 'research-idea', or 'research-workflow'
+      type: (search.type as string) || "service-form", // 'service-form', 'research-idea', 'research-workflow', 'research-report-response', or 'research-report-document'
       attachmentId: (search.attachmentId as string) || "",
       fileType: (search.fileType as string) || "",
     };
@@ -53,6 +53,12 @@ function DocumentViewerPage() {
         } else if (search.type === "research-workflow" && search.path) {
           apiUrl = `/api/research-workflow/progress/${id}/download-file?path=${encodeURIComponent(search.path)}`;
           console.log("Using research-workflow endpoint:", apiUrl);
+        } else if (search.type === "research-report-response") {
+          apiUrl = `/api/research/reports/responses/${id}/certificate`;
+          console.log("Using research-report-response endpoint:", apiUrl);
+        } else if (search.type === "research-report-document" && search.attachmentId) {
+          apiUrl = `/api/research/reports/${id}/documents/${search.attachmentId}/download`;
+          console.log("Using research-report-document endpoint:", apiUrl);
         } else {
           // Default to service-form endpoint
           apiUrl = `/api/service-forms/${id}/download-file?path=${encodeURIComponent(search.path)}`;

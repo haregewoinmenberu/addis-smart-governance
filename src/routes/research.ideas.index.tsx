@@ -24,7 +24,7 @@ import {
 import {
   Plus, Search, Eye, Edit, Trash2, FlaskConical,
   FileText, Clock, CheckCircle2, XCircle, AlertCircle,
-  RefreshCw, Calendar, User, Hash, UserPlus, ClipboardCheck, MoreVertical, Loader2,
+  RefreshCw, Calendar, User, Hash, UserPlus, ClipboardCheck, MoreVertical, Loader2, Briefcase,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -334,12 +334,19 @@ function ResearchIdeasPage() {
                         >
                           <Eye className="h-3 w-3 mr-1" /> View
                         </Button>
+                        <Button
+                          id={`workspace-idea-${idea.id}`}
+                          variant="ghost" size="sm" className="h-7 px-2 text-xs text-blue-600 hover:bg-blue-50"
+                          onClick={() => navigate({ to: `/research/ideas/${idea.id}/workspace` })}
+                        >
+                          <Briefcase className="h-3 w-3 mr-1" /> Workspace
+                        </Button>
                         {["draft", "submitted"].includes(idea.status) && (user?.id === idea.submitter_id || user?.id === idea.submitter?.id) && (
                           <Button
                             id={`edit-idea-${idea.id}`}
                             variant="ghost" size="sm"
                             className="h-7 px-2 text-xs text-blue-600 hover:bg-blue-50"
-                            onClick={() => navigate({ to: `/research/ideas/${idea.id}/edit` })}
+                            onClick={() => navigate({ to: `/research/ideas/${idea.id}/edit`, search: { returnTo: "/research/ideas" } })}
                           >
                             <Edit className="h-3 w-3 mr-1" /> Edit
                           </Button>
@@ -364,6 +371,9 @@ function ResearchIdeasPage() {
                             <DropdownMenuContent align="end" className="w-52">
                               <DropdownMenuItem onClick={() => navigate({ to: `/research/ideas/${idea.id}` })}>
                                 <Eye className="h-4 w-4 mr-2" /> View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate({ to: `/research/ideas/${idea.id}/workspace` })}>
+                                <Briefcase className="h-4 w-4 mr-2" /> Open Workspace
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
@@ -397,6 +407,9 @@ function ResearchIdeasPage() {
                             <DropdownMenuContent align="end" className="w-52">
                               <DropdownMenuItem onClick={() => navigate({ to: `/research/ideas/${idea.id}` })}>
                                 <Eye className="h-4 w-4 mr-2" /> View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate({ to: `/research/ideas/${idea.id}/workspace` })}>
+                                <Briefcase className="h-4 w-4 mr-2" /> Open Workspace
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem

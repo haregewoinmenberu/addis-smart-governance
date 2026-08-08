@@ -20,8 +20,87 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { ArrowLeft, Edit, CheckCircle, XCircle, Clock, Trash2, UserPlus, ClipboardCheck, User, Loader2, FileText, Upload, Download, Eye } from "lucide-react";
+import { ArrowLeft, Edit, CheckCircle, XCircle, Clock, Trash2, UserPlus, ClipboardCheck, User, Loader2, FileText, Upload, Eye, HourglassIcon, Mail } from "lucide-react";
 import { researchCategoryLabels, priorityLabels } from "@/lib/research-schema";
+
+function DecisionResponseCard({ researchIdeaId }: { researchIdeaId: string }) {
+  const navigate = useNavigate();
+  const { data } = useQuery({
+    queryKey: ["research-report-status", researchIdeaId],
+    queryFn: async () => {
+      const res = await fetch(`/api/research/reports/for-idea/${researchIdeaId}`, {
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch decision status");
+      return res.json();
+    },
+  });
+
+  const status = data?.data;
+  if (!status?.finalized) return null;
+
+  return (
+    <Card className="border-border/60">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Mail className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle>Decision Response</CardTitle>
+            <CardDescription>Status of the final decision for this request</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {status.has_response ? (
+          <>
+            <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-400/30 gap-1">
+              <CheckCircle className="h-3.5 w-3.5" />
+              Responded
+            </Badge>
+            <p className="text-sm">{status.response.message}</p>
+            {status.response.certificate_name && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={() =>
+                  navigate({
+                    to: "/documents/$id",
+                    params: { id: String(status.response.id) },
+                    search: {
+                      name: status.response.certificate_name,
+                      returnTo: `/research/ideas/${researchIdeaId}`,
+                      type: "research-report-response",
+                      path: "",
+                      attachmentId: "",
+                      fileType: "",
+                    },
+                  })
+                }
+              >
+                <Eye className="h-3.5 w-3.5" />
+                View Certificate
+              </Button>
+            )}
+          </>
+        ) : (
+          <>
+            <Badge variant="outline" className="text-amber-700 border-amber-400/40 bg-amber-500/10 gap-1">
+              <HourglassIcon className="h-3.5 w-3.5" />
+              Under Review
+            </Badge>
+            <p className="text-sm text-muted-foreground">
+              The evaluation has been approved internally — a formal decision response has not been
+              sent to you yet.
+            </p>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export const Route = createFileRoute("/research/ideas/$id/")({
   component: () => (
@@ -260,6 +339,16 @@ function ResearchIdeaDetailPage() {
                 </Button>
               </>
             )}
+            {idea?.data?.status !== 'draft' && (
+              <Button
+                size="sm"
+                className="bg-gradient-primary text-primary-foreground shadow-glow"
+                onClick={() => navigate({ to: `/research/ideas/${id}/workspace` })}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                Open Workspace
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -317,6 +406,8 @@ function ResearchIdeaDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        <DecisionResponseCard researchIdeaId={id} />
 
         {/* Actions Card - Only for users with permissions */}
         {(canReassign || canUpdateStatus) && (

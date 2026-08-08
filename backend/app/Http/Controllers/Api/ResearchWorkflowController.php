@@ -23,7 +23,7 @@ class ResearchWorkflowController extends Controller
     {
         $requestType = $request->query('type'); // one of ResearchWorkflowStage research_type values, or null (all)
 
-        $query = ResearchWorkflowStage::active()->ordered();
+        $query = ResearchWorkflowStage::active()->ordered()->with('creator');
 
         // If a request type is given, return stages for that type + universal stages
         if ($requestType && in_array($requestType, ['system_request', 'infrastructure_request', 'security_related_request'])) {
@@ -84,9 +84,26 @@ class ResearchWorkflowController extends Controller
 
     /**
      * Create a new workflow stage.
+     * Only research directors and smart city staff can create stages.
      */
     public function storeStage(Request $request)
     {
+        $user = $request->user();
+        
+        // Verify user has permission to create workflow stages
+        $canCreateStages = $user->hasRole('research_director') 
+            || $user->hasRole('smart_city_sector_head')
+            || $user->hasRole('smart_city_command')
+            || $user->hasRole('bureau_head')
+            || $user->hasRole('itdb_administrator');
+            
+        if (!$canCreateStages) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only Research Directors and Smart City staff can create workflow stages',
+            ], 403);
+        }
+
         $validated = $this->validateStagePayload($request);
 
         $slug = \Illuminate\Support\Str::slug($validated['name'], '_');
@@ -104,12 +121,13 @@ class ResearchWorkflowController extends Controller
             'requires_approval' => $validated['requires_approval'] ?? false,
             'is_active' => $validated['is_active'] ?? true,
             'order' => $validated['order'] ?? ((ResearchWorkflowStage::max('order') ?? 0) + 1),
+            'created_by' => $user->id,
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Workflow stage created successfully',
-            'data' => $stage,
+            'data' => $stage->load('creator'),
         ], 201);
     }
 
@@ -181,11 +199,17 @@ class ResearchWorkflowController extends Controller
     /**
      * Get single workflow progress
      */
-    public function getProgressItem(ResearchWorkflowProgress $progress)
+    public function getProgressItem(Request $request, ResearchWorkflowProgress $progress)
     {
+        $progress->load(['stage', 'assignedUser', 'completedBy', 'reviews.reviewer']);
+
+        $user = $request->user();
+        $progress->setAttribute('can_work', $progress->canBeWorkedOnBy($user));
+        $progress->setAttribute('can_review', $progress->canBeReviewedBy($user));
+
         return response()->json([
             'success' => true,
-            'data' => $progress->load(['stage', 'assignedUser', 'completedBy', 'reviews.reviewer']),
+            'data' => $progress,
         ]);
     }
 
@@ -195,7 +219,12 @@ class ResearchWorkflowController extends Controller
     public function getProgress(ResearchIdea $researchIdea)
     {
         $progress = $researchIdea->workflowProgress()
-            ->with(['stage', 'assignedUser', 'completedBy', 'reviews.reviewer'])
+            ->with([
+                'stage.creator',
+                'assignedUser',
+                'completedBy',
+                'reviews.reviewer'
+            ])
             ->get();
 
         $progressPercentage = $researchIdea->getProgressPercentage();
@@ -344,17 +373,33 @@ class ResearchWorkflowController extends Controller
         $fieldLabel = collect($progress->stage->form_fields ?? [])
             ->firstWhere('name', $fieldName)['label'] ?? $fieldName;
 
-        \App\Models\ResearchIdeaAttachment::updateOrCreate(
-            ['workflow_progress_id' => $progress->id, 'field_name' => $fieldName],
-            [
+        $attachment = \App\Models\ResearchIdeaAttachment::where('workflow_progress_id', $progress->id)
+            ->where('field_name', $fieldName)
+            ->first();
+
+        if ($attachment) {
+            // Update existing attachment - track editor
+            $attachment->update([
+                'file_name' => $progress->stage->name . ' — ' . $fieldLabel . ': ' . $file->getClientOriginalName(),
+                'file_path' => $path,
+                'file_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'edited_by' => $user->id,
+                'edited_at' => now(),
+            ]);
+        } else {
+            // Create new attachment
+            $attachment = \App\Models\ResearchIdeaAttachment::create([
                 'research_idea_id' => $progress->research_idea_id,
+                'workflow_progress_id' => $progress->id,
+                'field_name' => $fieldName,
                 'file_name' => $progress->stage->name . ' — ' . $fieldLabel . ': ' . $file->getClientOriginalName(),
                 'file_path' => $path,
                 'file_type' => $file->getMimeType(),
                 'file_size' => $file->getSize(),
                 'uploaded_by' => $user->id,
-            ]
-        );
+            ]);
+        }
 
         \App\Services\ResearchAuditService::logWorkflowChange(
             $progress,
@@ -497,7 +542,6 @@ class ResearchWorkflowController extends Controller
     {
         $user = $request->user();
 
-        // Check if user has the permission to review stages at all
         if (!$user->hasPermission('review_research_stage')) {
             return response()->json([
                 'success' => false,
@@ -505,7 +549,6 @@ class ResearchWorkflowController extends Controller
             ], 403);
         }
 
-        // Check if stage requires approval
         if (!$progress->stage->requires_approval) {
             return response()->json([
                 'success' => false,
@@ -513,7 +556,6 @@ class ResearchWorkflowController extends Controller
             ], 422);
         }
 
-        // Check if stage is pending review
         if ($progress->status !== 'pending_review') {
             return response()->json([
                 'success' => false,
@@ -521,30 +563,11 @@ class ResearchWorkflowController extends Controller
             ], 422);
         }
 
-        // No per-stage approver designation exists in the schema, so reviewers are:
-        // itdb_administrator/bureau_head (any stage), research_director (oversight
-        // authority over all research), or the research_team_leader assigned to
-        // this specific research idea. Exception: a stage restricted to
-        // fillable_by_role=research_director was filled by the director
-        // themselves, so the director cannot also review it (no self-approval)
-        // — that review escalates to Smart City instead.
-        $isAdmin = $user->hasRole('itdb_administrator') || $user->hasRole('bureau_head');
-        $stageFilledByDirectorOnly = $progress->stage->fillable_by_role === 'research_director';
-        $isResearchDirector = $user->hasRole('research_director') && !$stageFilledByDirectorOnly;
-        $isSmartCity = $stageFilledByDirectorOnly && (
-            $user->hasRole('smart_city_sector_head') || $user->hasRole('smart_city_command')
-        );
-
-        $isAssignedTeamLeader = false;
-        if ($user->hasRole('research_team_leader')) {
-            $isAssignedTeamLeader = ResearchAssignment::where('research_idea_id', $progress->research_idea_id)
-                ->where('assigned_to', $user->id)
-                ->where('assignment_type', 'team_leader')
-                ->whereIn('status', ['accepted', 'in_progress'])
-                ->exists();
-        }
-
-        if (!$isAdmin && !$isResearchDirector && !$isAssignedTeamLeader && !$isSmartCity) {
+        // Full eligibility rule (role + assignment + no-self-approval) lives
+        // in ResearchWorkflowProgress::canBeReviewedBy(), shared with the
+        // getProgressItem() response so the frontend Review page can gate
+        // itself the same way instead of only finding out via this 403.
+        if (!$progress->canBeReviewedBy($user)) {
             return response()->json([
                 'success' => false,
                 'message' => 'You are not authorized to review this stage',

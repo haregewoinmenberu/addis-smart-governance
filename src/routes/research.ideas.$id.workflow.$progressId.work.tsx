@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { researchWorkflowAPI, ValidationApiError } from "@/lib/research-workflow-api";
-import { ArrowLeft, Send, Loader2, FileCheck, Upload } from "lucide-react";
+import { ArrowLeft, Send, Loader2, FileCheck, Upload, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { ResearchWorkflowProgress, UploadedStageFile } from "@/types/research-workflow";
 
@@ -307,6 +307,28 @@ function WorkOnStagePage() {
       <AppShell>
         <div className="container mx-auto p-6">
           <div className="text-center text-red-600">Stage not found</div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!progress.can_work) {
+    return (
+      <AppShell>
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <ShieldAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <p className="text-lg font-medium">This isn't assigned to you</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                You're not authorized to work on this stage. It may be assigned to someone else,
+                or restricted to a different role.
+              </p>
+              <Button onClick={handleBack} className="mt-4">
+                Back to Workflow
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </AppShell>
     );

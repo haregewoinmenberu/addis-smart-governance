@@ -48,6 +48,8 @@ export interface ResearchWorkflowProgress {
   assigned_user?: User;
   completed_by_user?: User;
   reviews?: ResearchStageReview[];
+  can_work?: boolean;
+  can_review?: boolean;
 }
 
 export interface ResearchStageReview {

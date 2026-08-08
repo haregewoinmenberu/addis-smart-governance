@@ -5,7 +5,7 @@ import {
   Users, Settings, ChevronLeft, Sparkles, Layers, LogOut,
   Lightbulb, FlaskConical, TrendingUp, Award, BookOpen, Target,
   AlertTriangle, ClipboardList, FileText, Shield, Network, ChevronDown, ChevronRight,
-  Calendar, Cloud, Server, Zap, TestTube, FileCheck, Download, Microscope,
+  Calendar, Cloud, Server, Zap, TestTube, FileCheck, Download, Microscope, Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useMemo, memo } from "react";
@@ -58,7 +58,7 @@ const nav: NavItem[] = [
 
   // ── Research Director Portal (for research_director role only) ──────
   {
-    to: "/dashboard/main",
+    to: "/research/director/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
     sectionLabel: "Research Director",
@@ -66,72 +66,33 @@ const nav: NavItem[] = [
   },
 
   {
-    label: "Research",
-    icon: Microscope,
+    to: "/research/ideas/director?tab=assigned",
+    label: "Assigned Requests",
+    icon: Target,
     sectionLabel: "Research Director",
-    children: [
-      {
-        to: "/research/ideas/director?tab=assigned",
-        label: "Assigned Requests",
-        icon: Target,
-        permission: "view_research",
-      },
-      {
-        to: "/research/reports",
-        label: "Research Reports",
-        icon: FileText,
-        permission: "view-research-reports",
-      },
-    ],
+    permission: "view_research",
   },
-
   {
-    label: "Analytics & Reports",
-    icon: BarChart3,
+    to: "/research/workflow-stages",
+    label: "Workflow Stages",
+    icon: GitBranch,
     sectionLabel: "Research Director",
-    children: [
-      {
-        to: "/reports",
-        label: "Reports",
-        icon: BarChart3,
-        permission: "view_reports",
-      },
-    ],
+    permission: "manage_workflow_stages",
   },
-
   {
-    label: "Management",
-    icon: Settings,
+    to: "/users",
+    label: "Manage Team-Leaders",
+    icon: Users,
     sectionLabel: "Research Director",
-    children: [
-      {
-        to: "/users",
-        label: "User Management",
-        icon: Users,
-        permission: "view_users",
-        children: [
-          {
-            to: "/users",
-            label: "Users",
-            icon: Users,
-            permission: "view_users",
-          },
-        ],
-      },
-      {
-        to: "/notifications",
-        label: "Notifications",
-        icon: Bell,
-        permission: "view_notifications",
-      },
-      {
-        to: "/research/workflow-stages",
-        label: "Workflow Stages",
-        icon: GitBranch,
-        permission: "manage_workflow_stages",
-      },
-    ],
+    permission: "view_users",
   },
+  {
+    to: "/notifications",
+    label: "Notifications",
+    icon: Bell,
+    sectionLabel: "Research Director",
+    permission: "view_notifications",
+  }, 
 
   // ── Research Team Leader Portal (for research_team_leader role only) ──────
   {
@@ -141,39 +102,26 @@ const nav: NavItem[] = [
     sectionLabel: "Research Team Leader",
     permission: "view_assigned_research",
   },
-
   {
-    label: "Research Tasks",
-    icon: Microscope,
+    to: "/research/ideas/team-leader",
+    label: "Assigned Research",
+    icon: Target,
     sectionLabel: "Research Team Leader",
-    children: [
-      {
-        to: "/research/ideas/team-leader",
-        label: "Technology Requests",
-        icon: Lightbulb,
-        permission: "view_assigned_research",
-      }
-    ],
+    permission: "view_assigned_research",
   },
-
   {
-    label: "User Management",
+    to: "/users",
+    label: "Manage Officers",
     icon: Users,
     sectionLabel: "Research Team Leader",
-    children: [
-      {
-        to: "/users",
-        label: "Users",
-        icon: Users,
-        permission: "view_users",
-      },
-      {
-        to: "/notifications",
-        label: "Notifications",
-        icon: Bell,
-        permission: "view_notifications",
-      },
-    ],
+    permission: "view_users",
+  },
+  {
+    to: "/notifications",
+    label: "Notifications",
+    icon: Bell,
+    sectionLabel: "Research Team Leader",
+    permission: "view_notifications",
   },
 
   // ── Research Officer Portal (for research_officer role only) ──────
@@ -183,6 +131,13 @@ const nav: NavItem[] = [
     icon: LayoutDashboard,
     sectionLabel: "Research Officer",
     permission: "view_assigned_task",
+  },
+  {
+    to: "/notifications",
+    label: "Notifications",
+    icon: Bell,
+    sectionLabel: "Research Officer",
+    permission: "view_notifications",
   },
 
   {
@@ -247,31 +202,23 @@ const nav: NavItem[] = [
 
   // ── Dashboards ──────────────────────────────────────────────
   {
-    label: "Dashboards",
+    to: "/dashboard/main",
+    label: "Dashboard",
     icon: LayoutDashboard,
-    sectionLabel: "Dashboards",
-    children: [
-      {
-        to: "/dashboard/main",
-        label: "Main Dashboard",
-        icon: LayoutDashboard,
-        permission: "view_dashboard",
-      },
-      {
-        to: "/dashboard/executive",
-        label: "Executive Dashboard",
-        icon: Sparkles,
-        permission: "view_executive_dashboard",
-      },
-      {
-        to: "/reports",
-        label: "Reports Dashboard",
-        icon: BarChart3,
-        permission: "view_reports_dashboard",
-      },
-    ],
+    permission: "view_dashboard",
   },
-
+  {
+    to: "/dashboard/executive",
+    label: "Executive Dashboard",
+    icon: Sparkles,
+    permission: "view_executive_dashboard",
+  },
+  {
+    to: "/reports",
+    label: "Reports Dashboard",
+    icon: BarChart3,
+    permission: "view_reports_dashboard",
+  },
   // ── Training Management ────────────────────────────────────
   {
     label: "Training Management",
@@ -300,40 +247,40 @@ const nav: NavItem[] = [
 
   // ── Research & Innovation ───────────────────────────────────
   {
-    label: "Research & Innovation",
-    icon: Microscope,
-    children: [
-      {
-        to: "/technology-requests",
-        label: "Technology Requests",
-        icon: Lightbulb,
-        permissions: ["view_research", "receive_requests"],
-      },
-      {
-        to: "/research/screenings",
-        label: "Idea Screening",
-        icon: Target,
-        permission: "conduct_research",
-      },
-      {
-        to: "/research/transfers",
-        label: "Technology Transfer",
-        icon: Award,
-        permission: "forward_project",
-      },
-      {
-        to: "/research/reports",
-        label: "Research Reports",
-        icon: FileText,
-        permission: "view_research",
-      },
-      {
-        to: "/research/workflow-stages",
-        label: "Workflow Stages",
-        icon: GitBranch,
-        permission: "manage_workflow_stages",
-      },
-    ],
+    to: "/technology-requests",
+    label: "Requests",
+    icon: Lightbulb,
+    permissions: ["view_research", "receive_requests"],
+  },
+  {
+    to: "/research/screenings",
+    label: "Idea Screening",
+    icon: Target,
+    permission: "conduct_research",
+  },
+  {
+    to: "/research/transfers",
+    label: "Technology Transfer",
+    icon: Award,
+    permission: "forward_project",
+  },
+  {
+    to: "/research/reports",
+    label: "Research Reports",
+    icon: FileText,
+    permission: "view_research",
+  },
+  {
+    to: "/research/forwarded-to-me",
+    label: "Forwarded to Me",
+    icon: Inbox,
+    permission: "view_research",
+  },
+  {
+    to: "/research/workflow-stages",
+    label: "Workflow Stages",
+    icon: GitBranch,
+    permission: "manage_workflow_stages",
   },
 
   // ── Cyber Security ─────────────────────────────────────────
@@ -534,51 +481,36 @@ const nav: NavItem[] = [
 
   // ── Analytics & Reports ────────────────────────────────────
   {
-    label: "Analytics & Reports",
+    to: "/dashboard/executive",
+    label: "Dashboards",
+    icon: LayoutDashboard,
+    permission: "view_executive_dashboard",
+  },
+  {
+    to: "/reports",
+    label: "Reports",
     icon: BarChart3,
-    children: [
-      {
-        to: "/dashboard/executive",
-        label: "Dashboards",
-        icon: LayoutDashboard,
-        permission: "view_executive_dashboard",
-      },
-      {
-        to: "/reports",
-        label: "Reports",
-        icon: BarChart3,
-        permission: "view_reports",
-      },
-      {
-        to: "/reports/export",
-        label: "Data Export",
-        icon: Download,
-        permission: "export_reports",
-      },
-    ],
+    permission: "view_reports",
+  },
+  {
+    to: "/reports/export",
+    label: "Data Export",
+    icon: Download,
+    permission: "export_reports",
   },
 
   // User Management ────────────────────────────────────────
   {
-    label: "User Management",
+    to: "/users",
+    label: "Users",
     icon: Users,
-    sectionLabel: "Management",
-    permissions: ["view_users", "create_users"],
-    requireAll: false,
-    children: [
-      {
-        to: "/users",
-        label: "Users",
-        icon: Users,
-        permission: "view_users",
-      },
-      {
-        to: "/rbac",
-        label: "Roles & Permissions",
-        icon: ShieldCheck,
-        permission: "manage_roles",
-      },
-    ],
+    permission: "view_users",
+  },
+  {
+    to: "/rbac",
+    label: "Roles & Permissions",
+    icon: ShieldCheck,
+    permission: "manage_roles",
   },
 
   // ── Communications ─────────────────────────────────────────

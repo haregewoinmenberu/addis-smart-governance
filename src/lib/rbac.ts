@@ -167,6 +167,24 @@ export function getDashboardRoute(user: User | null): string {
     return "/dashboard/bureau-head";
   }
 
+  // Check for research director role - redirect to director dashboard
+  const isResearchDirector = user.roles?.some(role => role.name === "research_director");
+  if (isResearchDirector) {
+    return "/research/director/dashboard";
+  }
+
+  // Check for research officer role - redirect to officer dashboard
+  const isResearchOfficer = user.roles?.some(role => role.name === "research_officer");
+  if (isResearchOfficer) {
+    return "/research/officer/dashboard";
+  }
+
+  // Check for research team leader role - redirect to team leader dashboard
+  const isResearchTeamLeader = user.roles?.some(role => role.name === "research_team_leader");
+  if (isResearchTeamLeader) {
+    return "/research/team-leader/dashboard";
+  }
+
   // Priority order for dashboard routes (for internal staff)
   const dashboardChecks = [
     { permission: "view_executive_dashboard" as PermissionName, route: "/dashboard/executive" },

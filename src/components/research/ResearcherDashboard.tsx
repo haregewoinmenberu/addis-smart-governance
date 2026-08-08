@@ -32,8 +32,12 @@ export default function ResearcherDashboard() {
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Welcome, {stats?.user?.name || 'Evaluation Officer'}</h1>
-          <p className="text-muted-foreground">{stats?.user?.role || 'Technical Evaluation Officer'}</p>
+          <h1 className="text-3xl font-bold">
+            Welcome, {stats?.user?.name || "Evaluation Officer"}
+          </h1>
+          <p className="text-muted-foreground">
+            {stats?.user?.role || "Technical Evaluation Officer"}
+          </p>
         </div>
         <Badge variant="outline" className="px-3 py-1.5 text-sm">
           Technical Evaluation Officer
@@ -95,7 +99,10 @@ export default function ResearcherDashboard() {
           {stats?.my_tasks_list?.length > 0 ? (
             <div className="space-y-3">
               {stats.my_tasks_list.map((task: any) => (
-                <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                <div
+                  key={task.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+                >
                   <div className="flex-1">
                     <p className="font-medium">{task.title}</p>
                     <p className="text-sm text-muted-foreground">
@@ -109,7 +116,7 @@ export default function ResearcherDashboard() {
                         {new Date(task.due_date).toLocaleDateString()}
                       </div>
                     )}
-                    <Badge variant={task.priority === 'high' ? 'destructive' : 'outline'}>
+                    <Badge variant={task.priority === "high" ? "destructive" : "outline"}>
                       {task.priority}
                     </Badge>
                     <Badge>{task.status}</Badge>
@@ -128,28 +135,34 @@ export default function ResearcherDashboard() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>My Research Ideas</CardTitle>
-            <Button size="sm">Submit New Idea</Button>
+            <Button size="sm">New Request</Button>
           </div>
         </CardHeader>
         <CardContent>
           {stats?.my_ideas_list?.length > 0 ? (
             <div className="space-y-3">
               {stats.my_ideas_list.map((idea: any) => (
-                <div key={idea.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={idea.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex-1">
                     <p className="font-medium">{idea.title}</p>
-                    <p className="text-sm text-muted-foreground line-clamp-1">
-                      {idea.summary}
-                    </p>
+                    <p className="text-sm text-muted-foreground line-clamp-1">{idea.summary}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={
-                      idea.status === 'approved' ? 'default' :
-                      idea.status === 'rejected' ? 'destructive' :
-                      idea.status === 'under_review' ? 'secondary' :
-                      'outline'
-                    }>
-                      {idea.status.replace('_', ' ')}
+                    <Badge
+                      variant={
+                        idea.status === "approved"
+                          ? "default"
+                          : idea.status === "rejected"
+                            ? "destructive"
+                            : idea.status === "under_review"
+                              ? "secondary"
+                              : "outline"
+                      }
+                    >
+                      {idea.status.replace("_", " ")}
                     </Badge>
                     <Badge variant="outline">{idea.priority}</Badge>
                   </div>
@@ -171,7 +184,10 @@ export default function ResearcherDashboard() {
           <CardContent>
             <div className="space-y-3">
               {stats.team_projects.map((project: any) => (
-                <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={project.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex-1">
                     <p className="font-medium">{project.title}</p>
                     <p className="text-sm text-muted-foreground">
@@ -183,7 +199,7 @@ export default function ResearcherDashboard() {
                       <p className="text-sm font-medium">{project.progress_percentage}%</p>
                       <p className="text-xs text-muted-foreground">Progress</p>
                     </div>
-                    <Badge variant="outline">{project.current_stage.replace('_', ' ')}</Badge>
+                    <Badge variant="outline">{project.current_stage.replace("_", " ")}</Badge>
                   </div>
                 </div>
               ))}

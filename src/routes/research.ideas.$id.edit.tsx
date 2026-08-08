@@ -23,10 +23,14 @@ export const Route = createFileRoute("/research/ideas/$id/edit")({
       <EditResearchIdeaPage />
     </RequireAuth>
   ),
+  validateSearch: (search: Record<string, unknown>) => ({
+    returnTo: (search.returnTo as string) || "/research/ideas",
+  }),
 });
 
 function EditResearchIdeaPage() {
   const { id } = Route.useParams();
+  const { returnTo } = Route.useSearch();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -75,7 +79,7 @@ function EditResearchIdeaPage() {
         title: "Success",
         description: "Research idea updated successfully",
       });
-      navigate({ to: `/research/ideas/${id}` });
+      navigate({ to: returnTo });
     },
     onError: (error: any) => {
       toast({
@@ -116,8 +120,8 @@ function EditResearchIdeaPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => navigate({ to: "/research/ideas" })} variant="outline">
-                Back to Research Ideas
+              <Button onClick={() => navigate({ to: returnTo })} variant="outline">
+                Back
               </Button>
             </CardContent>
           </Card>
@@ -135,10 +139,10 @@ function EditResearchIdeaPage() {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => navigate({ to: `/research/ideas/${id}` })}
+            onClick={() => navigate({ to: returnTo })}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Details
+            Back
           </Button>
         }
       />
@@ -354,7 +358,7 @@ function EditResearchIdeaPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate({ to: `/research/ideas/${id}` })}
+              onClick={() => navigate({ to: returnTo })}
               className="h-12"
             >
               Cancel

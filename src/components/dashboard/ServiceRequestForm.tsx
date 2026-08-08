@@ -17,7 +17,17 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
-import { FlaskConical, Cpu, ShieldCheck, Loader2, CheckCircle2, X, Upload, FileText, Trash2 } from "lucide-react";
+import {
+  FlaskConical,
+  Cpu,
+  ShieldCheck,
+  Loader2,
+  CheckCircle2,
+  X,
+  Upload,
+  FileText,
+  Trash2,
+} from "lucide-react";
 
 interface ServiceRequestFormProps {
   serviceType?: "research" | "transformation" | "licensing";
@@ -26,20 +36,18 @@ interface ServiceRequestFormProps {
   onCancel?: () => void;
 }
 
-export function ServiceRequestForm({ 
-  serviceType: initialServiceType, 
+export function ServiceRequestForm({
+  serviceType: initialServiceType,
   editingSubmission,
   onSuccess,
-  onCancel 
+  onCancel,
 }: ServiceRequestFormProps) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [serviceType, setServiceType] = useState<string>(
-    initialServiceType || editingSubmission?.service_type || ""
+    initialServiceType || editingSubmission?.service_type || "",
   );
-  const [formData, setFormData] = useState<Record<string, any>>(
-    editingSubmission?.form_data || {}
-  );
+  const [formData, setFormData] = useState<Record<string, any>>(editingSubmission?.form_data || {});
   const [agree, setAgree] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -135,7 +143,7 @@ export function ServiceRequestForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!agree && !editingSubmission) {
       toast({
         title: "Agreement Required",
@@ -189,9 +197,7 @@ export function ServiceRequestForm({
                   <FlaskConical className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="font-semibold">Research Services</h3>
-                <p className="text-xs text-muted-foreground">
-                  Submit research proposals
-                </p>
+                <p className="text-xs text-muted-foreground">Submit research proposals</p>
               </CardContent>
             </Card>
 
@@ -219,9 +225,7 @@ export function ServiceRequestForm({
                   <ShieldCheck className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="font-semibold">Professional Licensing</h3>
-                <p className="text-xs text-muted-foreground">
-                  Apply for IT professional licenses
-                </p>
+                <p className="text-xs text-muted-foreground">Apply for IT professional licenses</p>
               </CardContent>
             </Card>
           </div>
@@ -240,13 +244,13 @@ export function ServiceRequestForm({
             </div>
             <div>
               <CardTitle>
-                {editingSubmission ? "Edit" : "New"} {serviceType.charAt(0).toUpperCase() + serviceType.slice(1)} Request
+                {editingSubmission ? "Edit" : "New"}{" "}
+                {serviceType.charAt(0).toUpperCase() + serviceType.slice(1)} Request
               </CardTitle>
               <CardDescription>
-                {editingSubmission 
+                {editingSubmission
                   ? `Update your ${serviceType} request details`
-                  : `Complete the form to submit your ${serviceType} request`
-                }
+                  : `Complete the form to submit your ${serviceType} request`}
               </CardDescription>
             </div>
           </div>
@@ -271,9 +275,7 @@ export function ServiceRequestForm({
                     onChange={(e) => handleInputChange("fullName", e.target.value)}
                     placeholder="Your full name"
                   />
-                  {errors.fullName && (
-                    <p className="text-sm text-destructive">{errors.fullName}</p>
-                  )}
+                  {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -300,9 +302,7 @@ export function ServiceRequestForm({
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="your.email@example.com"
                   />
-                  {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -313,9 +313,7 @@ export function ServiceRequestForm({
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     placeholder="+251912345678"
                   />
-                  {errors.phone && (
-                    <p className="text-sm text-destructive">{errors.phone}</p>
-                  )}
+                  {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                 </div>
               </div>
 
@@ -346,13 +344,13 @@ export function ServiceRequestForm({
                       <SelectItem value="AI & Data">AI & Data</SelectItem>
                       <SelectItem value="Smart City">Smart City</SelectItem>
                       <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
-                      <SelectItem value="Public Sector Innovation">Public Sector Innovation</SelectItem>
+                      <SelectItem value="Public Sector Innovation">
+                        Public Sector Innovation
+                      </SelectItem>
                       <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
-                  {errors.category && (
-                    <p className="text-sm text-destructive">{errors.category}</p>
-                  )}
+                  {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -384,9 +382,7 @@ export function ServiceRequestForm({
                 <p className="text-xs text-muted-foreground">
                   {formData.abstract?.length || 0} / 2000 characters
                 </p>
-                {errors.abstract && (
-                  <p className="text-sm text-destructive">{errors.abstract}</p>
-                )}
+                {errors.abstract && <p className="text-sm text-destructive">{errors.abstract}</p>}
               </div>
 
               <div className="space-y-2">
@@ -471,9 +467,7 @@ export function ServiceRequestForm({
                     onChange={(e) => handleInputChange("position", e.target.value)}
                     placeholder="Job title"
                   />
-                  {errors.position && (
-                    <p className="text-sm text-destructive">{errors.position}</p>
-                  )}
+                  {errors.position && <p className="text-sm text-destructive">{errors.position}</p>}
                 </div>
               </div>
 
@@ -487,9 +481,7 @@ export function ServiceRequestForm({
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="email@example.com"
                   />
-                  {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -500,9 +492,7 @@ export function ServiceRequestForm({
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     placeholder="+251912345678"
                   />
-                  {errors.phone && (
-                    <p className="text-sm text-destructive">{errors.phone}</p>
-                  )}
+                  {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                 </div>
               </div>
 
@@ -551,9 +541,7 @@ export function ServiceRequestForm({
                   placeholder="Describe the scope of your transformation needs..."
                   rows={6}
                 />
-                {errors.scope && (
-                  <p className="text-sm text-destructive">{errors.scope}</p>
-                )}
+                {errors.scope && <p className="text-sm text-destructive">{errors.scope}</p>}
               </div>
 
               <FileUploadBox
@@ -599,9 +587,7 @@ export function ServiceRequestForm({
                     onChange={(e) => handleInputChange("fullName", e.target.value)}
                     placeholder="Your full name"
                   />
-                  {errors.fullName && (
-                    <p className="text-sm text-destructive">{errors.fullName}</p>
-                  )}
+                  {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -628,9 +614,7 @@ export function ServiceRequestForm({
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="email@example.com"
                   />
-                  {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -641,9 +625,7 @@ export function ServiceRequestForm({
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     placeholder="+251912345678"
                   />
-                  {errors.phone && (
-                    <p className="text-sm text-destructive">{errors.phone}</p>
-                  )}
+                  {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                 </div>
               </div>
 
@@ -659,16 +641,16 @@ export function ServiceRequestForm({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Software Development">Software Development</SelectItem>
-                      <SelectItem value="Networking & Infrastructure">Networking & Infrastructure</SelectItem>
+                      <SelectItem value="Networking & Infrastructure">
+                        Networking & Infrastructure
+                      </SelectItem>
                       <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
                       <SelectItem value="Data & AI">Data & AI</SelectItem>
                       <SelectItem value="IT Consulting">IT Consulting</SelectItem>
                       <SelectItem value="Hardware Supply">Hardware Supply</SelectItem>
                     </SelectContent>
                   </Select>
-                  {errors.category && (
-                    <p className="text-sm text-destructive">{errors.category}</p>
-                  )}
+                  {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -686,9 +668,7 @@ export function ServiceRequestForm({
                       <SelectItem value="Grade 3">Grade 3</SelectItem>
                     </SelectContent>
                   </Select>
-                  {errors.grade && (
-                    <p className="text-sm text-destructive">{errors.grade}</p>
-                  )}
+                  {errors.grade && <p className="text-sm text-destructive">{errors.grade}</p>}
                 </div>
               </div>
 
@@ -723,7 +703,8 @@ export function ServiceRequestForm({
               <div className="space-y-2">
                 <Label htmlFor="documents">Supporting Documents (Optional)</Label>
                 <p className="text-xs text-muted-foreground">
-                  Attach credentials, certifications, CV, or other supporting files. You can add multiple.
+                  Attach credentials, certifications, CV, or other supporting files. You can add
+                  multiple.
                 </p>
 
                 {(documents.length > 0 ||
@@ -756,9 +737,7 @@ export function ServiceRequestForm({
                           variant="ghost"
                           size="sm"
                           className="ml-auto"
-                          onClick={() =>
-                            setDocuments((prev) => prev.filter((_, i) => i !== index))
-                          }
+                          onClick={() => setDocuments((prev) => prev.filter((_, i) => i !== index))}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -801,25 +780,20 @@ export function ServiceRequestForm({
                 onCheckedChange={(checked) => setAgree(checked as boolean)}
               />
               <Label htmlFor="agree" className="text-sm leading-relaxed cursor-pointer">
-                I agree to the terms and conditions and certify that the information provided is accurate
+                I agree to the terms and conditions and certify that the information provided is
+                accurate
               </Label>
             </div>
           )}
 
           {Object.keys(errors).length > 0 && (
             <Alert variant="destructive">
-              <AlertDescription>
-                Please fix the errors above before submitting
-              </AlertDescription>
+              <AlertDescription>Please fix the errors above before submitting</AlertDescription>
             </Alert>
           )}
 
           <div className="flex items-center gap-3">
-            <Button
-              type="submit"
-              disabled={mutation.isPending}
-              className="flex-1"
-            >
+            <Button type="submit" disabled={mutation.isPending} className="flex-1">
               {mutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -881,13 +855,7 @@ function FileUploadBox({
           <span className="text-xs text-muted-foreground">
             ({(file.size / 1024).toFixed(0)} KB)
           </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="ml-auto"
-            onClick={onRemove}
-          >
+          <Button type="button" variant="ghost" size="sm" className="ml-auto" onClick={onRemove}>
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
         </div>
@@ -908,9 +876,7 @@ function FileUploadBox({
             <span className="text-sm font-medium">
               {existing?.original_name ? "Click to replace file" : "Click to upload"}
             </span>
-            {description && (
-              <span className="text-xs text-muted-foreground">{description}</span>
-            )}
+            {description && <span className="text-xs text-muted-foreground">{description}</span>}
           </label>
         </>
       )}

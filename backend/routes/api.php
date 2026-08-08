@@ -813,7 +813,45 @@ Route::middleware(['auth:api', 'log.activity'])->group(function () {
             ->middleware('permission:view_research');
         Route::get('/{researchIdea}/attachments/{attachmentId}/download', [ResearchIdeaController::class, 'downloadAttachment'])
             ->middleware('permission:view_research');
+        Route::get('/{researchIdea}/attachments/{attachmentId}/check-edit-privilege', [ResearchIdeaController::class, 'checkAttachmentEditPrivilege'])
+            ->middleware('permission:view_research');
+        Route::put('/{researchIdea}/attachments/{attachmentId}', [ResearchIdeaController::class, 'updateAttachment'])
+            ->middleware('permission:view_research');
         Route::delete('/{researchIdea}/attachments/{attachmentId}', [ResearchIdeaController::class, 'deleteAttachment'])
+            ->middleware('permission:view_research');
+    });
+
+    // Research Director Dashboard
+    Route::prefix('research/director')->group(function () {
+        Route::get('/stats', [\App\Http\Controllers\Api\ResearchDirectorController::class, 'getStats'])
+            ->middleware('permission:view_research');
+    });
+
+    // Research Reports
+    Route::prefix('research/reports')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\ResearchReportController::class, 'index'])
+            ->middleware('permission:view_research');
+        Route::get('/forward-targets', [\App\Http\Controllers\Api\ResearchReportResponseController::class, 'forwardTargets'])
+            ->middleware('permission:view_research');
+        Route::get('/forwarded-to-me', [\App\Http\Controllers\Api\ResearchReportResponseController::class, 'receivedForwards'])
+            ->middleware('permission:view_research');
+        Route::get('/for-idea/{researchIdeaId}', [\App\Http\Controllers\Api\ResearchReportResponseController::class, 'statusForResearchIdea'])
+            ->middleware('permission:view_research');
+        Route::get('/{review}', [\App\Http\Controllers\Api\ResearchReportController::class, 'show'])
+            ->middleware('permission:view_research');
+        Route::get('/{review}/documents/{document}/download', [\App\Http\Controllers\Api\ResearchReportController::class, 'downloadDocument'])
+            ->middleware('permission:view_research');
+        Route::get('/{progress}/responses', [\App\Http\Controllers\Api\ResearchReportResponseController::class, 'index'])
+            ->middleware('permission:view_research');
+        Route::post('/{progress}/respond-to-requester', [\App\Http\Controllers\Api\ResearchReportResponseController::class, 'respondToRequester'])
+            ->middleware('permission:view_research');
+        Route::post('/{progress}/forward', [\App\Http\Controllers\Api\ResearchReportResponseController::class, 'forward'])
+            ->middleware('permission:view_research');
+        Route::post('/responses/{response}/resend', [\App\Http\Controllers\Api\ResearchReportResponseController::class, 'resend'])
+            ->middleware('permission:view_research');
+        Route::get('/responses/{response}/certificate', [\App\Http\Controllers\Api\ResearchReportResponseController::class, 'downloadCertificate'])
+            ->middleware('permission:view_research');
+        Route::get('/responses/{response}/view', [\App\Http\Controllers\Api\ResearchReportResponseController::class, 'showResponse'])
             ->middleware('permission:view_research');
     });
 

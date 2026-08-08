@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { researchWorkflowAPI } from '@/lib/research-workflow-api';
-import { ArrowLeft, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, AlertCircle, FileText, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { ResearchWorkflowProgress, UploadedStageFile } from '@/types/research-workflow';
 import { Badge } from '@/components/ui/badge';
@@ -171,6 +171,29 @@ function ReviewStagePage() {
               <p className="text-lg font-medium">This stage is not pending review</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Current status: <Badge>{progress.status.replace(/_/g, ' ')}</Badge>
+              </p>
+              <Button onClick={handleBack} className="mt-4">
+                Back to Workflow
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!progress.can_review) {
+    return (
+      <AppShell>
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <ShieldAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <p className="text-lg font-medium">This isn't assigned to you</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                You're not authorized to review this submission — reviews are handled by the
+                assigned team leader, the research director, or Smart City for director-filled
+                stages.
               </p>
               <Button onClick={handleBack} className="mt-4">
                 Back to Workflow

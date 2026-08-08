@@ -45,39 +45,46 @@ class ResearchOfficerController extends Controller
             ->count();
 
         // Stages I need to work on
-        $pendingStages = ResearchWorkflowProgress::whereIn('research_idea_id', $assignedIdeaIds)
-            ->where('assigned_to', $user->id)
-            ->whereIn('status', ['not_started', 'in_progress'])
-            ->with(['stage:id,name,stage_order', 'researchIdea:id,title,research_category'])
-            ->latest()
-            ->take(10)
-            ->get()
-            ->map(fn ($p) => [
-                'id'         => $p->id,
-                'stage_name' => $p->stage?->name,
-                'status'     => $p->status,
-                'research_id'    => $p->research_idea_id,
-                'research_title' => $p->researchIdea?->title,
-                'category'       => $p->researchIdea?->research_category,
-                'started_at'     => $p->started_at,
-            ]);
+        $pendingStages = collect([]);
+        if ($assignedIdeaIds->isNotEmpty()) {
+            $pendingStages = ResearchWorkflowProgress::whereIn('research_idea_id', $assignedIdeaIds)
+                ->where('assigned_to', $user->id)
+                ->whereIn('status', ['not_started', 'in_progress'])
+                ->with(['stage', 'researchIdea'])
+                ->latest()
+                ->take(10)
+                ->get()
+                ->map(fn ($p) => [
+                    'id'         => $p->id,
+                    'stage_name' => $p->stage?->name,
+                    'status'     => $p->status,
+                    'research_id'    => $p->research_idea_id,
+                    'research_title' => $p->researchIdea?->title,
+                    'category'       => $p->researchIdea?->research_category,
+                    'started_at'     => $p->started_at,
+                ]);
+        }
 
         // Stages submitted for review
-        $submittedCount = ResearchWorkflowProgress::whereIn('research_idea_id', $assignedIdeaIds)
-            ->where('assigned_to', $user->id)
-            ->where('status', 'pending_review')
-            ->count();
+        $submittedCount = $assignedIdeaIds->isNotEmpty() 
+            ? ResearchWorkflowProgress::whereIn('research_idea_id', $assignedIdeaIds)
+                ->where('assigned_to', $user->id)
+                ->where('status', 'pending_review')
+                ->count()
+            : 0;
 
         // Stages that were revision-requested
-        $revisionCount = ResearchWorkflowProgress::whereIn('research_idea_id', $assignedIdeaIds)
-            ->where('assigned_to', $user->id)
-            ->where('status', 'revision_requested')
-            ->count();
+        $revisionCount = $assignedIdeaIds->isNotEmpty()
+            ? ResearchWorkflowProgress::whereIn('research_idea_id', $assignedIdeaIds)
+                ->where('assigned_to', $user->id)
+                ->where('status', 'revision_requested')
+                ->count()
+            : 0;
 
         // Recent assigned evaluations
         $recentAssignments = ResearchAssignment::where('assigned_to', $user->id)
             ->where('assignment_type', 'officer')
-            ->with(['researchIdea:id,title,research_category,status,priority'])
+            ->with(['researchIdea'])
             ->latest()
             ->take(8)
             ->get()
@@ -209,10 +216,20 @@ class ResearchOfficerController extends Controller
             ->where('assignment_type', 'officer')
             ->pluck('research_idea_id');
 
+        if ($assignedIdeaIds->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'data'    => [
+                    'data' => [],
+                    'total' => 0,
+                ],
+            ]);
+        }
+
         $submissions = ResearchWorkflowProgress::whereIn('research_idea_id', $assignedIdeaIds)
             ->where('assigned_to', $user->id)
             ->whereIn('status', ['pending_review', 'approved', 'revision_requested', 'rejected'])
-            ->with(['stage:id,name', 'researchIdea:id,title,research_category'])
+            ->with(['stage', 'researchIdea'])
             ->latest('submitted_at')
             ->paginate(15);
 

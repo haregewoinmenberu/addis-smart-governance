@@ -176,7 +176,7 @@ export default function ResearchIdeaForm({ onSubmit, initialData, isEditing }: R
 
           <div className="flex gap-2">
             <Button type="submit" disabled={loading}>
-              {loading ? 'Submitting...' : isEditing ? 'Update Technology Request' : 'Submit Technology Request'}
+              {loading ? 'Submitting...' : isEditing ? 'Update  Request' : 'Submit  Request'}
             </Button>
           </div>
         </form>

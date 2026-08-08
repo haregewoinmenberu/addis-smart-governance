@@ -5,18 +5,25 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext,
 } from "@/components/ui/pagination";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Lightbulb, FileStack, Search, User, Calendar, ShieldCheck,
-  ClipboardList, Clock, CheckCircle2, XCircle,
+  ClipboardList, Clock, CheckCircle2, XCircle, Plus, Eye, Briefcase, Edit, Trash2,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { researchCategoryLabels } from "@/lib/research-schema";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 function StatCard({ title, value, icon: Icon, color = "text-primary" }: { title: string; value: number; icon: React.ElementType; color?: string }) {
   return (
@@ -59,10 +66,23 @@ const SERVICE_TYPE_LABELS: Record<string, string> = {
 
 function CombinedRequestsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [techSearch, setTechSearch] = useState("");
   const [serviceSearch, setServiceSearch] = useState("");
   const [techPage, setTechPage] = useState(1);
   const [servicePage, setServicePage] = useState(1);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; title: string } | null>(null);
+
+  // Check if user can create requests (Smart City staff, directors, bureau head)
+  const canCreateRequest = user?.roles?.some(role => 
+    role.name === 'smart_city_sector_head' ||
+    role.name === 'smart_city_command' ||
+    role.name === 'research_director' ||
+    role.name === 'bureau_head' ||
+    role.name === 'itdb_administrator'
+  );
 
   const { data: ideasData, isLoading: ideasLoading } = useQuery({
     queryKey: ["combined-technology-requests", techSearch, techPage],
@@ -70,6 +90,7 @@ function CombinedRequestsPage() {
       const params = new URLSearchParams();
       if (techSearch) params.append("search", techSearch);
       params.append("page", String(techPage));
+      params.append("per_page", "5"); // Show 5 items per page
       const res = await fetch(`/api/research-ideas?${params}`, {
         headers: { Authorization: `Bearer ${getAuthToken()}` },
       });
@@ -84,6 +105,7 @@ function CombinedRequestsPage() {
       const params = new URLSearchParams();
       if (serviceSearch) params.append("search", serviceSearch);
       params.append("page", String(servicePage));
+      params.append("per_page", "5"); // Show 5 items per page
       const res = await fetch(`/api/service-forms?${params}`, {
         headers: { Authorization: `Bearer ${getAuthToken()}` },
       });
@@ -101,6 +123,27 @@ function CombinedRequestsPage() {
     setServiceSearch(value);
     setServicePage(1);
   };
+
+  // Delete mutation
+  const deleteIdea = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/research-ideas/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${getAuthToken()}` },
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Deleted", description: "Technology request deleted successfully." });
+      queryClient.invalidateQueries({ queryKey: ["combined-technology-requests"] });
+      setDeleteTarget(null);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not delete the request.", variant: "destructive" });
+      setDeleteTarget(null);
+    },
+  });
 
   const ideas: any[] = ideasData?.data ?? [];
   // Only licensing/lms remain in Service Requests — research/transformation
@@ -122,10 +165,21 @@ function CombinedRequestsPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Requests"
-        subtitle="Technology requests and citizen service requests in one place"
-      />
+      <div className="flex items-center justify-between mb-6">
+        <PageHeader
+          title="Requests"
+          subtitle="Technology requests and citizen service requests in one place"
+        />
+        {canCreateRequest && (
+          <Button
+            onClick={() => navigate({ to: "/research/ideas/create", search: { returnTo: "/technology-requests" } })}
+            className="bg-gradient-primary text-primary-foreground shadow-glow"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Request
+          </Button>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard title="Total Requests" value={totalCount} icon={ClipboardList} />
@@ -207,7 +261,7 @@ function CombinedRequestsPage() {
                   </CardHeader>
                   <CardContent className="pb-3">
                     <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{idea.summary}</p>
-                    <div className="flex gap-1.5 flex-wrap">
+                    <div className="flex gap-1.5 flex-wrap mb-3">
                       {idea.research_category && (
                         <Badge variant="outline" className="text-[11px]">
                           {researchCategoryLabels[idea.research_category as keyof typeof researchCategoryLabels] ?? idea.research_category}
@@ -224,6 +278,67 @@ function CombinedRequestsPage() {
                         </Badge>
                       )}
                     </div>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate({
+                            to: "/research/ideas/$id",
+                            params: { id: String(idea.id) },
+                            search: { returnTo: "/technology-requests" },
+                          });
+                        }}
+                      >
+                        <Eye className="h-3 w-3 mr-1" /> View
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs text-blue-600 hover:bg-blue-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate({
+                            to: "/research/ideas/$id/workspace",
+                            params: { id: String(idea.id) },
+                          });
+                        }}
+                      >
+                        <Briefcase className="h-3 w-3 mr-1" /> Workspace
+                      </Button>
+                      {["draft", "submitted"].includes(idea.status) && (user?.id === idea.submitter_id || user?.id === idea.submitter?.id) && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs text-blue-600 hover:bg-blue-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate({
+                                to: "/research/ideas/$id/edit",
+                                params: { id: String(idea.id) },
+                                search: { returnTo: "/technology-requests" },
+                              });
+                            }}
+                          >
+                            <Edit className="h-3 w-3 mr-1" /> Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs text-red-600 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTarget({ id: idea.id, title: idea.title });
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" /> Delete
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -231,27 +346,67 @@ function CombinedRequestsPage() {
           )}
 
           {techLastPage > 1 && (
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => techPage > 1 && setTechPage(techPage - 1)}
-                    className={techPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-                <PaginationItem>
-                  <span className="text-sm text-muted-foreground px-2">
-                    Page {techPage} of {techLastPage}
-                  </span>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => techPage < techLastPage && setTechPage(techPage + 1)}
-                    className={techPage >= techLastPage ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => techPage > 1 && setTechPage(techPage - 1)}
+                disabled={techPage <= 1}
+                className="gap-2"
+              >
+                <span>← Back</span>
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, techLastPage) }, (_, i) => {
+                  let pageNum: number;
+                  if (techLastPage <= 5) {
+                    pageNum = i + 1;
+                  } else if (techPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (techPage >= techLastPage - 2) {
+                    pageNum = techLastPage - 4 + i;
+                  } else {
+                    pageNum = techPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={techPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setTechPage(pageNum)}
+                      className="w-9 h-9 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+                {techLastPage > 5 && techPage < techLastPage - 2 && (
+                  <>
+                    <span className="px-2 text-muted-foreground">...</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTechPage(techLastPage)}
+                      className="w-9 h-9 p-0"
+                    >
+                      {techLastPage}
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => techPage < techLastPage && setTechPage(techPage + 1)}
+                disabled={techPage >= techLastPage}
+                className="gap-2"
+              >
+                <span>Next →</span>
+              </Button>
+            </div>
           )}
         </TabsContent>
 
@@ -317,30 +472,94 @@ function CombinedRequestsPage() {
           )}
 
           {serviceLastPage > 1 && (
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => servicePage > 1 && setServicePage(servicePage - 1)}
-                    className={servicePage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-                <PaginationItem>
-                  <span className="text-sm text-muted-foreground px-2">
-                    Page {servicePage} of {serviceLastPage}
-                  </span>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => servicePage < serviceLastPage && setServicePage(servicePage + 1)}
-                    className={servicePage >= serviceLastPage ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => servicePage > 1 && setServicePage(servicePage - 1)}
+                disabled={servicePage <= 1}
+                className="gap-2"
+              >
+                <span>← Back</span>
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, serviceLastPage) }, (_, i) => {
+                  let pageNum: number;
+                  if (serviceLastPage <= 5) {
+                    pageNum = i + 1;
+                  } else if (servicePage <= 3) {
+                    pageNum = i + 1;
+                  } else if (servicePage >= serviceLastPage - 2) {
+                    pageNum = serviceLastPage - 4 + i;
+                  } else {
+                    pageNum = servicePage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={servicePage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setServicePage(pageNum)}
+                      className="w-9 h-9 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+                {serviceLastPage > 5 && servicePage < serviceLastPage - 2 && (
+                  <>
+                    <span className="px-2 text-muted-foreground">...</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setServicePage(serviceLastPage)}
+                      className="w-9 h-9 p-0"
+                    >
+                      {serviceLastPage}
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => servicePage < serviceLastPage && setServicePage(servicePage + 1)}
+                disabled={servicePage >= serviceLastPage}
+                className="gap-2"
+              >
+                <span>Next →</span>
+              </Button>
+            </div>
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Technology Request</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-foreground">"{deleteTarget?.title}"</span>?{" "}
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteIdea.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteIdea.isPending}
+              onClick={() => deleteTarget && deleteIdea.mutate(deleteTarget.id)}
+            >
+              {deleteIdea.isPending ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
